@@ -15,8 +15,8 @@ class Z80 {
             if (result > 255u) setOverflowFlag()
             if (result == 0u) setZeroFlag()
             a = result.toUByte()
+            tick()
         }
-        clock.tick()
     }
 
     // Compare A and B, set flags
@@ -26,8 +26,8 @@ class Z80 {
             setSubtractionFlag()
             if (b > a) setOverflowFlag() // underflow, really
             if (result == 0u) setZeroFlag()
+            tick()
         }
-        clock.tick()
     }
 
     // Push B and C onto stack
@@ -37,8 +37,8 @@ class Z80 {
             mmu.wb(sp, b)
             sp--
             mmu.wb(sp, c)
+            tick(3)
         }
-        clock.tick(3)
     }
 
     // Pop H and L off stack
@@ -47,8 +47,8 @@ class Z80 {
             l = mmu.rb(sp)
             sp++
             h = mmu.rb(sp)
+            tick(3)
         }
-        clock.tick(3)
     }
 
     // Read a byte into A
@@ -57,12 +57,12 @@ class Z80 {
             val address = mmu.rw(pc)
             pc = (pc + 2u).toUShort()
             a = mmu.rb(address)
+            tick(4)
         }
-        clock.tick(4)
     }
 
     fun NOP() {
-        clock.tick()
+        registers.tick()
     }
 
     fun reset() {
@@ -84,21 +84,31 @@ class Z80 {
         }
     }
 
+    fun execute(operation: UByte) {
+        when (operation.toUInt()) {
+            0x00u -> NOP()
+//            0x1 -> LDBCnn()
+//            0x2 -> LDBCmA()
+//            0x3 -> INCBC()
+//            0x4 -> INCr_b()
+            else -> TODO()
+        }
+    }
+
 }
 
 @kotlin.ExperimentalUnsignedTypes
 data class Clock(
-        var m: UByte = 0u,
-        var t: UByte = 0u
+        var m: UShort = 0u,
+        var t: UShort = 0u
 ) {
-    fun tick(times: Int = 1) {
-        repeat(times) {
-            m = 1u
-            t = 4u
-        }
+    fun add(m: UByte, t: UByte) {
+        this.m = (this.m + m).toUShort()
+        this.t = (this.t + t).toUShort()
     }
 }
 
+// Remember: Z80 is small endian
 @kotlin.ExperimentalUnsignedTypes
 data class Registers(
         var a: UByte = 0u,
@@ -110,8 +120,20 @@ data class Registers(
         var l: UByte = 0u,
         var f: UByte = 0u,
         var pc: UShort = 0u,
-        var sp: UShort = 0u
+        var sp: UShort = 0u,
+        var m: UByte = 0u,
+        var t: UByte = 0u
 ) {
+
+    var bc: UShort
+        get() {
+            return ((c.toUShort() * 256u) + b).toUShort()
+        }
+        set(new) {
+            b = new.upperByte()
+            c = new.lowerByte()
+        }
+
     // Set if last operation resulted in 0
     fun setZeroFlag() {
         f = (f or 0x80u).toUByte()
@@ -130,5 +152,12 @@ data class Registers(
     // Set if last operation was a subtraction
     fun setSubtractionFlag() {
         f = (f or 0x40u).toUByte()
+    }
+
+    fun tick(times: Int = 1) {
+        repeat(times) {
+            m = 1u
+            t = 4u
+        }
     }
 }
