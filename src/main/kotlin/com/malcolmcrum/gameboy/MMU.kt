@@ -22,6 +22,11 @@ class MMU {
         println()
     }
 
+    operator fun get(addr: UInt): UByte {
+        assert(addr <= 0xFFFFu)
+        return get(addr.toUShort())
+    }
+
     operator fun get(addr: UShort): UByte {
         return when(addr) {
             in (0x0000u..0x1000u) -> {
@@ -45,6 +50,11 @@ class MMU {
         val firstByte = get(addr)
         val secondByte = get((addr + 1u).toUShort())
         return (firstByte + secondByte shr 8).toUShort()
+    }
+
+    operator fun set(address: UInt, value: UByte) {
+        assert(address <= 0xFFFFu)
+        set(address.toUShort(), value)
     }
 
     operator fun set(address: UShort, value: UByte) {

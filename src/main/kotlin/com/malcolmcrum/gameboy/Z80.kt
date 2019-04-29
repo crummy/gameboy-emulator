@@ -181,6 +181,30 @@ class Z80 {
             0x30u -> if (!registers.carry) jr(operation.lowerByte)
             0x20u -> if (!registers.zero) jr(operation.lowerByte)
             0x28u -> if (registers.zero) jr(operation.lowerByte)
+            0xeau -> { // LD $aabb, A
+                val upperByte = mmu[registers.pc + 1u]
+                val lowerByte = mmu[registers.pc]
+                val address = createUShort(upperByte, lowerByte)
+                mmu[address] = registers.a
+                registers.pc = (registers.pc + 2u).toUShort()
+            }
+            0x08u -> { // LD $aabb,SP
+                val upperByte = mmu[registers.pc + 1u]
+                val lowerByte = mmu[registers.pc]
+                val address = createUShort(upperByte, lowerByte)
+                mmu[address] = registers.sp.lowerByte
+                mmu[address + 1u] = registers.sp.upperByte
+                registers.pc = (registers.pc + 2u).toUShort()
+            }
+            0xe0u -> { // LD ($xx),A - write to IO port?
+                val byte = mmu[registers.pc]
+                mmu[0xFF00u + byte] = registers.a
+            }
+            0x02u -> mmu[registers.bc] = registers.a
+            0xe2u -> mmu[0xFF00u + registers.c] = registers.a
+            0x12u -> mmu[registers.de] = registers.a
+            0x36u -> mmu[registers.hl] = mmu[registers.pc]
+
 //            0x2 -> LDBCmA()
 //            0x3 -> INCBC()
 //            0x4 -> INCr_b()
