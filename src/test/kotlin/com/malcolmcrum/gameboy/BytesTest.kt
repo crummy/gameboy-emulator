@@ -23,21 +23,32 @@ internal class BytesTest {
 
     @Test
     fun `read nibbles`() {
-        val byte = 0xFEu.toUByte()
+        val byte = 0xF9u.toUByte()
 
         assertAll {
-            assertThat(byte.lowerNibble).isEqualTo(0xEu.toUByte())
+            assertThat(byte.lowerNibble).isEqualTo(0x9u.toUByte())
             assertThat(byte.upperNibble).isEqualTo(0xFu.toUByte())
         }
     }
 
     @Test
     fun `write nibbles`() {
-        val byte = createUByte(0xFu, 0xEu)
+        val byte = createUByte(0xFu, 0x9u)
 
         assertAll {
             assertThat(byte.upperNibble).isEqualTo(0xFu.toUByte())
-            assertThat(byte.lowerNibble).isEqualTo(0xEu.toUByte())
+            assertThat(byte.lowerNibble).isEqualTo(0x9u.toUByte())
         }
+    }
+
+    @Test
+    fun `create UByte`() {
+        assertThat(createUByte(0xFu, 0x9u)).isEqualTo(0xF9u.toUByte())
+    }
+
+    @Test
+    fun `create UShort`() {
+        assertThat(createUShort(0xFFu, 0x99u)).isEqualTo(0xFF99u.toUShort())
+
     }
 }

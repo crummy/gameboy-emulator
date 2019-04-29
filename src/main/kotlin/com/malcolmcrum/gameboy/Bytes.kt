@@ -19,15 +19,15 @@ infix fun UShort.shr(b: UShort) = (toInt() ushr b.toInt()).toUShort()
 // from https://discuss.kotlinlang.org/t/recover-most-and-least-significant-bits-in-a-byte/11250/5
 @ExperimentalUnsignedTypes
 val UByte.upperNibble
-    get() = (this.toInt() shr 4 and 0xFF).toUByte()
+    get() = (this.toUInt() shr 4).toUByte()
 
 @ExperimentalUnsignedTypes
 val UByte.lowerNibble
-    get() = (this.toInt() and 0xFF).toUByte()
+    get() = (this.toUInt() and 0x0Fu).toUByte()
 
 @ExperimentalUnsignedTypes
 fun createUByte(upperNibble: UByte, lowerNibble: UByte): UByte {
-    assert(lowerNibble <= 0xFFu)
-    assert(upperNibble <= 0xFFu)
+    assert(lowerNibble <= 0xFu)
+    assert(upperNibble <= 0xFu)
     return ((upperNibble.toUInt() shl 4) + lowerNibble).toUByte()
 }
