@@ -10,11 +10,14 @@ val UShort.lowerByte
 
 @ExperimentalUnsignedTypes
 fun createUShort(upperByte: UByte, lowerByte: UByte): UShort {
-    return ((upperByte.toUShort() * 256u) + lowerByte).toUShort()
+    return ((upperByte.toUShort() shl 8u) + lowerByte).toUShort()
 }
 
 @ExperimentalUnsignedTypes
 infix fun UShort.shr(b: UShort) = (toInt() ushr b.toInt()).toUShort()
+
+@ExperimentalUnsignedTypes
+infix fun UShort.shl(b: UShort) = (toInt() shl b.toInt()).toUShort()
 
 // from https://discuss.kotlinlang.org/t/recover-most-and-least-significant-bits-in-a-byte/11250/5
 @ExperimentalUnsignedTypes
