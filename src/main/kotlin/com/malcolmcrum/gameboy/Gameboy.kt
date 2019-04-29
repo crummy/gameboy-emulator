@@ -19,8 +19,7 @@ class Gameboy {
         z80.mmu.load(gameData)
         describeGame()
         repeat(99) {
-            val operation = z80.mmu.rb(z80.registers.pc)
-            z80.execute(operation)
+            z80.execute()
             z80.registers.pc = z80.registers.pc and 0xFFFFu
             z80.clock.add(z80.registers.m, z80.registers.t)
         }

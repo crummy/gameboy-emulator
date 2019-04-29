@@ -88,8 +88,10 @@ class Z80 {
         }
     }
 
-    fun execute(operation: UByte) {
-        when (operation.toUInt()) {
+    fun execute() {
+        val operation = mmu.rw(registers.pc)
+
+        when (operation.upperByte.toUInt()) {
             0x00u -> NOP()
             0x10u -> STOP()
             0xceu -> TODO("adcA(\$xx)")
@@ -142,10 +144,119 @@ class Z80 {
             0xbdu -> cp(registers.l)
             0x2fu -> cpl()
             0x27u -> daa()
+            0x35u -> mmu.wb(registers.hl, dec(mmu.rb(registers.hl)))
+            0x3du -> registers.a = dec(registers.a)
+            0x05u -> registers.b = dec(registers.b)
+            0x0bu -> registers.bc = dec(registers.bc)
+            0x0du -> registers.c = dec(registers.c)
+            0x15u -> registers.d = dec(registers.d)
+            0x1bu -> registers.de = dec(registers.de)
+            0x25u -> registers.h = dec(registers.h)
+            0x2bu -> registers.hl = dec(registers.hl)
+            0x2du -> registers.l = dec(registers.l)
+            0x3bu -> registers.sp = dec(registers.sp)
+            0xf3u -> di()
+            0xfbu -> ei()
+            0x76u -> halt()
+            0x34u -> mmu.wb(registers.hl, inc(mmu.rb(registers.hl)))
+            0x3cu -> registers.a = inc(registers.a)
+            0x04u -> registers.b = inc(registers.b)
+            0x03u -> registers.bc = inc(registers.bc)
+            0x0cu -> registers.c = inc(registers.c)
+            0x14u -> registers.d = inc(registers.d)
+            0x13u -> registers.de = inc(registers.de)
+            0x1cu -> registers.e = inc(registers.e)
+            0x24u -> registers.h = inc(registers.h)
+            0x23u -> registers.hl = inc(registers.hl)
+            0x2cu -> registers.l = inc(registers.l)
+            0x33u -> registers.sp = inc(registers.sp)
+            0xc3u -> jp()
+            0xe9u -> jp(registers.hl)
+            0xdau -> if (registers.carry) jp()
+            0xd2u -> if (!registers.carry) jp()
+            0xc2u -> if (!registers.zero) jp()
+            0xcau -> if (registers.zero) jp()
+            0x18u -> jr(operation.lowerByte)
+            0x38u -> if (registers.carry) jr(operation.lowerByte)
+            0x30u -> if (!registers.carry) jr(operation.lowerByte)
+            0x20u -> if (!registers.zero) jr(operation.lowerByte)
+            0x28u -> if (registers.zero) jr(operation.lowerByte)
 //            0x2 -> LDBCmA()
 //            0x3 -> INCBC()
 //            0x4 -> INCr_b()
             else -> TODO()
+        }
+    }
+
+    private fun jr(offset: UByte) {
+        registers.pc = (registers.pc + offset).toUShort()
+    }
+
+    private fun jp(short: UShort) {
+        registers.pc = short
+    }
+
+
+    private fun jp() {
+        with (registers) {
+            val lowerByte = mmu.rb(pc)
+            pc++
+            val upperByte = mmu.rb(pc)
+            pc = createUShort(upperByte, lowerByte)
+        }
+
+    }
+
+    private fun inc(byte: UByte): UByte {
+        with (registers) {
+            val result = byte + 1u
+            f = 0u
+            if (result == 0u) zero = true
+            if (result > 0xFFu) setOverflowFlag()
+            return result.toUByte()
+        }
+    }
+
+    private fun inc(short: UShort): UShort {
+        with (registers) {
+            val result = short + 1u
+            f = 0u
+            if (result == 0u) zero = true
+            if (result > 0xFFu) setOverflowFlag()
+            return result.toUShort()
+        }
+    }
+
+    private fun halt() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    // Enable interrupts
+    private fun ei() {
+        TODO()
+    }
+
+    // Disable interrupts
+    private fun di() {
+        TODO()
+    }
+
+    private fun dec(byte: UByte): UByte {
+        with (registers) {
+            val result = byte - 1u
+            f = 0u
+            if (result == 0u) zero = true
+            if (result < 0xFFu) setOverflowFlag()
+            return result.toUByte()
+        }
+    }
+
+    private fun dec(short: UShort): UShort {
+        with (registers) {
+            val result = short - 1u
+            if (result == 0u) zero = false
+            if (result < 0xFFFFu) setOverflowFlag()
+            return result.toUShort()
         }
     }
 
@@ -163,7 +274,7 @@ class Z80 {
         with(registers) {
             a = a xor 0xffu
             f = 0u
-            if (a == 0u.toUByte()) zero = 1u
+            if (a == 0u.toUByte()) zero = true
         }
     }
 
@@ -172,31 +283,31 @@ class Z80 {
         with(registers) {
             val result = a - byte
             f = 0u
-            if (result > 255u) carry = 1u
-            if (result == 0u) zero = 1u
+            if (result > 255u) carry = true
+            if (result == 0u) zero = true
             tick()
         }
     }
 
     // Flip carry flag
     private fun ccf() {
-        registers.carry = if (registers.carry == 0u.toUByte()) 1u else 0u
+        registers.carry = !registers.carry
     }
 
     private fun andA(byte: UByte) {
         with(registers) {
             val a = a and byte
-            if (a == 0u.toUByte()) zero = 1u
+            if (a == 0u.toUByte()) zero = true
             tick()
         }
     }
 
     private fun adcA(byte: UByte) {
         with(registers) {
-            val result = a + byte + registers.carry
+            val result = a + byte + if (registers.carry) 1u else 0u
             f = 0u
-            if (result > 255u) carry = 1u
-            if (result == 0u) zero = 1u
+            if (result > 255u) carry = true
+            if (result == 0u) zero = true
             a = result.toUByte()
             tick()
         }
@@ -255,49 +366,37 @@ data class Registers(
 ) {
 
     var bc: UShort
-        get() {
-            return ((c.toUShort() * 256u) + b).toUShort()
-        }
+        get() = createUShort(c, b)
         set(new) {
-            b = new.upperByte()
-            c = new.lowerByte()
+            b = new.upperByte
+            c = new.lowerByte
         }
     var de: UShort
-        get() {
-            return ((e.toUShort() * 256u) + d).toUShort()
-        }
+        get() = createUShort(e, d)
         set(new) {
-            d = new.upperByte()
-            e = new.lowerByte()
+            d = new.upperByte
+            e = new.lowerByte
         }
     var hl: UShort
-        get() {
-            return ((l.toUShort() * 256u) + h).toUShort()
-        }
+        get() = createUShort(l, h)
         set(new) {
-            h = new.upperByte()
-            l = new.lowerByte()
+            h = new.upperByte
+            l = new.lowerByte
         }
-    var carry: UByte
-        get() {
-            return if (f or 0x10u == 0u.toUByte()) 0u else 1u
-        }
+    var carry: Boolean
+        get() = f or 0x10u != 0u.toUByte()
         set(new) {
-            when (new.toUInt()) {
-                0u -> f = (f xor 0x10u)
-                1u -> f = (f or 0x10u)
-                else -> IllegalStateException()
+            f = when (new) {
+                false -> (f xor 0x10u)
+                true -> (f or 0x10u)
             }
         }
-    var zero: UByte
-        get() {
-            return if (f or 0x80u == 0x08u.toUByte()) 0u else 1u
-        }
+    var zero: Boolean
+        get() = f or 0x80u != 0x08u.toUByte()
         set(new) {
-            when (new.toUInt()) {
-                0u -> f = (f xor 0x80u)
-                1u -> f = (f or 0x80u)
-                else -> IllegalStateException()
+            f = when (new) {
+                false -> (f xor 0x80u)
+                true -> (f or 0x80u)
             }
         }
 

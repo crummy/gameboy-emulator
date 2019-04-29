@@ -1,13 +1,16 @@
 package com.malcolmcrum.gameboy
 
 @ExperimentalUnsignedTypes
-fun UShort.upperByte(): UByte {
-    return (this shr 8u).toUByte()
-}
+val UShort.upperByte
+    get() = (this shr 8u).toUByte()
 
 @ExperimentalUnsignedTypes
-fun UShort.lowerByte(): UByte {
-    return this.toUByte()
+val UShort.lowerByte
+    get() = this.toUByte()
+
+@ExperimentalUnsignedTypes
+fun createUShort(upperByte: UByte, lowerByte: UByte): UShort {
+    return ((upperByte.toUShort() * 256u) + lowerByte).toUShort()
 }
 
 @ExperimentalUnsignedTypes
