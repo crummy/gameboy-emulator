@@ -34,9 +34,9 @@ class Z80 {
     fun PUSHBC() {
         with(registers) {
             sp--
-            mmu.wb(sp, b)
+            mmu[sp] = b
             sp--
-            mmu.wb(sp, c)
+            mmu[sp] = c
             tick(3)
         }
     }
@@ -44,9 +44,9 @@ class Z80 {
     // Pop H and L off stack
     fun POPHL() {
         with(registers) {
-            l = mmu.rb(sp)
+            l = mmu[sp]
             sp++
-            h = mmu.rb(sp)
+            h = mmu[sp]
             tick(3)
         }
     }
@@ -54,9 +54,9 @@ class Z80 {
     // Read a byte into A
     fun LDAmm() {
         with(registers) {
-            val address = mmu.rw(pc)
+            val address = mmu.getWord(pc)
             pc = (pc + 2u).toUShort()
-            a = mmu.rb(address)
+            a = mmu[address]
             tick(4)
         }
     }
@@ -89,13 +89,13 @@ class Z80 {
     }
 
     fun execute() {
-        val operation = mmu.rw(registers.pc)
+        val operation = mmu.getWord(registers.pc)
 
         when (operation.upperByte.toUInt()) {
             0x00u -> NOP()
             0x10u -> STOP()
             0xceu -> TODO("adcA(\$xx)")
-            0x8eu -> adcA(mmu.rb(registers.hl))
+            0x8eu -> adcA(mmu[registers.hl])
             0x8fu -> adcA(registers.a)
             0x88u -> adcA(registers.b)
             0x89u -> adcA(registers.c)
@@ -104,7 +104,7 @@ class Z80 {
             0x8cu -> adcA(registers.h)
             0x8du -> adcA(registers.l)
             0xc6u -> TODO("addA(\$xx)")
-            0x86u -> addA(mmu.rb(registers.hl))
+            0x86u -> addA(mmu[registers.hl])
             0x87u -> addA(registers.a)
             0x80u -> addA(registers.b)
             0x81u -> addA(registers.c)
@@ -118,7 +118,7 @@ class Z80 {
             0x39u -> addHL(registers.sp)
             0xe8u -> TODO()
             0xe6u -> TODO()
-            0xa6u -> andA(mmu.rb(registers.hl))
+            0xa6u -> andA(mmu[registers.hl])
             0xa7u -> andA(registers.a)
             0xa0u -> andA(registers.b)
             0xa1u -> andA(registers.c)
@@ -134,7 +134,7 @@ class Z80 {
             0xccu -> TODO()
             0x3fu -> ccf()
             0xfeu -> TODO()
-            0xbeu -> cp(mmu.rb(registers.hl))
+            0xbeu -> cp(mmu[registers.hl])
             0xbfu -> cp(registers.a)
             0xb8u -> cp(registers.b)
             0xb9u -> cp(registers.c)
@@ -144,7 +144,7 @@ class Z80 {
             0xbdu -> cp(registers.l)
             0x2fu -> cpl()
             0x27u -> daa()
-            0x35u -> mmu.wb(registers.hl, dec(mmu.rb(registers.hl)))
+            0x35u -> mmu[registers.hl] = dec(mmu[registers.hl])
             0x3du -> registers.a = dec(registers.a)
             0x05u -> registers.b = dec(registers.b)
             0x0bu -> registers.bc = dec(registers.bc)
@@ -158,7 +158,7 @@ class Z80 {
             0xf3u -> di()
             0xfbu -> ei()
             0x76u -> halt()
-            0x34u -> mmu.wb(registers.hl, inc(mmu.rb(registers.hl)))
+            0x34u -> mmu[registers.hl] = inc(mmu[registers.hl])
             0x3cu -> registers.a = inc(registers.a)
             0x04u -> registers.b = inc(registers.b)
             0x03u -> registers.bc = inc(registers.bc)
@@ -199,9 +199,9 @@ class Z80 {
 
     private fun jp() {
         with (registers) {
-            val lowerByte = mmu.rb(pc)
+            val lowerByte = mmu[pc]
             pc++
-            val upperByte = mmu.rb(pc)
+            val upperByte = mmu[pc]
             pc = createUShort(upperByte, lowerByte)
         }
 

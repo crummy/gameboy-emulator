@@ -22,7 +22,7 @@ class MMU {
         println()
     }
 
-    fun rb(addr: UShort): UByte {
+    operator fun get(addr: UShort): UByte {
         return when(addr) {
             in (0x0000u..0x1000u) -> {
                 if (addr == 0x0100u.toUShort()) inBios = false
@@ -41,40 +41,40 @@ class MMU {
         }
     }
 
-    fun rw(addr: UShort): UShort {
-        val firstByte = rb(addr)
-        val secondByte = rb((addr + 1u).toUShort())
+    fun getWord(addr: UShort): UShort {
+        val firstByte = get(addr)
+        val secondByte = get((addr + 1u).toUShort())
         return (firstByte + secondByte shr 8).toUShort()
     }
 
-    fun wb(addr: UShort, value: UByte) {
-        when(addr) {
+    operator fun set(address: UShort, value: UByte) {
+        when(address) {
             in (0x0000u..0x1000u) -> {
                 if (inBios) throw IllegalAccessException("Cannot write to BIOS")
-                else rom[addr] = value
+                else rom[address] = value
             }
-            in (0x1000u until 0x8000u) -> rom[addr] = value
-            in (0x8000u until 0xA000u) -> vram[addr and 0x1FFFu] = value
-            in (0xA000u until 0xC000u) -> eram[addr and 0x1FFFu] = value
-            in (0xC000u until 0xE000u) -> wram[addr and 0x1FFFu] = value
-            in (0xE000u until 0xFE00u) -> wram[addr and 0x1FFFu] = value
-            in (0xFE00u until 0xFEA0u) -> oam[addr and 0xFFu] = value
+            in (0x1000u until 0x8000u) -> rom[address] = value
+            in (0x8000u until 0xA000u) -> vram[address and 0x1FFFu] = value
+            in (0xA000u until 0xC000u) -> eram[address and 0x1FFFu] = value
+            in (0xC000u until 0xE000u) -> wram[address and 0x1FFFu] = value
+            in (0xE000u until 0xFE00u) -> wram[address and 0x1FFFu] = value
+            in (0xFE00u until 0xFEA0u) -> oam[address and 0xFFu] = value
             in (0xFEA0u until 0xFF00u) -> throw IllegalAccessException()
             in (0xFF00u until 0xFF80u) -> throw IllegalAccessException()
-            in (0xFF80u..0xFFFFu) -> zram[addr and 0x7Fu] = value
-            else -> throw ArrayIndexOutOfBoundsException(addr.toString())
+            in (0xFF80u..0xFFFFu) -> zram[address and 0x7Fu] = value
+            else -> throw ArrayIndexOutOfBoundsException(address.toString())
         }
     }
 
-    fun ww(addr: UShort, value: UShort) {
-        wb(addr, value.toUByte())
-        wb((addr + 1u).toUShort(), (value.toInt() shl 8).toUByte())
+    fun writeWord(addr: UShort, value: UShort) {
+        set(addr, value.toUByte())
+        set((addr + 1u).toUShort(), (value.toInt() shl 8).toUByte())
     }
 }
 
 @ExperimentalUnsignedTypes
-private operator fun UByteArray.set(addr: UShort, value: UByte) {
-    set(addr.toInt(), value)
+private operator fun UByteArray.set(address: UShort, value: UByte) {
+    set(address.toInt(), value)
 }
 
 @ExperimentalUnsignedTypes
