@@ -41,10 +41,10 @@ class Gameboy {
     }
 
     fun read(range: UIntRange): ByteArray {
-        return range.map { z80.mmu.get(it.toUShort()) }.toUByteArray().asByteArray()
+        return range.map { z80.mmu[it.toUShort()] }.toUByteArray().asByteArray()
     }
 
     fun read(addr: UShort): UByte {
-        return z80.mmu.get(addr)
+        return z80.mmu[addr]
     }
 }

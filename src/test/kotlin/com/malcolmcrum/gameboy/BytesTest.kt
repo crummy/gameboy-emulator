@@ -11,14 +11,14 @@ internal class BytesTest {
     fun `select upper byte`() {
         val short = 0xFE01.toUShort()
 
-        assertThat(short.upperByte()).isEqualTo(0xFE.toUByte())
+        assertThat(short.upperByte).isEqualTo(0xFE.toUByte())
     }
 
     @Test
     fun `select lower byte`() {
         val short = 0xFE01.toUShort()
 
-        assertThat(short.lowerByte()).isEqualTo(0x01.toUByte())
+        assertThat(short.lowerByte).isEqualTo(0x01.toUByte())
     }
 
     @Test
