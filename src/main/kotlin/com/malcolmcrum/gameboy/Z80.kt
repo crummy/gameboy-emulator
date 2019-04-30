@@ -181,35 +181,53 @@ class Z80 {
             0x30u -> if (!registers.carry) jr(operation.lowerByte)
             0x20u -> if (!registers.zero) jr(operation.lowerByte)
             0x28u -> if (registers.zero) jr(operation.lowerByte)
-            0xeau -> { // LD $aabb, A
-                val upperByte = mmu[registers.pc + 1u]
-                val lowerByte = mmu[registers.pc]
-                val address = createUShort(upperByte, lowerByte)
-                mmu[address] = registers.a
-                registers.pc = (registers.pc + 2u).toUShort()
-            }
-            0x08u -> { // LD $aabb,SP
-                val upperByte = mmu[registers.pc + 1u]
-                val lowerByte = mmu[registers.pc]
-                val address = createUShort(upperByte, lowerByte)
-                mmu[address] = registers.sp.lowerByte
-                mmu[address + 1u] = registers.sp.upperByte
-                registers.pc = (registers.pc + 2u).toUShort()
-            }
-            0xe0u -> { // LD ($xx),A - write to IO port?
-                val byte = mmu[registers.pc]
-                mmu[0xFF00u + byte] = registers.a
-            }
-            0x02u -> mmu[registers.bc] = registers.a
-            0xe2u -> mmu[0xFF00u + registers.c] = registers.a
-            0x12u -> mmu[registers.de] = registers.a
-            0x36u -> mmu[registers.hl] = mmu[registers.pc]
+            0xeau -> load(storeInMemory(readWordFromMemory(registers.pc)), readFromRegister(registers.a))
+            0x08u -> load(storeWordInMemory(registers.sp), readWordFromMemory(registers.pc))
+            0xe0u -> load(storeInMemory(readFromMemory(registers.sp).invoke()), readFromRegister(registers.a))
+            0x02u -> load(storeInMemory(registers.bc), readFromRegister(registers.a))
+            0xe2u -> load(storeInMemory(registers.c), readFromRegister(registers.a))
+            0x12u -> load(storeInMemory(registers.de), readFromRegister(registers.a))
+            0x36u -> load(storeInMemory(registers.hl), readFromMemory(registers.pc))
 
-//            0x2 -> LDBCmA()
-//            0x3 -> INCBC()
-//            0x4 -> INCr_b()
             else -> TODO()
         }
+    }
+
+    private fun readFromRegister(value: UByte): () -> UByte = { value }
+
+    private fun readFromMemory(address: UShort): () -> UByte = { mmu[address] }
+
+    private fun readWordFromMemory(absolute: UShort): () -> UShort {
+        return {
+            val upperByte = mmu[absolute + 1u]
+            val lowerByte = mmu[absolute]
+            createUShort(upperByte, lowerByte)
+        }
+    }
+
+    private fun storeInMemory(address: UShort) = { value: UByte -> mmu[address] = value }
+
+    private fun storeInMemory(indirectAddress: () -> UShort): (UByte) -> Unit {
+        return storeInMemory(indirectAddress.invoke())
+    }
+
+    private fun storeInMemory(absolute: UByte) = { value: UByte -> mmu[0xFF00u + absolute] = value }
+
+    private fun storeWordInMemory(word: UShort): (UShort) -> Unit {
+        return { value ->
+            mmu[word] = value.lowerByte
+            mmu[word + 1u] = value.upperByte
+        }
+    }
+
+    @JvmName("load16")
+    private fun load(save: (UShort) -> Unit, load: () -> UShort) {
+
+    }
+
+    private fun load(save: (UByte) -> Unit, load: () -> UByte) {
+        val byte = load.invoke()
+        save.invoke(byte)
     }
 
     private fun jr(offset: UByte) {
