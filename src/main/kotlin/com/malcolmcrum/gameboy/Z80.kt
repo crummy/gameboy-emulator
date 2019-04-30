@@ -1,6 +1,6 @@
 package com.malcolmcrum.gameboy
 
-@kotlin.ExperimentalUnsignedTypes
+@ExperimentalUnsignedTypes
 class Z80 {
 
     val clock = Clock()
@@ -12,8 +12,8 @@ class Z80 {
         with(registers) {
             val result = a + e
             f = 0u
-            if (result > 255u) setOverflowFlag()
-            if (result == 0u) setZeroFlag()
+            if (result > 255u) carry = true
+            if (result == 0u) zero = true
             a = result.toUByte()
             tick()
         }
@@ -23,9 +23,9 @@ class Z80 {
     fun CPr_b() {
         with(registers) {
             val result = a - b
-            setSubtractionFlag()
-            if (b > a) setOverflowFlag() // underflow, really
-            if (result == 0u) setZeroFlag()
+            subtract = true
+            if (b > a) carry = true // underflow, really
+            if (result == 0u) zero = true
             tick()
         }
     }
@@ -195,34 +195,44 @@ class Z80 {
 
     private fun readFromRegister(value: UByte): () -> UByte = { value }
 
-    private fun readFromMemory(address: UShort): () -> UByte = { mmu[address] }
-
-    private fun readWordFromMemory(absolute: UShort): () -> UShort {
-        return {
-            val upperByte = mmu[absolute + 1u]
-            val lowerByte = mmu[absolute]
-            createUShort(upperByte, lowerByte)
-        }
+    private fun readFromMemory(address: UShort): () -> UByte = {
+        registers.tick()
+        mmu[address]
     }
 
-    private fun storeInMemory(address: UShort) = { value: UByte -> mmu[address] = value }
+    private fun readWordFromMemory(absolute: UShort): () -> UShort = {
+        val upperByte = mmu[absolute + 1u]
+        registers.tick()
+        val lowerByte = mmu[absolute]
+        registers.tick()
+        createUShort(upperByte, lowerByte)
+    }
+
+    private fun storeInMemory(address: UShort) = { value: UByte ->
+        mmu[address] = value
+        registers.tick()
+    }
 
     private fun storeInMemory(indirectAddress: () -> UShort): (UByte) -> Unit {
         return storeInMemory(indirectAddress.invoke())
     }
 
-    private fun storeInMemory(absolute: UByte) = { value: UByte -> mmu[0xFF00u + absolute] = value }
+    private fun storeInMemory(absolute: UByte) = { value: UByte ->
+        mmu[0xFF00u + absolute] = value
+        registers.tick()
+    }
 
-    private fun storeWordInMemory(word: UShort): (UShort) -> Unit {
-        return { value ->
-            mmu[word] = value.lowerByte
-            mmu[word + 1u] = value.upperByte
-        }
+    private fun storeWordInMemory(word: UShort): (UShort) -> Unit = { value ->
+        mmu[word] = value.lowerByte
+        registers.tick()
+        mmu[word + 1u] = value.upperByte
+        registers.tick()
     }
 
     @JvmName("load16")
     private fun load(save: (UShort) -> Unit, load: () -> UShort) {
-
+        val short = load.invoke()
+        save.invoke(short)
     }
 
     private fun load(save: (UByte) -> Unit, load: () -> UByte) {
@@ -240,31 +250,30 @@ class Z80 {
 
 
     private fun jp() {
-        with (registers) {
+        with(registers) {
             val lowerByte = mmu[pc]
-            pc++
-            val upperByte = mmu[pc]
+            val upperByte = mmu[pc + 1u]
             pc = createUShort(upperByte, lowerByte)
         }
 
     }
 
     private fun inc(byte: UByte): UByte {
-        with (registers) {
+        with(registers) {
             val result = byte + 1u
             f = 0u
             if (result == 0u) zero = true
-            if (result > 0xFFu) setOverflowFlag()
+            if (result > 0xFFu) carry = true
             return result.toUByte()
         }
     }
 
     private fun inc(short: UShort): UShort {
-        with (registers) {
+        with(registers) {
             val result = short + 1u
             f = 0u
             if (result == 0u) zero = true
-            if (result > 0xFFu) setOverflowFlag()
+            if (result > 0xFFu) carry = true
             return result.toUShort()
         }
     }
@@ -284,20 +293,20 @@ class Z80 {
     }
 
     private fun dec(byte: UByte): UByte {
-        with (registers) {
+        with(registers) {
             val result = byte - 1u
             f = 0u
             if (result == 0u) zero = true
-            if (result < 0xFFu) setOverflowFlag()
+            if (result < 0xFFu) carry = true
             return result.toUByte()
         }
     }
 
     private fun dec(short: UShort): UShort {
-        with (registers) {
+        with(registers) {
             val result = short - 1u
             if (result == 0u) zero = false
-            if (result < 0xFFFFu) setOverflowFlag()
+            if (result < 0xFFFFu) carry = true
             return result.toUShort()
         }
     }
@@ -359,8 +368,8 @@ class Z80 {
         with(registers) {
             val result = hl + short
             f = 0u
-            if (result > 255u) setOverflowFlag()
-            if (result == 0u) setZeroFlag()
+            if (result > 255u) carry = true
+            if (result == 0u) zero = true
             hl = result.toUShort()
             tick()
         }
@@ -370,8 +379,8 @@ class Z80 {
         with(registers) {
             val result = a + byte
             f = 0u
-            if (result > 255u) setOverflowFlag()
-            if (result == 0u) setZeroFlag()
+            if (result > 255u) carry = true
+            if (result == 0u) zero = true
             a = result.toUByte()
             tick()
         }
@@ -379,93 +388,3 @@ class Z80 {
 
 }
 
-@kotlin.ExperimentalUnsignedTypes
-data class Clock(
-        var m: UShort = 0u,
-        var t: UShort = 0u
-) {
-    fun add(m: UByte, t: UByte) {
-        this.m = (this.m + m).toUShort()
-        this.t = (this.t + t).toUShort()
-    }
-}
-
-// Remember: Z80 is small endian
-@kotlin.ExperimentalUnsignedTypes
-data class Registers(
-        var a: UByte = 0u,
-        var b: UByte = 0u,
-        var c: UByte = 0u,
-        var d: UByte = 0u,
-        var e: UByte = 0u,
-        var h: UByte = 0u,
-        var l: UByte = 0u,
-        var f: UByte = 0u,
-        var pc: UShort = 0u,
-        var sp: UShort = 0u,
-        var m: UByte = 0u,
-        var t: UByte = 0u
-) {
-
-    var bc: UShort
-        get() = createUShort(c, b)
-        set(new) {
-            b = new.upperByte
-            c = new.lowerByte
-        }
-    var de: UShort
-        get() = createUShort(e, d)
-        set(new) {
-            d = new.upperByte
-            e = new.lowerByte
-        }
-    var hl: UShort
-        get() = createUShort(l, h)
-        set(new) {
-            h = new.upperByte
-            l = new.lowerByte
-        }
-    var carry: Boolean
-        get() = f or 0x10u != 0u.toUByte()
-        set(new) {
-            f = when (new) {
-                false -> (f xor 0x10u)
-                true -> (f or 0x10u)
-            }
-        }
-    var zero: Boolean
-        get() = f or 0x80u != 0x08u.toUByte()
-        set(new) {
-            f = when (new) {
-                false -> (f xor 0x80u)
-                true -> (f or 0x80u)
-            }
-        }
-
-    // Set if last operation resulted in 0
-    fun setZeroFlag() {
-        f = (f or 0x80u).toUByte()
-    }
-
-    // Set if last operation overflowed past 255
-    fun setOverflowFlag() {
-        f = (f or 0x10u).toUByte()
-    }
-
-    // Set if last operation overflowed past 15
-    fun setHalfOverflowFlag() {
-        f = (f or 0x20u).toUByte()
-    }
-
-    // Set if last operation was a subtraction
-    fun setSubtractionFlag() {
-        f = (f or 0x40u).toUByte()
-    }
-
-    fun tick(times: Int = 1) {
-        repeat(times) {
-            m = 1u
-            t = 4u
-        }
-    }
-}
