@@ -176,13 +176,13 @@ class OperationBuilder(val registers: Registers, val mmu: MMU) {
         createUShort(upperByte, lowerByte)
     }
 
-    fun storeInRegisterA(): (UByte) -> Unit = { v -> registers.a = v }
-    fun storeInRegisterB(): (UByte) -> Unit = { v -> registers.b = v }
-    fun storeInRegisterC(): (UByte) -> Unit = { v -> registers.c = v }
-    fun storeInRegisterD(): (UByte) -> Unit = { v -> registers.d = v }
-    fun storeInRegisterE(): (UByte) -> Unit = { v -> registers.e = v }
-    fun storeInRegisterH(): (UByte) -> Unit = { v -> registers.h = v }
-    fun storeInRegisterL(): (UByte) -> Unit = { v -> registers.l = v }
+    private fun storeInRegisterA(): (UByte) -> Unit = { v -> registers.a = v }
+    private fun storeInRegisterB(): (UByte) -> Unit = { v -> registers.b = v }
+    private fun storeInRegisterC(): (UByte) -> Unit = { v -> registers.c = v }
+    private fun storeInRegisterD(): (UByte) -> Unit = { v -> registers.d = v }
+    private fun storeInRegisterE(): (UByte) -> Unit = { v -> registers.e = v }
+    private fun storeInRegisterH(): (UByte) -> Unit = { v -> registers.h = v }
+    private fun storeInRegisterL(): (UByte) -> Unit = { v -> registers.l = v }
 
     private fun storeInMemory(address: UShort) = { value: UByte ->
         mmu[address] = value
@@ -255,8 +255,8 @@ class OperationBuilder(val registers: Registers, val mmu: MMU) {
             val result = a + byte
             f = 0u
             if (result > 255u) carry = true
-            if (result == 0u) zero = true
             a = result.toUByte()
+            if (a == 0u.toUByte()) zero = true
             tick()
         }
     }
@@ -266,8 +266,8 @@ class OperationBuilder(val registers: Registers, val mmu: MMU) {
             val result = hl + short
             f = 0u
             if (result > 255u) carry = true
-            if (result == 0u) zero = true
             hl = result.toUShort()
+            if (hl == 0u.toUShort()) zero = true
             tick()
         }
     }

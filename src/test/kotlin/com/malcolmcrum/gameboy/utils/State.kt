@@ -38,6 +38,6 @@ data class State(
         sp?.let { state += "sp=${it.hex}" }
         m?.let { state += "m=${it.hex}" }
         t?.let { state += "t=${it.hex}" }
-        return "State($state $flags)"
+        return "State($state, $flags)"
     }
 }
