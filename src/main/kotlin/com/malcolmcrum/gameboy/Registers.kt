@@ -80,7 +80,7 @@ data class Registers(
             }
         }
 
-    // TODO: should this be in Operation.kt?
+    // TODO: should this be in Operations.kt?
     fun tick(times: Int = 1) {
         repeat(times) {
             m = 1u

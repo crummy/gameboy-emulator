@@ -125,30 +125,48 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0x35] = Operation("DEC (HL)", 1) { dec(storeInMemory(registers.hl), readFromMemory(registers.hl)) }
         operations[0x3D] = Operation("DEC A", 1) { dec(storeInRegisterA(), registers.a) }
         operations[0x05] = Operation("DEC B", 1) { dec(storeInRegisterB(), registers.b) }
-        operations[0x27] = Operation("DEC BC", 1) { dec(storeInRegisterBC(), registers.bc) }
-        operations[0x27] = Operation("DEC C", 1) { dec(storeInRegisterC(), registers.c) }
-        operations[0x27] = Operation("DEC D", 1) { dec(storeInRegisterD(), registers.d) }
-        operations[0x27] = Operation("DEC DE", 1) { dec(storeInRegisterDE(), registers.de) }
-        operations[0x27] = Operation("DEC E", 1) { dec(storeInRegisterE(), registers.e) }
-        operations[0x27] = Operation("DEC H", 1) { dec(storeInRegisterH(), registers.h) }
-        operations[0x27] = Operation("DEC HL", 1) { dec(storeInRegisterHL(), registers.hl) }
-        operations[0x27] = Operation("DEC L", 1) { dec(storeInRegisterL(), registers.l) }
-        operations[0x27] = Operation("DEC SP", 1) { dec(storeInRegisterSP(), registers.sp) }
+        operations[0x0b] = Operation("DEC BC", 1) { dec(storeInRegisterBC(), registers.bc) }
+        operations[0x0d] = Operation("DEC C", 1) { dec(storeInRegisterC(), registers.c) }
+        operations[0x15] = Operation("DEC D", 1) { dec(storeInRegisterD(), registers.d) }
+        operations[0x1b] = Operation("DEC DE", 1) { dec(storeInRegisterDE(), registers.de) }
+        operations[0x1d] = Operation("DEC E", 1) { dec(storeInRegisterE(), registers.e) }
+        operations[0x25] = Operation("DEC H", 1) { dec(storeInRegisterH(), registers.h) }
+        operations[0x2b] = Operation("DEC HL", 1) { dec(storeInRegisterHL(), registers.hl) }
+        operations[0x2d] = Operation("DEC L", 1) { dec(storeInRegisterL(), registers.l) }
+        operations[0x3b] = Operation("DEC SP", 1) { dec(storeInRegisterSP(), registers.sp) }
         operations[0xf3] = Operation("DI", 1) { di() }
-        operations[0x2b] = Operation("EI", 1) { ei() }
-        operations[0x2b] = Operation("HALT", 1) { halt() }
-        operations[0x35] = Operation("INC (HL)", 1) { inc(storeInMemory(registers.hl), readFromMemory(registers.hl)) }
-        operations[0x3D] = Operation("INC A", 1) { inc(storeInRegisterA(), registers.a) }
-        operations[0x05] = Operation("INC B", 1) { inc(storeInRegisterB(), registers.b) }
-        operations[0x27] = Operation("INC BC", 1) { inc(storeInRegisterBC(), registers.bc) }
-        operations[0x27] = Operation("INC C", 1) { inc(storeInRegisterC(), registers.c) }
-        operations[0x27] = Operation("INC D", 1) { inc(storeInRegisterD(), registers.d) }
-        operations[0x27] = Operation("INC DE", 1) { inc(storeInRegisterDE(), registers.de) }
-        operations[0x27] = Operation("INC E", 1) { inc(storeInRegisterE(), registers.e) }
-        operations[0x27] = Operation("INC H", 1) { inc(storeInRegisterH(), registers.h) }
-        operations[0x27] = Operation("INC HL", 1) { inc(storeInRegisterHL(), registers.hl) }
-        operations[0x27] = Operation("INC L", 1) { inc(storeInRegisterL(), registers.l) }
-        operations[0x27] = Operation("INC SP", 1) { inc(storeInRegisterSP(), registers.sp) }
+        operations[0xfb] = Operation("EI", 1) { ei() }
+        operations[0x76] = Operation("HALT", 1) { halt() }
+        operations[0x34] = Operation("INC (HL)", 1) { inc(storeInMemory(registers.hl), readFromMemory(registers.hl)) }
+        operations[0x3c] = Operation("INC A", 1) { inc(storeInRegisterA(), registers.a) }
+        operations[0x04] = Operation("INC B", 1) { inc(storeInRegisterB(), registers.b) }
+        operations[0x03] = Operation("INC BC", 1) { inc(storeInRegisterBC(), registers.bc) }
+        operations[0x0c] = Operation("INC C", 1) { inc(storeInRegisterC(), registers.c) }
+        operations[0x14] = Operation("INC D", 1) { inc(storeInRegisterD(), registers.d) }
+        operations[0x13] = Operation("INC DE", 1) { inc(storeInRegisterDE(), registers.de) }
+        operations[0x1c] = Operation("INC E", 1) { inc(storeInRegisterE(), registers.e) }
+        operations[0x24] = Operation("INC H", 1) { inc(storeInRegisterH(), registers.h) }
+        operations[0x23] = Operation("INC HL", 1) { inc(storeInRegisterHL(), registers.hl) }
+        operations[0x2c] = Operation("INC L", 1) { inc(storeInRegisterL(), registers.l) }
+        operations[0x33] = Operation("INC SP", 1) { inc(storeInRegisterSP(), registers.sp) }
+        operations[0xc3] = Operation("JP \$aabb", 3) { jp(readWordFromMemory(registers.pc + 1u)) }
+        operations[0xe9] = Operation("JP (HL)", 1) { jp({ registers.hl }) }
+        operations[0xda] = Operation("JP C,\$aabb", 3) { jp(readWordFromMemory(registers.pc + 1u), registers.carry) }
+        operations[0xcd] = Operation("JP NC,\$aabb", 3) { jp(readWordFromMemory(registers.pc + 1u), !registers.carry) }
+        operations[0xc2] = Operation("JP NZ,\$aabb", 3) { jp(readWordFromMemory(registers.pc + 1u), !registers.zero) }
+        operations[0xca] = Operation("JP Z,\$aabb", 3) { jp(readWordFromMemory(registers.pc + 1u), registers.zero) }
+        operations[0x18] = Operation("JR \$xx", 2) { jr(readFromMemory(registers.pc + 1u)) }
+        operations[0x38] = Operation("JR C,\$xx", 2) { jr(readFromMemory(registers.pc + 1u), registers.carry) }
+        operations[0x30] = Operation("JR NC,\$xx", 2) { jr(readFromMemory(registers.pc + 1u), !registers.carry) }
+        operations[0x20] = Operation("JR NZ,\$xx", 2) { jr(readFromMemory(registers.pc + 1u), !registers.zero) }
+        operations[0x28] = Operation("JR Z,\$xx", 2) { jr(readFromMemory(registers.pc + 1u), registers.zero) }
+        operations[0xea] = Operation("LD (\$aabb),A", 3) { load(storeInMemory(readWordFromMemory(registers.pc + 1u).invoke()), registers.a) }
+        operations[0x08] = Operation("LD (\$aabb),SP", 3) { load(storeWordInMemory(readWordFromMemory(registers.pc + 1u).invoke()), registers.pc) }
+        operations[0xe0] = Operation("LD (\$xx),A", 2) { load(storeInMemory(readFromMemory(registers.sp).invoke()), registers.a) }
+        operations[0x02] = Operation("LD (BC),A", 1) { load(storeInMemory(registers.bc), registers.a) }
+        operations[0xe2] = Operation("LD (C),A", 1) { load(storeInMemory(registers.c), registers.a) }
+        operations[0x12] = Operation("LD (DE),A", 1) { load(storeInMemory(registers.de), registers.a) }
+        operations[0x36] = Operation("LD (HL),\$xx", 2) { load(storeInMemory(registers.hl), readFromMemory(registers.pc + 1u)) }
         operations[0xcb] = Operation("0xCB operations", 2) { cbOperations[registers.sp++.toInt()] }
     }
 
@@ -183,6 +201,18 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         cbOperations[startIndex - 3] = Operation("BIT $bitIndex,E", 1) { bit(bitIndex, registers.e) }
         cbOperations[startIndex - 2] = Operation("BIT $bitIndex,H", 1) { bit(bitIndex, registers.h) }
         cbOperations[startIndex - 1] = Operation("BIT $bitIndex,L", 1) { bit(bitIndex, registers.l) }
+    }
+
+    private fun jr(offset: () -> UByte, condition: Boolean = true) {
+        if (condition) {
+            registers.pc = (registers.pc + offset.invoke()).toUShort()
+        }
+    }
+
+    private fun jp(source: () -> UShort, condition: Boolean = true) {
+        if (condition) {
+            registers.pc = source.invoke()
+        }
     }
 
     private fun inc(save: (UByte) -> Unit, source: UByte) {
@@ -350,6 +380,10 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         registers.tick()
         mmu[word + 1u] = value.upperByte
         registers.tick()
+    }
+
+    private fun load(destination: (UShort) -> Unit, source: UShort) {
+        destination.invoke(source)
     }
 
     @JvmName("load16")

@@ -46,24 +46,6 @@ class Z80 {
 
 
 
-    private fun jr(offset: UByte) {
-        registers.pc = (registers.pc + offset).toUShort()
-    }
-
-    private fun jp(short: UShort) {
-        registers.pc = short
-    }
-
-
-    private fun jp() {
-        with(registers) {
-            val lowerByte = mmu[pc]
-            val upperByte = mmu[pc + 1u]
-            pc = createUShort(upperByte, lowerByte)
-        }
-
-    }
-
     private fun halt() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
