@@ -30,6 +30,7 @@ dependencies {
     // Use JUnit test framework
     testCompile("com.willowtreeapps.assertk:assertk-jvm:0.13")
     testCompile("org.junit.jupiter:junit-jupiter-api:5.4.2")
+    testCompile("org.junit.jupiter:junit-jupiter-params:5.4.2")
     implementation(kotlin("stdlib-jdk8"))
 }
 

@@ -15,7 +15,7 @@ internal class RegisterTest {
             b = 0x12u
             c = 0x34u
 
-            assertThat(bc, "0x${bc.toString(16)} should equal 0x3412").isEqualTo(0x3412u.toUShort())
+            assertThat(bc).isEqualTo(0x3412u.toUShort())
         }
     }
 

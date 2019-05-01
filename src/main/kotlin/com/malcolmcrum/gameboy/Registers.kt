@@ -79,6 +79,7 @@ data class Registers(
             }
         }
 
+    // TODO: should this be in Operation.kt?
     fun tick(times: Int = 1) {
         repeat(times) {
             m = 1u
@@ -87,9 +88,9 @@ data class Registers(
     }
 
     companion object {
-        private const val ZERO_FLAG: UByte = 0x80u
-        private const val SUBTRACT_FLAG: UByte = 0x40u
-        private const val HALF_CARRY_FLAG: UByte = 0x20u
-        private const val CARRY_FLAG: UByte = 0x10u
+        const val ZERO_FLAG: UByte = 0x80u
+        const val SUBTRACT_FLAG: UByte = 0x40u
+        const val HALF_CARRY_FLAG: UByte = 0x20u
+        const val CARRY_FLAG: UByte = 0x10u
     }
 }
