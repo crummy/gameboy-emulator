@@ -8,7 +8,7 @@ class Operation(
 )
 
 @ExperimentalUnsignedTypes
-class OperationBuilder(val registers: Registers, val mmu: MMU) {
+class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (Boolean) -> Unit) {
     val operations: Array<Operation> = Array(256) { Operation("MISSING", 1) { TODO() } }
 
     init {
@@ -71,8 +71,6 @@ class OperationBuilder(val registers: Registers, val mmu: MMU) {
         createSetOperations(cbOperations, 0xf6, 6)
         createSetOperations(cbOperations, 0xfe, 7)
 
-
-
         operations[0x00] = Operation("NOP", 1) { nop() }
         operations[0x10] = Operation("STOP", 1) { TODO() }
         operations[0xce] = Operation("ADC A,\$xx", 2) { adcA(readFromMemory(registers.sp + 1u)) }
@@ -107,8 +105,51 @@ class OperationBuilder(val registers: Registers, val mmu: MMU) {
         operations[0xa3] = Operation("AND E", 1) { andA(registers.e) }
         operations[0xa4] = Operation("AND H", 1) { andA(registers.h) }
         operations[0xa5] = Operation("AND L", 1) { andA(registers.l) }
-        operations[0xcb] = Operation("0xCB operations", 2) { TODO("move to next SP, load from cbOperations") }
-
+        operations[0xcd] = Operation("CALL \$aabb", 3) { call(readWordFromMemory(registers.sp + 1u)) }
+        operations[0xdc] = Operation("CALL C,\$aabb", 3) { call(readWordFromMemory(registers.sp + 1u), registers.carry) }
+        operations[0xd4] = Operation("CALL NC,\$aabb", 3) { call(readWordFromMemory(registers.sp + 1u), !registers.carry) }
+        operations[0xc4] = Operation("CALL NZ,\$aabb", 3) { call(readWordFromMemory(registers.sp + 1u), !registers.zero) }
+        operations[0xcc] = Operation("CALL Z,\$aabb", 3) { call(readWordFromMemory(registers.sp + 1u), registers.zero) }
+        operations[0x3f] = Operation("CCF", 1) { ccf() }
+        operations[0x3f] = Operation("CP \$xx", 2) { cp(readFromMemory(registers.sp + 1u)) }
+        operations[0xbe] = Operation("CP (HL)", 1) { cp(readFromMemory(registers.hl)) }
+        operations[0xbf] = Operation("CP A", 1) { cp(registers.a) }
+        operations[0xb8] = Operation("CP B", 1) { cp(registers.b) }
+        operations[0xb9] = Operation("CP C", 1) { cp(registers.c) }
+        operations[0xba] = Operation("CP D", 1) { cp(registers.d) }
+        operations[0xbb] = Operation("CP E", 1) { cp(registers.e) }
+        operations[0xbc] = Operation("CP H", 1) { cp(registers.h) }
+        operations[0xbd] = Operation("CP L", 1) { cp(registers.l) }
+        operations[0x2f] = Operation("CPL", 1) { cpl() }
+        operations[0x27] = Operation("DAA", 1) { daa() }
+        operations[0x35] = Operation("DEC (HL)", 1) { dec(storeInMemory(registers.hl), readFromMemory(registers.hl)) }
+        operations[0x3D] = Operation("DEC A", 1) { dec(storeInRegisterA(), registers.a) }
+        operations[0x05] = Operation("DEC B", 1) { dec(storeInRegisterB(), registers.b) }
+        operations[0x27] = Operation("DEC BC", 1) { dec(storeInRegisterBC(), registers.bc) }
+        operations[0x27] = Operation("DEC C", 1) { dec(storeInRegisterC(), registers.c) }
+        operations[0x27] = Operation("DEC D", 1) { dec(storeInRegisterD(), registers.d) }
+        operations[0x27] = Operation("DEC DE", 1) { dec(storeInRegisterDE(), registers.de) }
+        operations[0x27] = Operation("DEC E", 1) { dec(storeInRegisterE(), registers.e) }
+        operations[0x27] = Operation("DEC H", 1) { dec(storeInRegisterH(), registers.h) }
+        operations[0x27] = Operation("DEC HL", 1) { dec(storeInRegisterHL(), registers.hl) }
+        operations[0x27] = Operation("DEC L", 1) { dec(storeInRegisterL(), registers.l) }
+        operations[0x27] = Operation("DEC SP", 1) { dec(storeInRegisterSP(), registers.sp) }
+        operations[0xf3] = Operation("DI", 1) { di() }
+        operations[0x2b] = Operation("EI", 1) { ei() }
+        operations[0x2b] = Operation("HALT", 1) { halt() }
+        operations[0x35] = Operation("INC (HL)", 1) { inc(storeInMemory(registers.hl), readFromMemory(registers.hl)) }
+        operations[0x3D] = Operation("INC A", 1) { inc(storeInRegisterA(), registers.a) }
+        operations[0x05] = Operation("INC B", 1) { inc(storeInRegisterB(), registers.b) }
+        operations[0x27] = Operation("INC BC", 1) { inc(storeInRegisterBC(), registers.bc) }
+        operations[0x27] = Operation("INC C", 1) { inc(storeInRegisterC(), registers.c) }
+        operations[0x27] = Operation("INC D", 1) { inc(storeInRegisterD(), registers.d) }
+        operations[0x27] = Operation("INC DE", 1) { inc(storeInRegisterDE(), registers.de) }
+        operations[0x27] = Operation("INC E", 1) { inc(storeInRegisterE(), registers.e) }
+        operations[0x27] = Operation("INC H", 1) { inc(storeInRegisterH(), registers.h) }
+        operations[0x27] = Operation("INC HL", 1) { inc(storeInRegisterHL(), registers.hl) }
+        operations[0x27] = Operation("INC L", 1) { inc(storeInRegisterL(), registers.l) }
+        operations[0x27] = Operation("INC SP", 1) { inc(storeInRegisterSP(), registers.sp) }
+        operations[0xcb] = Operation("0xCB operations", 2) { cbOperations[registers.sp++.toInt()] }
     }
 
     private fun createSetOperations(cbOperations: Array<Operation>, startIndex: Int, bitIndex: Int) {
@@ -144,6 +185,103 @@ class OperationBuilder(val registers: Registers, val mmu: MMU) {
         cbOperations[startIndex - 1] = Operation("BIT $bitIndex,L", 1) { bit(bitIndex, registers.l) }
     }
 
+    private fun inc(save: (UByte) -> Unit, source: UByte) {
+        with(registers) {
+            val result = source + 1u
+            setFlags(result)
+            save.invoke(result.toUByte())
+        }
+    }
+
+    private fun inc(save: (UByte) -> Unit, source: () -> UByte) {
+        inc(save, source.invoke())
+    }
+
+    private fun inc(save: (UShort) -> Unit, source: UShort) {
+        with(registers) {
+            val result = source + 1u
+            setFlags(result)
+            save.invoke(result.toUShort())
+        }
+    }
+
+    private fun halt() {
+        TODO()
+    }
+
+    private fun di() {
+        interrupts.invoke(false)
+    }
+
+    private fun ei() {
+        interrupts.invoke(true)
+    }
+
+    private fun dec(save: (UByte) -> Unit, source: UByte) {
+        with(registers) {
+            val result = source - 1u
+            setFlags(result)
+            save.invoke(result.toUByte())
+        }
+    }
+
+    private fun dec(save: (UByte) -> Unit, source: () -> UByte) {
+        dec(save, source.invoke())
+    }
+
+    private fun dec(save: (UShort) -> Unit, source: UShort) {
+        with(registers) {
+            val result = source - 1u
+            setFlags(result)
+            save.invoke(result.toUShort())
+        }
+    }
+
+    // Converts A into packed BCD (e.g. 0x0B -> 0x1 in upper nibble and 0x2 in lower nibble)
+    private fun daa() {
+        with(registers) {
+            val lowerNibble = (a.toInt() % 10).toUByte()
+            val upperNibble = (a.toUInt() shr 4).toUByte()
+            a = createUByte(upperNibble, lowerNibble)
+        }
+    }
+
+    // Flip carry flag
+    private fun ccf() {
+        registers.carry = !registers.carry
+    }
+
+    private fun cp(byte: () -> UByte) {
+        cp(byte.invoke())
+    }
+
+    // Fake subtraction - doesn't store result, but does set flags
+    private fun cp(byte: UByte) {
+        with(registers) {
+            val result = a - byte
+            setFlags(result)
+            tick()
+        }
+    }
+
+    // Flip bits in A
+    private fun cpl() {
+        with(registers) {
+            a = a xor 0xffu
+            f = 0u
+            if (a == 0u.toUByte()) zero = true
+        }
+    }
+
+    private fun call(destination: () -> UShort, conditional: Boolean = true) {
+        with(registers) {
+            if (conditional) {
+                pc = destination.invoke()
+                sp = (sp - 2u).toUShort()
+            }
+        }
+    }
+
     private fun res(index: Int, save: (UByte) -> Unit, load: () -> UByte) {
         val mask = (1 shl index).toUByte()
         save.invoke(load.invoke() xor mask)
@@ -168,6 +306,11 @@ class OperationBuilder(val registers: Registers, val mmu: MMU) {
         mmu[address]
     }
 
+    private fun readWordFromMemory(absolute: UInt): () -> UShort {
+        assert(absolute <= 0xFFFFu)
+        return readWordFromMemory(absolute.toUShort())
+    }
+
     private fun readWordFromMemory(absolute: UShort): () -> UShort = {
         val upperByte = mmu[absolute + 1u]
         registers.tick()
@@ -183,6 +326,10 @@ class OperationBuilder(val registers: Registers, val mmu: MMU) {
     private fun storeInRegisterE(): (UByte) -> Unit = { v -> registers.e = v }
     private fun storeInRegisterH(): (UByte) -> Unit = { v -> registers.h = v }
     private fun storeInRegisterL(): (UByte) -> Unit = { v -> registers.l = v }
+    private fun storeInRegisterBC(): (UShort) -> Unit = { v -> registers.bc = v }
+    private fun storeInRegisterDE(): (UShort) -> Unit = { v -> registers.de = v }
+    private fun storeInRegisterHL(): (UShort) -> Unit = { v -> registers.hl = v }
+    private fun storeInRegisterSP(): (UShort) -> Unit = { v -> registers.sp = v }
 
     private fun storeInMemory(address: UShort) = { value: UByte ->
         mmu[address] = value
@@ -253,10 +400,8 @@ class OperationBuilder(val registers: Registers, val mmu: MMU) {
     private fun addA(byte: UByte) {
         with(registers) {
             val result = a + byte
-            f = 0u
-            if (result > 255u) carry = true
+            setFlags(result)
             a = result.toUByte()
-            if (a == 0u.toUByte()) zero = true
             tick()
         }
     }
@@ -264,10 +409,8 @@ class OperationBuilder(val registers: Registers, val mmu: MMU) {
     private fun addHL(short: UShort) {
         with(registers) {
             val result = hl + short
-            f = 0u
-            if (result > 255u) carry = true
+            setFlags(result)
             hl = result.toUShort()
-            if (hl == 0u.toUShort()) zero = true
             tick()
         }
     }
@@ -287,9 +430,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU) {
     private fun addSP(byte: () -> UByte) {
         with(registers) {
             val result = sp + byte.invoke()
-            f = 0u
-            if (result > 255u) carry = true
-            if (result == 0u) zero = true
+            setFlags(result)
             hl = result.toUShort()
             tick()
         }

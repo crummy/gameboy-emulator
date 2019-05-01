@@ -6,7 +6,8 @@ class Z80 {
     val clock = Clock()
     val registers = Registers()
     val mmu = MMU()
-    val operations = OperationBuilder(registers, mmu).operations
+    val interruptsEnabled = false
+    val operations = OperationBuilder(registers, mmu) { interruptsEnabled }.operations
 
     fun reset() {
         with(registers) {
@@ -63,26 +64,6 @@ class Z80 {
 
     }
 
-    private fun inc(byte: UByte): UByte {
-        with(registers) {
-            val result = byte + 1u
-            f = 0u
-            if (result == 0u) zero = true
-            if (result > 0xFFu) carry = true
-            return result.toUByte()
-        }
-    }
-
-    private fun inc(short: UShort): UShort {
-        with(registers) {
-            val result = short + 1u
-            f = 0u
-            if (result == 0u) zero = true
-            if (result > 0xFFu) carry = true
-            return result.toUShort()
-        }
-    }
-
     private fun halt() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
@@ -95,59 +76,6 @@ class Z80 {
     // Disable interrupts
     private fun di() {
         TODO()
-    }
-
-    private fun dec(byte: UByte): UByte {
-        with(registers) {
-            val result = byte - 1u
-            f = 0u
-            if (result == 0u) zero = true
-            if (result < 0xFFu) carry = true
-            return result.toUByte()
-        }
-    }
-
-    private fun dec(short: UShort): UShort {
-        with(registers) {
-            val result = short - 1u
-            if (result == 0u) zero = false
-            if (result < 0xFFFFu) carry = true
-            return result.toUShort()
-        }
-    }
-
-    // Converts A into packed BCD (e.g. 0x0B -> 0x1 in upper nibble and 0x2 in lower nibble)
-    private fun daa() {
-        with(registers) {
-            val lowerNibble = (a.toInt() % 10).toUByte()
-            val upperNibble = (a.toUInt() shr 4).toUByte()
-            a = createUByte(upperNibble, lowerNibble)
-        }
-    }
-
-    // Flip bits in A
-    private fun cpl() {
-        with(registers) {
-            a = a xor 0xffu
-            f = 0u
-            if (a == 0u.toUByte()) zero = true
-        }
-    }
-
-    // Fake subtraction - doesn't store result, but does set flags
-    private fun cp(byte: UByte) {
-        with(registers) {
-            val result = a - byte
-            f = 0u
-            if (result > 255u) carry = true
-            if (result == 0u) zero = true
-            tick()
-        }
-    }
-
-    // Flip carry flag
-    private fun ccf() {
-        registers.carry = !registers.carry
     }
 
     private fun andA(source: () -> UByte) {
