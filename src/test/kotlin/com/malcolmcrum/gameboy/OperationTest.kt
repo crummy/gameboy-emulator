@@ -5,6 +5,7 @@ import com.malcolmcrum.gameboy.Registers.Companion.CARRY_FLAG
 import com.malcolmcrum.gameboy.Registers.Companion.ZERO_FLAG
 import com.malcolmcrum.gameboy.utils.State
 import com.malcolmcrum.gameboy.utils.isEqualTo
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -18,6 +19,11 @@ class OperationTest {
     val registers = Registers()
     val mmu = MMU().apply { inBios = false }
     val operations = OperationBuilder(registers, mmu).operations
+
+    @BeforeEach
+    fun `reset registers`() {
+        registers.reset()
+    }
 
     @ParameterizedTest
     @MethodSource

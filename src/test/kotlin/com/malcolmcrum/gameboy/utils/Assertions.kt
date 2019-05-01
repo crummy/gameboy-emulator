@@ -3,12 +3,13 @@ package com.malcolmcrum.gameboy.utils
 import assertk.Assert
 import assertk.assertions.support.expected
 import com.malcolmcrum.gameboy.Registers
+import com.malcolmcrum.gameboy.hex
 
 @ExperimentalUnsignedTypes
 fun Assert<UByte>.isEqualToByte(expected: UByte) = given { actual ->
     val match = actual == expected.toUByte()
     if (match) return
-    expected("byte does not match.", expected, actual)
+    expected("byte does not match.", expected.hex, actual.hex)
 }
 
 @ExperimentalUnsignedTypes

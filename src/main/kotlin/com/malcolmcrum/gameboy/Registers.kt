@@ -37,44 +37,44 @@ data class Registers(
             l = new.lowerByte
         }
 
-    fun setFlags(value: UInt) {
+    fun setFlags(from: UInt) {
         f = 0u
-        if (value > 255u) carry = true
-        if (value == 0u) zero = true
+        if (from > 255u) carry = true
+        if (from == 0u) zero = true
     }
 
     var carry: Boolean
-        get() = f or CARRY_FLAG != 0u.toUByte()
+        get() = f and CARRY_FLAG != 0u.toUByte()
         set(new) {
             f = when (new) {
-                false -> (f xor CARRY_FLAG)
+                false -> (f and CARRY_FLAG.inv())
                 true -> (f or CARRY_FLAG)
             }
         }
 
     var halfCarry: Boolean
-        get() = f or HALF_CARRY_FLAG != 0u.toUByte()
+        get() = f and HALF_CARRY_FLAG != 0u.toUByte()
         set(new) {
             f = when (new) {
-                false -> (f xor HALF_CARRY_FLAG)
+                false -> (f and HALF_CARRY_FLAG.inv())
                 true -> (f or HALF_CARRY_FLAG)
             }
         }
 
     var zero: Boolean
-        get() = f or ZERO_FLAG != 0x08u.toUByte()
+        get() = f and ZERO_FLAG != 0u.toUByte()
         set(value) {
             f = when (value) {
-                false -> (f xor ZERO_FLAG)
+                false -> (f and ZERO_FLAG.inv())
                 true -> (f or ZERO_FLAG)
             }
         }
 
     var subtract: Boolean
-        get() = f or SUBTRACT_FLAG == 0u.toUByte()
+        get() = f and SUBTRACT_FLAG != 0u.toUByte()
         set(value) {
             f = when (value) {
-                false -> (f xor SUBTRACT_FLAG)
+                false -> (f and SUBTRACT_FLAG.inv())
                 true -> (f or SUBTRACT_FLAG)
             }
         }
@@ -93,6 +93,10 @@ data class Registers(
         flags += if (halfCarry) "H" else ""
         flags += if (carry) "C" else ""
         return "Registers(a=${a.hex}, b=${b.hex}, c=${c.hex}, d=${d.hex}, e=${e.hex}, h=${h.hex}, l=${l.hex}, sp=${sp.hex}, pc=${pc.hex}, $flags)"
+    }
+
+    fun reset() {
+        a = 0u; b = 0u; c = 0u; d = 0u; e = 0u; h = 0u; l = 0u; f = 0u; sp = 0u; pc = 0u; m = 0u; t = 0u
     }
 
     companion object {
