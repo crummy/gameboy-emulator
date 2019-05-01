@@ -1,12 +1,10 @@
 package com.malcolmcrum.gameboy
 
-import assertk.Assert
 import assertk.assertThat
-import assertk.assertions.support.expected
 import com.malcolmcrum.gameboy.Registers.Companion.CARRY_FLAG
-import com.malcolmcrum.gameboy.Registers.Companion.HALF_CARRY_FLAG
-import com.malcolmcrum.gameboy.Registers.Companion.SUBTRACT_FLAG
 import com.malcolmcrum.gameboy.Registers.Companion.ZERO_FLAG
+import com.malcolmcrum.gameboy.utils.State
+import com.malcolmcrum.gameboy.utils.isEqualTo
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -64,59 +62,3 @@ class OperationTest {
     }
 }
 
-@ExperimentalUnsignedTypes
-data class State(
-    var a: UByte? = null,
-    var b: UByte? = null,
-    var c: UByte? = null,
-    var d: UByte? = null,
-    var e: UByte? = null,
-    var h: UByte? = null,
-    var l: UByte? = null,
-    var f: UByte? = null,
-    var pc: UShort? = null,
-    var sp: UShort? = null,
-    var m: UByte? = null,
-    var t: UByte? = null
-) {
-    override fun toString(): String {
-        var flags = ""
-        f?.let {
-            flags = if (it and ZERO_FLAG != 0u.toUByte()) "Z" else ""
-            flags += if (it and SUBTRACT_FLAG != 0u.toUByte()) "N" else ""
-            flags += if (it and HALF_CARRY_FLAG != 0u.toUByte()) "H" else ""
-            flags += if (it and CARRY_FLAG != 0u.toUByte()) "C" else ""
-        }
-        var state = ""
-        a?.let { state += "a=${it.hex}" }
-        b?.let { state += "b=${it.hex}" }
-        c?.let { state += "c=${it.hex}" }
-        d?.let { state += "d=${it.hex}" }
-        e?.let { state += "e=${it.hex}" }
-        h?.let { state += "h=${it.hex}" }
-        l?.let { state += "l=${it.hex}" }
-        pc?.let { state += "pc=${it.hex}" }
-        sp?.let { state += "sp=${it.hex}" }
-        m?.let { state += "m=${it.hex}" }
-        t?.let { state += "t=${it.hex}" }
-        return "State($state $flags)"
-    }
-}
-
-@ExperimentalUnsignedTypes
-fun Assert<Registers>.isEqualTo(expected: State) = given { actual ->
-    val match =  expected.a?.equals(actual.a) ?: true &&
-            expected.b?.equals(actual.b) ?: true &&
-            expected.c?.equals(actual.c) ?: true &&
-            expected.d?.equals(actual.d) ?: true &&
-            expected.e?.equals(actual.e) ?: true &&
-            expected.h?.equals(actual.h) ?: true &&
-            expected.l?.equals(actual.l) ?: true &&
-            expected.f?.equals(actual.f) ?: true &&
-            expected.pc?.equals(actual.pc) ?: true &&
-            expected.sp?.equals(actual.sp) ?: true &&
-            expected.m?.equals(actual.m) ?: true &&
-            expected.t?.equals(actual.t) ?: true
-    if (match) return
-    expected("registers do not match.", expected, actual)
-}

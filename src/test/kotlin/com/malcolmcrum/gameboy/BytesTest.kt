@@ -3,6 +3,7 @@ package com.malcolmcrum.gameboy
 import assertk.assertAll
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import com.malcolmcrum.gameboy.utils.isEqualToByte
 import org.junit.jupiter.api.Test
 
 @ExperimentalUnsignedTypes
@@ -11,14 +12,14 @@ internal class BytesTest {
     fun `select upper byte`() {
         val short = 0xFE01.toUShort()
 
-        assertThat(short.upperByte).isEqualTo(0xFE.toUByte())
+        assertThat(short.upperByte).isEqualToByte(0xFEu)
     }
 
     @Test
     fun `select lower byte`() {
         val short = 0xFE01.toUShort()
 
-        assertThat(short.lowerByte).isEqualTo(0x01.toUByte())
+        assertThat(short.lowerByte).isEqualToByte(0x01u)
     }
 
     @Test
@@ -26,8 +27,8 @@ internal class BytesTest {
         val byte = 0xF9u.toUByte()
 
         assertAll {
-            assertThat(byte.lowerNibble).isEqualTo(0x9u.toUByte())
-            assertThat(byte.upperNibble).isEqualTo(0xFu.toUByte())
+            assertThat(byte.lowerNibble).isEqualToByte(0x9u)
+            assertThat(byte.upperNibble).isEqualToByte(0xFu)
         }
     }
 
@@ -36,19 +37,20 @@ internal class BytesTest {
         val byte = createUByte(0xFu, 0x9u)
 
         assertAll {
-            assertThat(byte.upperNibble).isEqualTo(0xFu.toUByte())
-            assertThat(byte.lowerNibble).isEqualTo(0x9u.toUByte())
+            assertThat(byte.upperNibble).isEqualToByte(0xFu)
+            assertThat(byte.lowerNibble).isEqualToByte(0x9u)
         }
     }
 
     @Test
     fun `create UByte`() {
-        assertThat(createUByte(0xFu, 0x9u)).isEqualTo(0xF9u.toUByte())
+        val byte = createUByte(0xFu, 0x9u)
+        assertThat(byte).isEqualToByte(0xF9u)
     }
 
     @Test
     fun `create UShort`() {
-        assertThat(createUShort(0xFFu, 0x99u)).isEqualTo(0xFF99u.toUShort())
-
+        val short = createUShort(0xFFu, 0x99u)
+        assertThat(short).isEqualTo(0xFF99u.toUShort())
     }
 }
