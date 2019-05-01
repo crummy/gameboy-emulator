@@ -37,6 +37,11 @@ data class Registers(
             l = new.lowerByte
         }
 
+    fun setFlags(value: UInt) {
+        f = 0u
+        if (value > 255u) carry = true
+        if (value == 0u) zero = true
+    }
 
     var carry: Boolean
         get() = f or CARRY_FLAG != 0u.toUByte()
