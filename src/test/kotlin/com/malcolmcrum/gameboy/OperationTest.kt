@@ -1,8 +1,11 @@
 package com.malcolmcrum.gameboy
 
+import assertk.Assert
 import assertk.assertThat
-import assertk.assertions.isEqualTo
+import assertk.assertions.support.expected
 import com.malcolmcrum.gameboy.Registers.Companion.CARRY_FLAG
+import com.malcolmcrum.gameboy.Registers.Companion.HALF_CARRY_FLAG
+import com.malcolmcrum.gameboy.Registers.Companion.SUBTRACT_FLAG
 import com.malcolmcrum.gameboy.Registers.Companion.ZERO_FLAG
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
@@ -26,7 +29,7 @@ class OperationTest {
 
         executeInstruction()
 
-        assertThat(expected).isEqualTo(registers)
+        assertThat(registers).isEqualTo(expected)
     }
 
     fun `ADD A,$xx`(): Stream<Arguments> = Stream.of(
@@ -76,22 +79,44 @@ data class State(
     var m: UByte? = null,
     var t: UByte? = null
 ) {
-    override fun equals(other: Any?): Boolean {
-        if (other is Registers) {
-            return a?.equals(other.a) ?: true &&
-                    b?.equals(other.b) ?: true &&
-                    c?.equals(other.c) ?: true &&
-                    d?.equals(other.d) ?: true &&
-                    e?.equals(other.e) ?: true &&
-                    h?.equals(other.h) ?: true &&
-                    l?.equals(other.l) ?: true &&
-                    f?.equals(other.f) ?: true &&
-                    pc?.equals(other.pc) ?: true &&
-                    sp?.equals(other.sp) ?: true &&
-                    m?.equals(other.m) ?: true &&
-                    t?.equals(other.t) ?: true
-        } else {
-            return super.equals(other)
+    override fun toString(): String {
+        var flags = ""
+        f?.let {
+            flags = if (it and ZERO_FLAG != 0u.toUByte()) "Z" else ""
+            flags += if (it and SUBTRACT_FLAG != 0u.toUByte()) "N" else ""
+            flags += if (it and HALF_CARRY_FLAG != 0u.toUByte()) "H" else ""
+            flags += if (it and CARRY_FLAG != 0u.toUByte()) "C" else ""
         }
+        var state = ""
+        a?.let { state += "a=${it.hex}" }
+        b?.let { state += "b=${it.hex}" }
+        c?.let { state += "c=${it.hex}" }
+        d?.let { state += "d=${it.hex}" }
+        e?.let { state += "e=${it.hex}" }
+        h?.let { state += "h=${it.hex}" }
+        l?.let { state += "l=${it.hex}" }
+        pc?.let { state += "pc=${it.hex}" }
+        sp?.let { state += "sp=${it.hex}" }
+        m?.let { state += "m=${it.hex}" }
+        t?.let { state += "t=${it.hex}" }
+        return "State($state $flags)"
     }
+}
+
+@ExperimentalUnsignedTypes
+fun Assert<Registers>.isEqualTo(expected: State) = given { actual ->
+    val match =  expected.a?.equals(actual.a) ?: true &&
+            expected.b?.equals(actual.b) ?: true &&
+            expected.c?.equals(actual.c) ?: true &&
+            expected.d?.equals(actual.d) ?: true &&
+            expected.e?.equals(actual.e) ?: true &&
+            expected.h?.equals(actual.h) ?: true &&
+            expected.l?.equals(actual.l) ?: true &&
+            expected.f?.equals(actual.f) ?: true &&
+            expected.pc?.equals(actual.pc) ?: true &&
+            expected.sp?.equals(actual.sp) ?: true &&
+            expected.m?.equals(actual.m) ?: true &&
+            expected.t?.equals(actual.t) ?: true
+    if (match) return
+    expected("registers do not match.", expected, actual)
 }

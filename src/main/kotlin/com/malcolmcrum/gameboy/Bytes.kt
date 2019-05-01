@@ -34,3 +34,11 @@ fun createUByte(upperNibble: UByte, lowerNibble: UByte): UByte {
     assert(upperNibble <= 0xFu)
     return ((upperNibble.toUInt() shl 4) + lowerNibble).toUByte()
 }
+
+@ExperimentalUnsignedTypes
+val UByte.hex: String
+    get() = String.format("0x%02x", this.toInt())
+
+@ExperimentalUnsignedTypes
+val UShort.hex: String
+    get() = String.format("0x%04x", this.toInt())

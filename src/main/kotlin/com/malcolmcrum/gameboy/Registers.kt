@@ -87,6 +87,14 @@ data class Registers(
         }
     }
 
+    override fun toString(): String {
+        var flags = if (zero) "Z" else ""
+        flags += if (subtract) "N" else ""
+        flags += if (halfCarry) "H" else ""
+        flags += if (carry) "C" else ""
+        return "Registers(a=${a.hex}, b=${b.hex}, c=${c.hex}, d=${d.hex}, e=${e.hex}, h=${h.hex}, l=${l.hex}, sp=${sp.hex}, pc=${pc.hex}, $flags)"
+    }
+
     companion object {
         const val ZERO_FLAG: UByte = 0x80u
         const val SUBTRACT_FLAG: UByte = 0x40u
