@@ -18,6 +18,12 @@ data class Registers(
 ) {
 
     // TODO: are these bytes in the right order?
+    var af: UShort
+        get() = createUShort(f, a)
+        set(new) {
+            a = new.upperByte
+            b = new.lowerByte
+        }
     var bc: UShort
         get() = createUShort(c, b)
         set(new) {

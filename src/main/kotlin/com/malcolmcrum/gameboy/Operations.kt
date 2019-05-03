@@ -71,7 +71,6 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         createSetOperations(cbOperations, 0xf6, 6)
         createSetOperations(cbOperations, 0xfe, 7)
 
-        operations[0x00] = Operation("NOP", 1) { nop() }
         operations[0x10] = Operation("STOP", 1) { TODO() }
         operations[0xce] = Operation("ADC A,\$xx", 2) { adcA(readFromMemory(registers.sp + 1u)) }
         operations[0x8e] = Operation("ADC A,(HL)", 1) { adcA(readFromMemory(registers.hl)) }
@@ -167,7 +166,125 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0xe2] = Operation("LD (C),A", 1) { load(storeInMemory(registers.c), registers.a) }
         operations[0x12] = Operation("LD (DE),A", 1) { load(storeInMemory(registers.de), registers.a) }
         operations[0x36] = Operation("LD (HL),\$xx", 2) { load(storeInMemory(registers.hl), readFromMemory(registers.pc + 1u)) }
+        operations[0x77] = Operation("LD (HL),A", 1) { load(storeInMemory(registers.hl), registers.a) }
+        operations[0x70] = Operation("LD (HL),B", 1) { load(storeInMemory(registers.hl), registers.b) }
+        operations[0x71] = Operation("LD (HL),C", 1) { load(storeInMemory(registers.hl), registers.c) }
+        operations[0x72] = Operation("LD (HL),D", 1) { load(storeInMemory(registers.hl), registers.d) }
+        operations[0x73] = Operation("LD (HL),E", 1) { load(storeInMemory(registers.hl), registers.e) }
+        operations[0x74] = Operation("LD (HL),H", 1) { load(storeInMemory(registers.hl), registers.h) }
+        operations[0x75] = Operation("LD (HL),L", 1) { load(storeInMemory(registers.hl), registers.l) }
+        operations[0x32] = Operation("LD (HL-),A", 1) { load(storeInMemory(registers.hl), registers.a) { registers.hl-- } }
+        operations[0x22] = Operation("LD (HL+),A", 1) { load(storeInMemory(registers.hl), registers.a) { registers.hl++ } }
+        operations[0x3e] = Operation("LD A,\$xx", 2) { load(storeInRegisterA(), readFromMemory(registers.pc + 1u)) }
+        operations[0xfa] = Operation("LD A,(\$aabb)", 3) { load(storeInRegisterA(), readFromMemory(readWordFromMemory(registers.pc + 1u).invoke())) }
+        operations[0xf0] = Operation("LD A,(BC)", 1) { load(storeInRegisterA(), readFromMemory(registers.bc)) }
+        operations[0xf0] = Operation("LD A,(C)", 1) { load(storeInRegisterA(), readFromMemory(registers.c)) }
+        operations[0xf0] = Operation("LD A,(DE)", 1) { load(storeInRegisterA(), readFromMemory(registers.de)) }
+        operations[0xf0] = Operation("LD A,(HL)", 1) { load(storeInRegisterA(), readFromMemory(registers.hl)) }
+        operations[0xf0] = Operation("LD A,(HL-)", 1) { load(storeInRegisterA(), readFromMemory(registers.hl)) { registers.hl-- } }
+        operations[0xf0] = Operation("LD A,(HL+)", 1) { load(storeInRegisterA(), readFromMemory(registers.hl)) { registers.hl++ } }
+        createLDOperations("A", storeInRegisterA(), 0x7F)
+        operations[0x06] = Operation("LD B,\$xx", 2) { load(storeInRegisterB(), readFromMemory(registers.pc + 1u)) }
+        operations[0x46] = Operation("LD B,(HL)", 1) { load(storeInRegisterB(), readFromMemory(registers.hl)) }
+        createLDOperations("B", storeInRegisterB(), 0x47)
+        operations[0x01] = Operation("LD C,\$xx", 2) { load(storeInRegisterC(), readFromMemory(registers.pc + 1u)) }
+        operations[0x0e] = Operation("LD C,(HL)", 1) { load(storeInRegisterC(), readFromMemory(registers.hl)) }
+        createLDOperations("C", storeInRegisterC(), 0x4e)
+        operations[0x16] = Operation("LD D,\$xx", 2) { load(storeInRegisterD(), readFromMemory(registers.pc + 1u)) }
+        operations[0x56] = Operation("LD D,(HL)", 1) { load(storeInRegisterD(), readFromMemory(registers.hl)) }
+        createLDOperations("D", storeInRegisterD(), 0x57)
+        operations[0x11] = Operation("LD E,\$xx", 2) { load(storeInRegisterE(), readFromMemory(registers.pc + 1u)) }
+        operations[0x1e] = Operation("LD E,(HL)", 1) { load(storeInRegisterE(), readFromMemory(registers.hl)) }
+        createLDOperations("E", storeInRegisterE(), 0x56)
+        operations[0x26] = Operation("LD H,\$xx", 2) { load(storeInRegisterH(), readFromMemory(registers.pc + 1u)) }
+        operations[0x66] = Operation("LD H,(HL)", 1) { load(storeInRegisterH(), readFromMemory(registers.hl)) }
+        createLDOperations("H", storeInRegisterH(), 0x67)
+        operations[0x21] = Operation("LD HL,\$aabb", 3) { load(storeInRegisterHL(), readWordFromMemory(registers.pc + 1u)) }
+        operations[0xf8] = Operation("LD HL,SP", 1) { load(storeInRegisterHL(), registers.sp) }
+        operations[0x2e] = Operation("LD L,\$xx", 2) { load(storeInRegisterL(), readFromMemory(registers.pc + 1u)) }
+        operations[0x6e] = Operation("LD L,(HL)", 1) { load(storeInRegisterL(), readFromMemory(registers.hl)) }
+        createLDOperations("L", storeInRegisterL(), 0x68)
+        operations[0x31] = Operation("LD SP,\$aabb", 3) { load(storeInRegisterSP(), readWordFromMemory(registers.pc + 1u)) }
+        operations[0xf9] = Operation("LD SP,HL", 1) { load(storeInRegisterSP(), registers.hl) }
+        operations[0x00] = Operation("NOP", 1) { nop() }
+        operations[0xf6] = Operation("OR \$xx", 2) { or(readFromMemory(registers.pc + 1u)) }
+        operations[0xb6] = Operation("OR (HL)", 1) { or(readFromMemory(registers.hl)) }
+        operations[0xb7] = Operation("OR A", 1) { or(registers.a) }
+        operations[0xb0] = Operation("OR B", 1) { or(registers.b) }
+        operations[0xb1] = Operation("OR C", 1) { or(registers.c) }
+        operations[0xb2] = Operation("OR D", 1) { or(registers.d) }
+        operations[0xb3] = Operation("OR E", 1) { or(registers.e) }
+        operations[0xb4] = Operation("OR H", 1) { or(registers.h) }
+        operations[0xb5] = Operation("OR L", 1) { or(registers.l) }
+        operations[0xf1] = Operation("POP AF", 1) { pop(registers.af) }
+        operations[0xc1] = Operation("POP BC", 1) { pop(registers.bc) }
+        operations[0xd1] = Operation("POP DE", 1) { pop(registers.de) }
+        operations[0xe1] = Operation("POP HL", 1) { pop(registers.hl) }
+        operations[0xf5] = Operation("PUSH AF", 1) { push(registers.af) }
+        operations[0xc5] = Operation("PUSH BC", 1) { push(registers.bc) }
+        operations[0xd5] = Operation("PUSH DE", 1) { push(registers.de) }
+        operations[0xe5] = Operation("PUSH HL", 1) { push(registers.hl) }
+        operations[0xc9] = Operation("RET", 1) { ret() }
+        operations[0xd8] = Operation("RET", 1) { ret { registers.carry}}
+        operations[0xd0] = Operation("RET", 1) { ret { !registers.carry}}
+        operations[0xc0] = Operation("RET", 1) { ret { !registers.zero} }
+        operations[0xc8] = Operation("RET", 1) { ret { registers.zero }}
+        operations[0xc8] = Operation("RETI", 1) { reti() }
+        operations[0x17] = Operation("RETI", 1) { rla() }
+
+
         operations[0xcb] = Operation("0xCB operations", 2) { cbOperations[registers.sp++.toInt()] }
+    }
+
+    private fun rla() {
+        with (registers) {
+            val newLowBit = carry
+            carry = (a and 0b1000000u.toUByte() == 0b1000000u.toUByte())
+        }
+    }
+
+    private fun reti() {
+        ret()
+        interrupts.invoke(true)
+    }
+
+    private fun ret(condition: () -> Boolean = { true }) {
+        if (condition.invoke()) {
+            val lowerByte = readFromMemory(registers.sp).invoke()
+            val upperByte = readFromMemory(registers.sp + 1u).invoke()
+            registers.pc = createUShort(upperByte, lowerByte)
+            registers.sp = (registers.sp + 2u).toUShort()
+        }
+    }
+
+    private fun push(short: UShort) {
+        storeInMemory(registers.sp - 1u).invoke(short.lowerByte)
+        storeInMemory(registers.sp - 2u).invoke(short.upperByte)
+        registers.sp = (registers.sp + 2u).toUShort()
+    }
+
+    private fun pop(short: UShort) {
+        storeInMemory(registers.sp).invoke(short.lowerByte)
+        storeInMemory(registers.sp + 1u).invoke(short.upperByte)
+        registers.sp = (registers.sp + 1u).toUShort()
+    }
+
+    private fun or(source: () -> UByte) {
+        or(source.invoke())
+    }
+
+    private fun or(source: UByte) {
+        registers.a = registers.a or source
+    }
+
+    private fun createLDOperations(reg: String, save: (UByte) -> Unit, startIndex: Int) {
+        operations[startIndex] = Operation("LD $reg,A", 1) { load(save, registers.a) }
+        operations[startIndex - 7] = Operation("LD $reg,B", 1) { load(save, registers.b) }
+        operations[startIndex - 6] = Operation("LD $reg,C", 1) { load(save, registers.c) }
+        operations[startIndex - 5] = Operation("LD $reg,D", 1) { load(save, registers.d) }
+        operations[startIndex - 4] = Operation("LD $reg,E", 1) { load(save, registers.e) }
+        operations[startIndex - 3] = Operation("LD $reg,H", 1) { load(save, registers.h) }
+        operations[startIndex - 2] = Operation("LD $reg,L", 1) { load(save, registers.l) }
     }
 
     private fun createSetOperations(cbOperations: Array<Operation>, startIndex: Int, bitIndex: Int) {
@@ -336,6 +453,10 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         mmu[address]
     }
 
+    private fun readFromMemory(offset: UByte): () -> UByte = {
+        readFromMemory(offset + 0xFF00u).invoke()
+    }
+
     private fun readWordFromMemory(absolute: UInt): () -> UShort {
         assert(absolute <= 0xFFFFu)
         return readWordFromMemory(absolute.toUShort())
@@ -366,6 +487,11 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         registers.tick()
     }
 
+    private fun storeInMemory(indirectAddress: UInt): (UByte) -> Unit {
+        assert(indirectAddress <= 0xFFFFu)
+        return storeInMemory(indirectAddress.toUShort())
+    }
+
     private fun storeInMemory(indirectAddress: () -> UShort): (UByte) -> Unit {
         return storeInMemory(indirectAddress.invoke())
     }
@@ -392,13 +518,15 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         save.invoke(short)
     }
 
-    private fun load(save: (UByte) -> Unit, load: () -> UByte) {
+    private fun load(save: (UByte) -> Unit, load: () -> UByte, then: () -> Unit = {}) {
         val byte = load.invoke()
         save.invoke(byte)
+        then.invoke()
     }
 
-    private fun load(save: (UByte) -> Unit, value: UByte) {
+    private fun load(save: (UByte) -> Unit, value: UByte, then: () -> Unit = {}) {
         save.invoke(value)
+        then.invoke()
     }
 
     private fun adcA(source: () -> UByte) {

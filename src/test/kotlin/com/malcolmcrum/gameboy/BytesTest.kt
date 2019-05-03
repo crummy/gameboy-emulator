@@ -3,6 +3,8 @@ package com.malcolmcrum.gameboy
 import assertk.assertAll
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
+import assertk.assertions.isTrue
 import com.malcolmcrum.gameboy.utils.isEqualToByte
 import org.junit.jupiter.api.Test
 
@@ -52,5 +54,28 @@ internal class BytesTest {
     fun `create UShort`() {
         val short = createUShort(0xFFu, 0x99u)
         assertThat(short).isEqualTo(0xFF99u.toUShort())
+    }
+
+    @Test
+    fun `select bits`() {
+        assertAll {
+            assertThat(0xF0u.toUByte().getBit(7)).isTrue()
+            assertThat(0xF0u.toUByte().getBit(0)).isFalse()
+
+            val byte = 0b01000000.toUByte()
+            assertThat(byte.getBit(7), "7").isFalse()
+            assertThat(byte.getBit(6), "6").isTrue()
+            assertThat(byte.getBit(5), "5").isFalse()
+            assertThat(byte.getBit(4), "4").isFalse()
+            assertThat(byte.getBit(3), "3").isFalse()
+            assertThat(byte.getBit(2), "2").isFalse()
+            assertThat(byte.getBit(1), "1").isFalse()
+            assertThat(byte.getBit(0), "0").isFalse()
+
+            assertThat(1u.toUByte().getBit(0)).isTrue()
+            assertThat(0u.toUByte().getBit(0)).isFalse()
+        }
+
+
     }
 }

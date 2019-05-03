@@ -18,7 +18,7 @@ import java.util.stream.Stream
 class OperationTest {
     val registers = Registers()
     val mmu = MMU().apply { inBios = false }
-    val operations = OperationBuilder(registers, mmu).operations
+    val operations = OperationBuilder(registers, mmu, { _-> null }).operations
 
     @BeforeEach
     fun `reset registers`() {
