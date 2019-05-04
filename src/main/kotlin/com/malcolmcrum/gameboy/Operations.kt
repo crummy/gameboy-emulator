@@ -71,7 +71,6 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         createSetOperations(cbOperations, 0xf6, 6)
         createSetOperations(cbOperations, 0xfe, 7)
 
-        operations[0x10] = Operation("STOP", 1) { TODO() }
         operations[0xce] = Operation("ADC A,\$xx", 2) { adcA(readFromMemory(registers.sp + 1u)) }
         operations[0x8e] = Operation("ADC A,(HL)", 1) { adcA(readFromMemory(registers.hl)) }
         operations[0x8f] = Operation("ADC A,A", 1) { adcA(registers.a) }
@@ -230,16 +229,135 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0xc0] = Operation("RET", 1) { ret { !registers.zero} }
         operations[0xc8] = Operation("RET", 1) { ret { registers.zero }}
         operations[0xc8] = Operation("RETI", 1) { reti() }
-        operations[0x17] = Operation("RETI", 1) { rla() }
+        operations[0x17] = Operation("RLA", 1) { rla() }
+        operations[0x07] = Operation("RLCA", 1) { rlac() }
+        operations[0x1f] = Operation("RRA", 1) { rra() }
+        operations[0x0f] = Operation("RRCA", 1) { rrca() }
+        operations[0xc7] = Operation("RST $00", 1) { rst(0x00u) }
+        operations[0xcf] = Operation("RST $08", 1) { rst(0x08u) }
+        operations[0xd7] = Operation("RST $10", 1) { rst(0x10u) }
+        operations[0xdf] = Operation("RST $18", 1) { rst(0x18u) }
+        operations[0xe7] = Operation("RST $20", 1) { rst(0x20u) }
+        operations[0xcf] = Operation("RST $28", 1) { rst(0x28u) }
+        operations[0xf7] = Operation("RST $30", 1) { rst(0x30u) }
+        operations[0xff] = Operation("RST $38", 1) { rst(0x38u) }
+        operations[0xde] = Operation("SBC A,\$xx", 2) { sbca(readFromMemory(registers.sp + 1u)) }
+        operations[0x9e] = Operation("SBC A,(HL)", 1) { sbca(readFromMemory(registers.hl)) }
+        operations[0x9f] = Operation("SBC A,A", 1) { sbca(registers.a) }
+        operations[0x98] = Operation("SBC A,B", 1) { sbca(registers.b) }
+        operations[0x99] = Operation("SBC A,C", 1) { sbca(registers.c) }
+        operations[0x9a] = Operation("SBC A,D", 1) { sbca(registers.d) }
+        operations[0x9b] = Operation("SBC A,E", 1) { sbca(registers.e) }
+        operations[0x9c] = Operation("SBC A,H", 1) { sbca(registers.h) }
+        operations[0x9d] = Operation("SBC A,L", 1) { sbca(registers.l) }
+        operations[0x37] = Operation("SCF", 1) { scf() }
+        operations[0x10] = Operation("STOP", 1) { stop() }
+        operations[0xd6] = Operation("SUB \$xx", 2) { sub(readFromMemory(registers.sp + 1u))}
+        operations[0x97] = Operation("SUB A", 1) { sub(registers.a)}
+        operations[0x90] = Operation("SUB B", 1) { sub(registers.b)}
+        operations[0x91] = Operation("SUB C", 1) { sub(registers.c)}
+        operations[0x92] = Operation("SUB D", 1) { sub(registers.d)}
+        operations[0x93] = Operation("SUB E", 1) { sub(registers.e)}
+        operations[0x94] = Operation("SUB H", 1) { sub(registers.h)}
+        operations[0x95] = Operation("SUB L", 1) { sub(registers.l)}
+        operations[0xEE] = Operation("XOR \$xx", 1) { xor(readFromMemory(registers.sp + 1u))}
+        operations[0xAE] = Operation("XOR (HL)", 1) { xor(readFromMemory(registers.hl))}
+        operations[0xAF] = Operation("XOR A", 1) { xor(registers.a)}
+        operations[0xA8] = Operation("XOR B", 1) { xor(registers.b)}
+        operations[0xA9] = Operation("XOR C", 1) { xor(registers.c)}
+        operations[0xAA] = Operation("XOR D", 1) { xor(registers.d)}
+        operations[0xAB] = Operation("XOR E", 1) { xor(registers.e)}
+        operations[0xAC] = Operation("XOR H", 1) { xor(registers.h)}
+        operations[0xAD] = Operation("XOR L", 1) { xor(registers.l)}
 
 
         operations[0xcb] = Operation("0xCB operations", 2) { cbOperations[registers.sp++.toInt()] }
     }
 
+    private fun xor(byte: () -> UByte) {
+        xor(byte.invoke())
+    }
+
+    private fun xor(byte: UByte) {
+        with(registers) {
+            val result = a xor byte
+            setFlags(result.toUInt())
+            a = result
+        }
+    }
+
+    private fun sub(byte: () -> UByte) {
+        sub(byte.invoke())
+    }
+
+    private fun sub(byte: UByte) {
+        with(registers) {
+            val result = a - byte
+            setFlags(result)
+            subtract = true
+            a = result.toUByte()
+        }
+    }
+
+    private fun stop() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    private fun scf() {
+        registers.carry = true
+    }
+
+    private fun sbca(byte: () -> UByte) {
+        sbca(byte.invoke())
+    }
+
+    private fun sbca(byte: UByte) {
+        with(registers) {
+            val result = a - byte - if (carry) 1u else 0u
+            setFlags(result)
+            subtract = true
+            a = result.toUByte()
+        }
+    }
+
+    private fun rst(destination: UByte) {
+        with(registers) {
+            storeInMemory(sp - 1u).invoke(registers.pc.upperByte)
+            storeInMemory(sp - 2u).invoke(registers.pc.lowerByte)
+            pc = createUShort(0u, destination)
+            sp = (sp - 2u).toUShort()
+        }
+    }
+
+    private fun rra() {
+        with (registers) {
+            val newHighBit = if (carry) 1 else 0
+            carry = a.getBit(0)
+            a = ((a.toInt() shr 1) + (newHighBit shr 7)).toUByte()
+        }
+    }
+
+    private fun rrca() {
+        with (registers) {
+            carry = a.getBit(0)
+            val newHighBit = if (carry) 1 else 0
+            a = ((a.toInt() shr 1) + (newHighBit shr 7)).toUByte()
+        }
+    }
+
     private fun rla() {
         with (registers) {
-            val newLowBit = carry
-            carry = (a and 0b1000000u.toUByte() == 0b1000000u.toUByte())
+            val newLowBit = if (carry) 1 else 0
+            carry = a.getBit(7)
+            a = ((a.toInt() shl 1) + newLowBit).toUByte()
+        }
+    }
+
+    private fun rlac() {
+        with (registers) {
+            carry = a.getBit(7)
+            val newLowBit = if (carry) 1 else 0
+            a = ((a.toInt() shl 1) + newLowBit).toUByte()
         }
     }
 
