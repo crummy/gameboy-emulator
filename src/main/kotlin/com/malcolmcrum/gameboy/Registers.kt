@@ -47,7 +47,7 @@ data class Registers(
     fun setFlags(from: UInt) {
         f = 0u
         if (from > 255u) carry = true
-        if (from % 255u == 0u) zero = true
+        if (from % 256u == 0u) zero = true
     }
 
     var carry: Boolean

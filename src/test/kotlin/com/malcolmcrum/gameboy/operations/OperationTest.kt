@@ -1,47 +1,44 @@
-package com.malcolmcrum.gameboy
+package com.malcolmcrum.gameboy.operations
 
 import assertk.assertThat
-import com.malcolmcrum.gameboy.Registers.Companion.CARRY_FLAG
-import com.malcolmcrum.gameboy.Registers.Companion.ZERO_FLAG
+import com.malcolmcrum.gameboy.MMU
+import com.malcolmcrum.gameboy.OperationBuilder
+import com.malcolmcrum.gameboy.Registers
 import com.malcolmcrum.gameboy.utils.State
 import com.malcolmcrum.gameboy.utils.isEqualTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 
 @ExperimentalUnsignedTypes
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class OperationTest {
+abstract class OperationTest(private val instruction: Int) {
     val registers = Registers()
     val mmu = MMU().apply { inBios = false }
-    val operations = OperationBuilder(registers, mmu, { _-> null }).operations
+    val operations = OperationBuilder(registers, mmu, { null }).operations
 
     @BeforeEach
     fun `reset registers`() {
         registers.reset()
     }
 
+    abstract fun parameters(): Stream<Arguments>
+
     @ParameterizedTest
-    @MethodSource
-    fun `ADD A,$xx`(state: State, xx: Int, expected: State) {
+    @MethodSource("parameters")
+    fun testOperation(state: State, expected: State, instructionArguments: List<Int>) {
+
         givenRegisters(state)
-        givenRAM(listOf(0xc6, xx))
+        givenRAM(listOf(instruction).plus(instructionArguments))
 
         executeInstruction()
 
         assertThat(registers).isEqualTo(expected)
-    }
 
-    fun `ADD A,$xx`(): Stream<Arguments> = Stream.of(
-            arguments(State(a = 0u), 0x00, State(a = 0u)),
-            arguments(State(a = 0u), 0x01, State(a = 1u)),
-            arguments(State(a = 1u), 0x00, State(a = 1u)),
-            arguments(State(a = 0xFFu), 0x01, State(a = 0u, f = CARRY_FLAG or ZERO_FLAG))
-    )
+    }
 
     private fun executeInstruction() {
         val opCode = mmu[registers.pc].toInt()
