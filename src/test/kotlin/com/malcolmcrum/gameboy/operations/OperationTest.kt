@@ -4,40 +4,24 @@ import assertk.assertThat
 import com.malcolmcrum.gameboy.MMU
 import com.malcolmcrum.gameboy.OperationBuilder
 import com.malcolmcrum.gameboy.Registers
+import com.malcolmcrum.gameboy.hex
 import com.malcolmcrum.gameboy.utils.State
 import com.malcolmcrum.gameboy.utils.isEqualTo
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
-import java.util.stream.Stream
 
 @ExperimentalUnsignedTypes
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-abstract class OperationTest(private val instruction: Int) {
+class OperationTest(opcode: UByte, description: String?, var initial: State = State(), var expected: State = State()) {
     val registers = Registers()
     val mmu = MMU().apply { inBios = false }
     val operations = OperationBuilder(registers, mmu, { null }).operations
 
-    @BeforeEach
-    fun `reset registers`() {
-        registers.reset()
-    }
-
-    abstract fun parameters(): Stream<Arguments>
-
-    @ParameterizedTest
-    @MethodSource("parameters")
-    fun testOperation(state: State, expected: State, instructionArguments: List<Int>) {
-
-        givenRegisters(state)
-        givenRAM(listOf(instruction).plus(instructionArguments))
+    init {
+        givenRegisters(initial)
+        givenROM(listOf(opcode).plus(initial.args))
+        givenRAM(initial.ram)
 
         executeInstruction()
 
-        assertThat(registers).isEqualTo(expected)
-
+        assertThat(registers, "${opcode.hex}: $description").isEqualTo(expected)
     }
 
     private fun executeInstruction() {
@@ -45,8 +29,12 @@ abstract class OperationTest(private val instruction: Int) {
         operations[opCode].operation.invoke()
     }
 
-    private fun givenRAM(instructions: List<Int>) {
-        instructions.forEachIndexed { index, instruction -> mmu[index.toUInt()] = instruction.toUByte() }
+    private fun givenROM(instructions: List<UByte>) {
+        instructions.forEachIndexed { index, instruction -> mmu[index.toUInt()] = instruction }
+    }
+
+    private fun givenRAM(ram: Map<UInt, UInt>) {
+        ram.forEach { (address, value) -> mmu[0xFF00u + address] = value.toUByte() }
     }
 
     private fun givenRegisters(before: State) {
@@ -65,3 +53,8 @@ abstract class OperationTest(private val instruction: Int) {
     }
 }
 
+
+@ExperimentalUnsignedTypes
+fun test(instruction: Int, name: String? = null, block: OperationTest.() -> Unit) {
+    OperationTest(instruction.toUByte(), name).apply(block)
+}
