@@ -9,12 +9,12 @@ import com.malcolmcrum.gameboy.utils.State
 import com.malcolmcrum.gameboy.utils.isEqualTo
 
 @ExperimentalUnsignedTypes
-class OperationTest(opcode: UByte, description: String?, var initial: State = State(), var expected: State = State()) {
+class OperationTest(val opcode: UByte, val description: String?, var initial: State = State(), var expected: State = State()) {
     val registers = Registers()
     val mmu = MMU().apply { inBios = false }
     val operations = OperationBuilder(registers, mmu, { null }).operations
 
-    init {
+    fun execute() {
         givenRegisters(initial)
         givenROM(listOf(opcode).plus(initial.args))
         givenRAM(initial.ram)
@@ -56,5 +56,5 @@ class OperationTest(opcode: UByte, description: String?, var initial: State = St
 
 @ExperimentalUnsignedTypes
 fun test(instruction: Int, name: String? = null, block: OperationTest.() -> Unit) {
-    OperationTest(instruction.toUByte(), name).apply(block)
+    OperationTest(instruction.toUByte(), name).apply(block).execute()
 }
