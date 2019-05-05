@@ -52,4 +52,56 @@ internal class ADDTest {
             }
         }
     }
+
+    @Nested
+    @DisplayName("ADD C")
+    inner class ADD_C {
+        val opcode = 0x81
+
+        @Test
+        fun `1+2=3`() {
+            test(opcode) {
+                initial = State(a = 0x01u, c = 0x02u)
+                expected = State(a = 3u)
+            }
+        }
+
+        @Test
+        fun overflow() {
+            test(opcode) {
+                initial = State(a = 0x01u, c = 0xFFu)
+                expected = State(a = 0u, f = CARRY_FLAG or ZERO_FLAG)
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("ADD HL,BC")
+    inner class ADD_HL_BC {
+        val opcode = 0x09
+
+        @Test
+        fun `0+0=0`() {
+            test(opcode) {
+                initial = State(hl = 0u, bc = 0u)
+                expected = State(hl = 0u, f = ZERO_FLAG)
+            }
+        }
+
+        @Test
+        fun `256+257=513`() {
+            test(opcode) {
+                initial = State(hl = 256u, bc = 257u)
+                expected = State(hl = 513u, bc = 257u, f = 0u)
+            }
+        }
+
+        @Test
+        fun overflow() {
+            test(opcode) {
+                initial = State(hl = 0xFFFFu, bc = 0x0001u)
+                expected = State(hl = 0u, f = ZERO_FLAG or CARRY_FLAG)
+            }
+        }
+    }
 }

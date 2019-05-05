@@ -15,6 +15,7 @@ data class State(
         var h: UByte? = null,
         var l: UByte? = null,
         var hl: UShort? = null,
+        var bc: UShort? = null,
         var f: UByte? = null,
         var pc: UShort? = null,
         var sp: UShort? = null,
@@ -28,6 +29,11 @@ data class State(
             assert(h == null && l == null) { "Set HL xor (H or L), but not both." }
             h = it.lowerByte
             l = it.upperByte
+        }
+        bc?.let {
+            assert(b == null && c == null) { "Set BC xor (B or C), but not both." }
+            b = it.lowerByte
+            c = it.upperByte
         }
         ram.forEach { address, byte ->
             assert(address <= 0xFFFFu) { "RAM address too big" } // TODO: choose lower min, to fit actual ram limits
