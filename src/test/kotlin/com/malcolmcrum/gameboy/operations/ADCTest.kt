@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 @ExperimentalUnsignedTypes
-class OperationsTest {
+class ADCTest {
 
     @Nested
     @DisplayName("ADC \$xx")
