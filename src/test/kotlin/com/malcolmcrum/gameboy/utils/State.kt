@@ -42,26 +42,26 @@ data class State(
     }
 
     override fun toString(): String {
-        var flags = ""
+        val components = mutableListOf<String>()
+        a?.let { components.add("a=${it.hex}") }
+        b?.let { components.add("b=${it.hex}") }
+        c?.let { components.add("c=${it.hex}") }
+        d?.let { components.add("d=${it.hex}") }
+        e?.let { components.add("e=${it.hex}") }
+        h?.let { components.add("h=${it.hex}") }
+        l?.let { components.add("l=${it.hex}") }
+        pc?.let { components.add("pc=${it.hex}") }
+        sp?.let { components.add("sp=${it.hex}") }
+        m?.let { components.add("m=${it.hex}") }
+        t?.let { components.add("t=${it.hex}") }
+        if (ram.isNotEmpty()) components.add("ram=${ram.map { it.key.hex + "=" + it.value.toUByte().hex }}")
         f?.let {
-            flags = if (it and Registers.ZERO_FLAG != 0u.toUByte()) "Z" else ""
+            var flags = if (it and Registers.ZERO_FLAG != 0u.toUByte()) "Z" else ""
             flags += if (it and Registers.SUBTRACT_FLAG != 0u.toUByte()) "N" else ""
             flags += if (it and Registers.HALF_CARRY_FLAG != 0u.toUByte()) "H" else ""
             flags += if (it and Registers.CARRY_FLAG != 0u.toUByte()) "C" else ""
+            components.add(flags)
         }
-        var state = ""
-        a?.let { state += "a=${it.hex}, " }
-        b?.let { state += "b=${it.hex}, " }
-        c?.let { state += "c=${it.hex}, " }
-        d?.let { state += "d=${it.hex}, " }
-        e?.let { state += "e=${it.hex}, " }
-        h?.let { state += "h=${it.hex}, " }
-        l?.let { state += "l=${it.hex}, " }
-        pc?.let { state += "pc=${it.hex}, " }
-        sp?.let { state += "sp=${it.hex}, " }
-        m?.let { state += "m=${it.hex}, " }
-        t?.let { state += "t=${it.hex}, " }
-        if (ram.isNotEmpty()) state += "ram=$ram, "
-        return "State(${state.trim()} $flags)"
+        return "State(${components.joinToString()})"
     }
 }

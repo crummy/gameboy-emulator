@@ -44,6 +44,10 @@ val UShort.hex: String
     get() = String.format("0x%04x", this.toInt())
 
 @ExperimentalUnsignedTypes
+val UInt.hex: String
+    get() = String.format("0x%04x", this.toInt())
+
+@ExperimentalUnsignedTypes
 fun UByte.getBit(position: Int): Boolean {
     assert(position <= 7)
     return (this.toUInt() shr position) == 1u
