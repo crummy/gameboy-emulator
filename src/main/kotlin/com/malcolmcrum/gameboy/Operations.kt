@@ -150,7 +150,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0xc3] = Operation("JP \$aabb", 3) { jp(readWordFromMemory(registers.pc + 1u)) }
         operations[0xe9] = Operation("JP (HL)", 1) { jp({ registers.hl }) }
         operations[0xda] = Operation("JP C,\$aabb", 3) { jp(readWordFromMemory(registers.pc + 1u), registers.carry) }
-        operations[0xcd] = Operation("JP NC,\$aabb", 3) { jp(readWordFromMemory(registers.pc + 1u), !registers.carry) }
+        operations[0xd2] = Operation("JP NC,\$aabb", 3) { jp(readWordFromMemory(registers.pc + 1u), !registers.carry) }
         operations[0xc2] = Operation("JP NZ,\$aabb", 3) { jp(readWordFromMemory(registers.pc + 1u), !registers.zero) }
         operations[0xca] = Operation("JP Z,\$aabb", 3) { jp(readWordFromMemory(registers.pc + 1u), registers.zero) }
         operations[0x18] = Operation("JR \$xx", 2) { jr(readFromMemory(registers.pc + 1u)) }
