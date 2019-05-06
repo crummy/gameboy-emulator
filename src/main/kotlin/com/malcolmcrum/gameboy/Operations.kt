@@ -109,7 +109,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0xc4] = Operation("CALL NZ,\$aabb", 3) { call(readWordFromMemory(registers.pc + 1u), !registers.zero) }
         operations[0xcc] = Operation("CALL Z,\$aabb", 3) { call(readWordFromMemory(registers.pc + 1u), registers.zero) }
         operations[0x3f] = Operation("CCF", 1) { ccf() }
-        operations[0x3f] = Operation("CP \$xx", 2) { cp(readFromMemory(registers.sp + 1u)) }
+        operations[0xfe] = Operation("CP \$xx", 2) { cp(readFromMemory(registers.sp + 1u)) }
         operations[0xbe] = Operation("CP (HL)", 1) { cp(readFromMemory(registers.hl)) }
         operations[0xbf] = Operation("CP A", 1) { cp(registers.a) }
         operations[0xb8] = Operation("CP B", 1) { cp(registers.b) }
@@ -511,6 +511,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     // Flip carry flag
     private fun ccf() {
         registers.carry = !registers.carry
+        registers.tick()
     }
 
     private fun cp(byte: () -> UByte) {
@@ -521,7 +522,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     private fun cp(byte: UByte) {
         with(registers) {
             val result = a - byte
-            setFlags(zero = result == 0u, subtract = true, carry = byte > a)
+            setFlags(zero = result and 0xFFu == 0u, subtract = true, carry = byte > a)
             tick()
         }
     }
