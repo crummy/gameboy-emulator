@@ -15,6 +15,7 @@ class OperationTest(val opcode: UByte, val description: String?, var initial: St
     val operations = OperationBuilder(registers, mmu, { null }).operations
 
     fun execute() {
+        println("Initial: $initial")
         givenRegisters(initial)
         givenROM(listOf(opcode).plus(initial.args))
         givenRAM(initial.ram)

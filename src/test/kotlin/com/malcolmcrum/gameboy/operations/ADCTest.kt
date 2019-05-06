@@ -13,7 +13,7 @@ class ADCTest {
     @Nested
     @DisplayName("ADC \$xx")
     inner class ADCXX {
-        val opcode = 0xc3
+        val opcode = 0xce
 
         @Test
         fun `0+0+0=0`() {
@@ -86,16 +86,16 @@ class ADCTest {
         @Test
         fun `0+0+0=0`() {
             test(opcode) {
-                initial = State(a = 0u, b = 0u)
-                expected = State(a = 0u, b = 0u, f = CARRY_FLAG)
+                initial = State(a = 0u, b = 0u, f = 0u)
+                expected = State(a = 0u, b = 0u, f = ZERO_FLAG)
             }
         }
 
         @Test
         fun `1+3+0=4`() {
             test(opcode) {
-                initial = State(a = 1u, b = 3u)
-                expected = State(a = 4u, b = 3u)
+                initial = State(a = 1u, b = 3u, f = 0u)
+                expected = State(a = 4u)
             }
         }
 
