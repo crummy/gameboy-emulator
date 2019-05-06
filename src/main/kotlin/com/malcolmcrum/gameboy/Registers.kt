@@ -17,37 +17,37 @@ data class Registers(
         var t: UByte = 0u
 ) {
 
-    // TODO: are these bytes in the right order?
     var af: UShort
         get() = createUShort(f, a)
         set(new) {
-            a = new.upperByte
-            b = new.lowerByte
+            a = new.lowerByte
+            b = new.upperByte
         }
     var bc: UShort
         get() = createUShort(c, b)
         set(new) {
-            b = new.upperByte
-            c = new.lowerByte
+            b = new.lowerByte
+            c = new.upperByte
         }
     var de: UShort
         get() = createUShort(e, d)
         set(new) {
-            d = new.upperByte
-            e = new.lowerByte
+            d = new.lowerByte
+            e = new.upperByte
         }
     var hl: UShort
         get() = createUShort(l, h)
         set(new) {
-            h = new.upperByte
-            l = new.lowerByte
+            h = new.lowerByte
+            l = new.upperByte
         }
 
-    // TODO: separately handle shorts?
-    fun setFlags(from: UInt) {
+    fun setFlags(carry: Boolean = false, zero: Boolean = false, halfCarry: Boolean = false, subtract: Boolean = false) {
         f = 0u
-        if (from > 255u) carry = true
-        if (from % 256u == 0u) zero = true
+        this.carry = carry
+        this.zero = zero
+        this.halfCarry = halfCarry
+        this.subtract = subtract
     }
 
     var carry: Boolean

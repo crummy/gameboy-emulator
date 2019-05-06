@@ -35,7 +35,7 @@ data class State(
             b = it.lowerByte
             c = it.upperByte
         }
-        ram.forEach { address, byte ->
+        ram.forEach { (address, byte) ->
             assert(address <= 0xFFFFu) { "RAM address too big" } // TODO: choose lower min, to fit actual ram limits
             assert(byte <= 0xFFu) { "ram contains bytes. data is too big" }
         }
@@ -50,18 +50,18 @@ data class State(
             flags += if (it and Registers.CARRY_FLAG != 0u.toUByte()) "C" else ""
         }
         var state = ""
-        a?.let { state += "a=${it.hex} " }
-        b?.let { state += "b=${it.hex} " }
-        c?.let { state += "c=${it.hex} " }
-        d?.let { state += "d=${it.hex} " }
-        e?.let { state += "e=${it.hex} " }
-        h?.let { state += "h=${it.hex} " }
-        l?.let { state += "l=${it.hex} " }
-        pc?.let { state += "pc=${it.hex} " }
-        sp?.let { state += "sp=${it.hex} " }
-        m?.let { state += "m=${it.hex} " }
-        t?.let { state += "t=${it.hex} " }
-        if (ram.isNotEmpty()) state += "ram=$ram "
-        return "State(${state.trim()}, $flags)"
+        a?.let { state += "a=${it.hex}, " }
+        b?.let { state += "b=${it.hex}, " }
+        c?.let { state += "c=${it.hex}, " }
+        d?.let { state += "d=${it.hex}, " }
+        e?.let { state += "e=${it.hex}, " }
+        h?.let { state += "h=${it.hex}, " }
+        l?.let { state += "l=${it.hex}, " }
+        pc?.let { state += "pc=${it.hex}, " }
+        sp?.let { state += "sp=${it.hex}, " }
+        m?.let { state += "m=${it.hex}, " }
+        t?.let { state += "t=${it.hex}, " }
+        if (ram.isNotEmpty()) state += "ram=$ram, "
+        return "State(${state.trim()} $flags)"
     }
 }

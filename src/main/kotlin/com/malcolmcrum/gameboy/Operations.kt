@@ -280,9 +280,8 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
 
     private fun xor(byte: UByte) {
         with(registers) {
-            val result = a xor byte
-            setFlags(result.toUInt())
-            a = result
+            a = a xor byte
+            setFlags(zero = a.toUInt() == 0u)
         }
     }
 
@@ -293,8 +292,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     private fun sub(byte: UByte) {
         with(registers) {
             val result = a - byte
-            setFlags(result)
-            subtract = true
+            setFlags(zero = result == 0u, carry = byte > a, subtract = true)
             a = result.toUByte()
         }
     }
@@ -313,9 +311,8 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
 
     private fun sbca(byte: UByte) {
         with(registers) {
-            val result = a - byte - if (carry) 1u else 0u
-            setFlags(result)
-            subtract = true
+            val result = (a - byte - if (carry) 1u else 0u).toInt()
+            setFlags(subtract = true, zero = result == 0, carry = result < 0)
             a = result.toUByte()
         }
     }
@@ -453,7 +450,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     private fun inc(save: (UByte) -> Unit, source: UByte) {
         with(registers) {
             val result = source + 1u
-            setFlags(result)
+            setFlags(carry = result > 0xFFu)
             save.invoke(result.toUByte())
         }
     }
@@ -465,7 +462,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     private fun inc(save: (UShort) -> Unit, source: UShort) {
         with(registers) {
             val result = source + 1u
-            setFlags(result)
+            setFlags(carry = result > 0xFFFFu)
             save.invoke(result.toUShort())
         }
     }
@@ -485,7 +482,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     private fun dec(save: (UByte) -> Unit, source: UByte) {
         with(registers) {
             val result = source - 1u
-            setFlags(result)
+            setFlags(zero = result == 0u, subtract = true)
             save.invoke(result.toUByte())
         }
     }
@@ -497,7 +494,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     private fun dec(save: (UShort) -> Unit, source: UShort) {
         with(registers) {
             val result = source - 1u
-            setFlags(result)
+            setFlags(zero = result == 0u, subtract = true)
             save.invoke(result.toUShort())
         }
     }
@@ -524,7 +521,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     private fun cp(byte: UByte) {
         with(registers) {
             val result = a - byte
-            setFlags(result)
+            setFlags(zero = result == 0u, subtract = true, carry = byte > a)
             tick()
         }
     }
@@ -654,18 +651,9 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     private fun adcA(byte: UByte) {
         with(registers) {
             val result = a + byte + if (registers.carry) 1u else 0u
-            setFlags(result)
+            setFlags(zero = result == 0u, carry = result > 0xFFu)
             a = result.toUByte()
             tick()
-        }
-    }
-
-    private fun add(destination: (UShort) -> Unit, left: UShort, right: UShort) {
-        with(registers) {
-            val result = left + right
-            setFlags(result)
-            destination.invoke(result.toUShort())
-            tick(2)
         }
     }
 
@@ -680,7 +668,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     private fun addA(byte: UByte) {
         with(registers) {
             val result = a + byte
-            setFlags(result)
+            setFlags(zero = result == 0u, carry = result > 0xFFu)
             a = result.toUByte()
             tick()
         }
@@ -689,7 +677,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     private fun addHL(short: UShort) {
         with(registers) {
             val result = hl + short
-            setFlags(result)
+            setFlags(carry = result > 0xFFFFu)
             hl = result.toUShort()
             tick()
         }
@@ -710,7 +698,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     private fun addSP(byte: () -> UByte) {
         with(registers) {
             val result = sp + byte.invoke()
-            setFlags(result)
+            setFlags(zero = result == 0u, carry = result > 0xFFu)
             hl = result.toUShort()
             tick()
         }
