@@ -35,7 +35,7 @@ class OperationTest(val opcode: UByte, val description: String?, var initial: St
     }
 
     private fun givenRAM(ram: Map<UInt, UInt>) {
-        ram.forEach { (address, value) -> mmu[0xFF00u + address] = value.toUByte() }
+        ram.forEach { (address, value) -> mmu[address] = value.toUByte() }
     }
 
     private fun givenRegisters(before: State) {

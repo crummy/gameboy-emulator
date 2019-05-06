@@ -65,14 +65,14 @@ class ADCTest {
         fun `2+1+3=6`() {
             test(opcode) {
                 initial = State(a = 2u, f = CARRY_FLAG, hl = 0x20u, ram = mapOf(0x20u to 0x3u))
-                expected = State(a = 3u, f = 0u)
+                expected = State(a = 6u, f = 0u)
             }
         }
 
         @Test
         fun overflow() {
             test(opcode) {
-                initial = State(a = 1u, f = CARRY_FLAG, hl = 0x1000u, ram = mapOf(0x1000u to 0xFFu))
+                initial = State(a = 0u, f = CARRY_FLAG, hl = 0x1000u, ram = mapOf(0x1000u to 0xFFu))
                 expected = State(a = 0u, f = CARRY_FLAG or ZERO_FLAG)
             }
         }

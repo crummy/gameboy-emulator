@@ -71,7 +71,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         createSetOperations(cbOperations, 0xf6, 6)
         createSetOperations(cbOperations, 0xfe, 7)
 
-        operations[0xce] = Operation("ADC A,\$xx", 2) { adcA(readFromMemory(registers.sp + 1u)) }
+        operations[0xce] = Operation("ADC A,\$xx", 2) { adcA(readFromMemory(registers.pc + 1u)) }
         operations[0x8e] = Operation("ADC A,(HL)", 1) { adcA(readFromMemory(registers.hl)) }
         operations[0x8f] = Operation("ADC A,A", 1) { adcA(registers.a) }
         operations[0x88] = Operation("ADC A,B", 1) { adcA(registers.b) }
@@ -80,8 +80,8 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0x8b] = Operation("ADC A,E", 1) { adcA(registers.e) }
         operations[0x8c] = Operation("ADC A,H", 1) { adcA(registers.h) }
         operations[0x8d] = Operation("ADC A,L", 1) { adcA(registers.l) }
-        operations[0xc6] = Operation("ADD A,\$xx", 2) { addA(readFromMemory(registers.sp + 1u)) }
-        operations[0x86] = Operation("ADD A,(HL)", 1) { addA(readFromMemory(registers.sp + 1u)) }
+        operations[0xc6] = Operation("ADD A,\$xx", 2) { addA(readFromMemory(registers.pc + 1u)) }
+        operations[0x86] = Operation("ADD A,(HL)", 1) { addA(readFromMemory(registers.hl)) }
         operations[0x87] = Operation("ADD A,A", 1) { addA(registers.a) }
         operations[0x80] = Operation("ADD A,B", 1) { addA(registers.b) }
         operations[0x81] = Operation("ADD A,C", 1) { addA(registers.c) }
@@ -93,8 +93,8 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0x19] = Operation("ADD HL,DE", 1) { addHL(registers.de) }
         operations[0x29] = Operation("ADD HL,HL", 1) { addHL(registers.hl) }
         operations[0x39] = Operation("ADD HL,SP", 1) { addHL(registers.sp) }
-        operations[0xe8] = Operation("ADD SP,\$xx", 2) { addSP(readFromMemory(registers.sp + 1u)) }
-        operations[0xe6] = Operation("AND \$xx", 2) { andA(readFromMemory(registers.sp + 1u)) }
+        operations[0xe8] = Operation("ADD SP,\$xx", 2) { addSP(readFromMemory(registers.pc + 1u)) }
+        operations[0xe6] = Operation("AND \$xx", 2) { andA(readFromMemory(registers.pc + 1u)) }
         operations[0xa6] = Operation("AND (HL)", 1) { andA(readFromMemory(registers.hl)) }
         operations[0xa7] = Operation("AND A", 1) { andA(registers.a) }
         operations[0xa0] = Operation("AND B", 1) { andA(registers.b) }
@@ -103,11 +103,11 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0xa3] = Operation("AND E", 1) { andA(registers.e) }
         operations[0xa4] = Operation("AND H", 1) { andA(registers.h) }
         operations[0xa5] = Operation("AND L", 1) { andA(registers.l) }
-        operations[0xcd] = Operation("CALL \$aabb", 3) { call(readWordFromMemory(registers.sp + 1u)) }
-        operations[0xdc] = Operation("CALL C,\$aabb", 3) { call(readWordFromMemory(registers.sp + 1u), registers.carry) }
-        operations[0xd4] = Operation("CALL NC,\$aabb", 3) { call(readWordFromMemory(registers.sp + 1u), !registers.carry) }
-        operations[0xc4] = Operation("CALL NZ,\$aabb", 3) { call(readWordFromMemory(registers.sp + 1u), !registers.zero) }
-        operations[0xcc] = Operation("CALL Z,\$aabb", 3) { call(readWordFromMemory(registers.sp + 1u), registers.zero) }
+        operations[0xcd] = Operation("CALL \$aabb", 3) { call(readWordFromMemory(registers.pc + 1u)) }
+        operations[0xdc] = Operation("CALL C,\$aabb", 3) { call(readWordFromMemory(registers.pc + 1u), registers.carry) }
+        operations[0xd4] = Operation("CALL NC,\$aabb", 3) { call(readWordFromMemory(registers.pc + 1u), !registers.carry) }
+        operations[0xc4] = Operation("CALL NZ,\$aabb", 3) { call(readWordFromMemory(registers.pc + 1u), !registers.zero) }
+        operations[0xcc] = Operation("CALL Z,\$aabb", 3) { call(readWordFromMemory(registers.pc + 1u), registers.zero) }
         operations[0x3f] = Operation("CCF", 1) { ccf() }
         operations[0x3f] = Operation("CP \$xx", 2) { cp(readFromMemory(registers.sp + 1u)) }
         operations[0xbe] = Operation("CP (HL)", 1) { cp(readFromMemory(registers.hl)) }
@@ -569,7 +569,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     }
 
     private fun readFromMemory(offset: UByte): () -> UByte = {
-        readFromMemory(offset + 0xFF00u).invoke()
+        readFromMemory(offset).invoke()
     }
 
     private fun readWordFromMemory(absolute: UInt): () -> UShort {

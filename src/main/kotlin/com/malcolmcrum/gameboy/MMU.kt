@@ -46,12 +46,6 @@ class MMU {
         }
     }
 
-    fun getWord(addr: UShort): UShort {
-        val firstByte = get(addr)
-        val secondByte = get((addr + 1u).toUShort())
-        return (firstByte + secondByte shr 8).toUShort()
-    }
-
     operator fun set(address: UInt, value: UByte) {
         assert(address <= 0xFFFFu)
         set(address.toUShort(), value)
@@ -74,11 +68,6 @@ class MMU {
             in (0xFF80u..0xFFFFu) -> zram[address and 0x7Fu] = value
             else -> throw ArrayIndexOutOfBoundsException(address.toString())
         }
-    }
-
-    fun writeWord(addr: UShort, value: UShort) {
-        set(addr, value.toUByte())
-        set((addr + 1u).toUShort(), (value.toInt() shl 8).toUByte())
     }
 }
 
