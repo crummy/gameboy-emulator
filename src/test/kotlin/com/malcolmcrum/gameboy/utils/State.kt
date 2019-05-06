@@ -60,7 +60,7 @@ data class State(
             flags += if (it and Registers.SUBTRACT_FLAG != 0u.toUByte()) "N" else ""
             flags += if (it and Registers.HALF_CARRY_FLAG != 0u.toUByte()) "H" else ""
             flags += if (it and Registers.CARRY_FLAG != 0u.toUByte()) "C" else ""
-            components.add(flags)
+            if (flags.isNotEmpty()) components.add(flags)
         }
         return "State(${components.joinToString()})"
     }
