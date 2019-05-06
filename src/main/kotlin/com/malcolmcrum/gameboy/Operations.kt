@@ -685,7 +685,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
 
     private fun andA(byte: UByte) {
         with(registers) {
-            val a = a and byte
+            a = a and byte
             if (a == 0u.toUByte()) zero = true
             tick()
         }
