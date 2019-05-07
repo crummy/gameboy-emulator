@@ -13,9 +13,11 @@ internal class DECTest {
     @Nested
     @DisplayName("DEC (HL)")
     inner class DEC_HL {
+        val opcode = 0x35
+
         @Test
         fun `0xf1-- = 0xf0`() {
-            test(0x35) {
+            test(opcode) {
                 initial = State(hl = 0x4433u, ram = mapOf(0x4433u to 0xF1u))
                 expected = State(ram = mapOf(0x4433u to 0xF0u))
             }
@@ -23,7 +25,7 @@ internal class DECTest {
 
         @Test
         fun zero() {
-            test(0x35) {
+            test(opcode) {
                 initial = State(hl = 0x4433u, ram = mapOf(0x4433u to 0x01u))
                 expected = State(ram = mapOf(0x4433u to 0x00u), f = ZERO_FLAG or SUBTRACT_FLAG)
             }
@@ -31,7 +33,7 @@ internal class DECTest {
 
         @Test
         fun underflow() {
-            test(0x35) {
+            test(opcode) {
                 initial = State(hl = 0x4433u, ram = mapOf(0x4433u to 0x00u))
                 expected = State(ram = mapOf(0x4433u to 0xFFu), f = SUBTRACT_FLAG)
             }
