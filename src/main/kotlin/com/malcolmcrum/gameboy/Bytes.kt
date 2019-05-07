@@ -30,22 +30,26 @@ val UByte.lowerNibble
 
 @ExperimentalUnsignedTypes
 fun createUByte(upperNibble: UByte, lowerNibble: UByte): UByte {
-    assert(lowerNibble <= 0xFu)
-    assert(upperNibble <= 0xFu)
+    assert(lowerNibble <= 0xFu) { "${lowerNibble.hex()} is bigger than 0xF" }
+    assert(upperNibble <= 0xFu) { "${upperNibble.hex()} is bigger than 0xF" }
     return ((upperNibble.toUInt() shl 4) + lowerNibble).toUByte()
 }
 
 @ExperimentalUnsignedTypes
-val UByte.hex: String
-    get() = String.format("0x%02x", this.toInt())
+fun UByte.hex(): String =  String.format("0x%02x", this.toInt())
 
 @ExperimentalUnsignedTypes
-val UShort.hex: String
-    get() = String.format("0x%04x", this.toInt())
+fun UShort.hex(): String =  String.format("0x%04x", this.toInt())
 
 @ExperimentalUnsignedTypes
-val UInt.hex: String
-    get() = String.format("0x%04x", this.toInt())
+fun UInt.hex(): String = String.format("0x%04x", this.toInt())
+
+@ExperimentalUnsignedTypes
+fun Map<UInt, UInt>.hex(): String = this.map { "${it.key.hex()}=${it.value.hex()}" }.toString()
+
+@ExperimentalUnsignedTypes
+@JvmName("mapIntByteHex")
+fun Map<UInt, UByte>.hex(): String = this.map { "${it.key.hex()}=${it.value.hex()}" }.toString()
 
 @ExperimentalUnsignedTypes
 fun UByte.getBit(position: Int): Boolean {

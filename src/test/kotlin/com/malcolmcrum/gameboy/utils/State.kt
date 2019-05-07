@@ -43,18 +43,18 @@ data class State(
 
     override fun toString(): String {
         val components = mutableListOf<String>()
-        a?.let { components.add("a=${it.hex}") }
-        b?.let { components.add("b=${it.hex}") }
-        c?.let { components.add("c=${it.hex}") }
-        d?.let { components.add("d=${it.hex}") }
-        e?.let { components.add("e=${it.hex}") }
-        h?.let { components.add("h=${it.hex}") }
-        l?.let { components.add("l=${it.hex}") }
-        pc?.let { components.add("pc=${it.hex}") }
-        sp?.let { components.add("sp=${it.hex}") }
-        m?.let { components.add("m=${it.hex}") }
-        t?.let { components.add("t=${it.hex}") }
-        if (ram.isNotEmpty()) components.add("ram=${ram.map { it.key.hex + "=" + it.value.toUByte().hex }}")
+        a?.let { components.add("a=${it.hex()}") }
+        b?.let { components.add("b=${it.hex()}") }
+        c?.let { components.add("c=${it.hex()}") }
+        d?.let { components.add("d=${it.hex()}") }
+        e?.let { components.add("e=${it.hex()}") }
+        h?.let { components.add("h=${it.hex()}") }
+        l?.let { components.add("l=${it.hex()}") }
+        pc?.let { components.add("pc=${it.hex()}") }
+        sp?.let { components.add("sp=${it.hex()}") }
+        m?.let { components.add("m=${it.hex()}") }
+        t?.let { components.add("t=${it.hex()}") }
+        if (ram.isNotEmpty()) components.add("ram=${ram.hex()}")
         f?.let {
             var flags = if (it and Registers.ZERO_FLAG != 0u.toUByte()) "Z" else ""
             flags += if (it and Registers.SUBTRACT_FLAG != 0u.toUByte()) "N" else ""

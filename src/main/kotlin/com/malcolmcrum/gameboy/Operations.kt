@@ -491,6 +491,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         dec(save, source.invoke())
     }
 
+    // TODO - set half carry flag
     private fun dec(save: (UShort) -> Unit, source: UShort) {
         with(registers) {
             val result = source - 1u
@@ -500,11 +501,27 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     }
 
     // Converts A into packed BCD (e.g. 0x0B -> 0x1 in upper nibble and 0x2 in lower nibble)
+    // thanks to https://github.com/stan-roelofs/Kotlin-Gameboy-Emulator/blob/master/src/main/kotlin/cpu/instructions/miscellaneous/DAA.kt
     private fun daa() {
         with(registers) {
-            val lowerNibble = (a.toInt() % 10).toUByte()
-            val upperNibble = (a.toUInt() shr 4).toUByte()
-            a = createUByte(upperNibble, lowerNibble)
+            if (!subtract) {
+                if (carry || a > 0x99u) {
+                    a = (a + 0x60u).toUByte()
+                    carry = true
+                }
+                if (halfCarry || (a and 0x0Fu) > 0x09u) {
+                    a = (a + 0x06u).toUByte()
+                }
+            } else {
+                if (carry) {
+                    a = (a - 0x60u).toUByte()
+                }
+                if (halfCarry) {
+                    a = (a - 0x06u).toUByte()
+                }
+            }
+            zero = (a == 0u.toUByte())
+            halfCarry = false
         }
     }
 

@@ -9,7 +9,7 @@ import com.malcolmcrum.gameboy.utils.State
 import com.malcolmcrum.gameboy.utils.isEqualTo
 
 @ExperimentalUnsignedTypes
-class OperationTest(val opcode: UByte, val description: String?, var initial: State = State(), var expected: State = State()) {
+class OperationTest(val opcode: UByte, var initial: State = State(), var expected: State = State()) {
     val registers = Registers()
     val mmu = MMU().apply { inBios = false }
     val operations = OperationBuilder(registers, mmu, { null }).operations
@@ -22,7 +22,8 @@ class OperationTest(val opcode: UByte, val description: String?, var initial: St
 
         executeInstruction()
 
-        assertThat(registers, "${opcode.hex}: $description").isEqualTo(expected)
+        assertThat(registers, opcode.hex()).isEqualTo(expected)
+        assertThat(mmu, opcode.hex()).isEqualTo(expected.ram)
     }
 
     private fun executeInstruction() {
@@ -57,5 +58,5 @@ class OperationTest(val opcode: UByte, val description: String?, var initial: St
 
 @ExperimentalUnsignedTypes
 fun test(instruction: Int, name: String? = null, block: OperationTest.() -> Unit) {
-    OperationTest(instruction.toUByte(), name).apply(block).execute()
+    OperationTest(instruction.toUByte()).apply(block).execute()
 }

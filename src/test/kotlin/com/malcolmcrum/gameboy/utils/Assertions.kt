@@ -2,6 +2,7 @@ package com.malcolmcrum.gameboy.utils
 
 import assertk.Assert
 import assertk.assertions.support.expected
+import com.malcolmcrum.gameboy.MMU
 import com.malcolmcrum.gameboy.Registers
 import com.malcolmcrum.gameboy.hex
 
@@ -9,7 +10,7 @@ import com.malcolmcrum.gameboy.hex
 fun Assert<UByte>.isEqualToByte(expected: UByte) = given { actual ->
     val match = actual == expected.toUByte()
     if (match) return
-    expected("byte does not match.", expected.hex, actual.hex)
+    expected("byte does not match.", expected.hex(), actual.hex())
 }
 
 @ExperimentalUnsignedTypes
@@ -28,4 +29,12 @@ fun Assert<Registers>.isEqualTo(expected: State) = given { actual ->
             expected.t?.equals(actual.t) ?: true
     if (match) return
     expected("registers do not match.", expected, actual)
+}
+
+@ExperimentalUnsignedTypes
+fun Assert<MMU>.isEqualTo(expected: Map<UInt, UInt>) = given { mmu ->
+    val actual = expected.keys.map { Pair(it, mmu[it]) }.toMap()
+    val match = expected.all { (address, value) -> actual[address] == value.toUByte() }
+    if (match) return
+    expected("memory does not match.", expected.hex(), actual.hex())
 }
