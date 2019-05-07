@@ -27,8 +27,7 @@ class OperationTest(val opcode: UByte, var initial: State = State(), var expecte
     }
 
     private fun executeInstruction() {
-        val opCode = mmu[registers.pc].toInt()
-        operations[opCode].operation.invoke()
+        operations[opcode.toInt()].operation.invoke()
     }
 
     private fun givenROM(instructions: List<UByte>) {
