@@ -447,10 +447,11 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         }
     }
 
+    // TODO: half-carry
     private fun inc(save: (UByte) -> Unit, source: UByte) {
         with(registers) {
             val result = source + 1u
-            setFlags(carry = result > 0xFFu)
+            setFlags(zero = result and 0xFFu == 0u)
             save.invoke(result.toUByte())
         }
     }
@@ -459,10 +460,11 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         inc(save, source.invoke())
     }
 
+    // TODO: half-carry
     private fun inc(save: (UShort) -> Unit, source: UShort) {
         with(registers) {
             val result = source + 1u
-            setFlags(carry = result > 0xFFFFu)
+            setFlags(zero = result and 0xFFFFu == 0u)
             save.invoke(result.toUShort())
         }
     }
