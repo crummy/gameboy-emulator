@@ -52,6 +52,9 @@ fun Map<UInt, UInt>.hex(): String = this.map { "${it.key.hex()}=${it.value.hex()
 fun Map<UInt, UByte>.hex(): String = this.map { "${it.key.hex()}=${it.value.hex()}" }.toString()
 
 @ExperimentalUnsignedTypes
+fun List<UByte>.hex(): String = this.map { "${it.hex()}}" }.toString()
+
+@ExperimentalUnsignedTypes
 fun UByte.getBit(position: Int): Boolean {
     assert(position <= 7)
     return (this.toUInt() shr position) == 1u

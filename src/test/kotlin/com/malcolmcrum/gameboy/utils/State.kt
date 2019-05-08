@@ -55,6 +55,7 @@ data class State(
         m?.let { components.add("m=${it.hex()}") }
         t?.let { components.add("t=${it.hex()}") }
         if (ram.isNotEmpty()) components.add("ram=${ram.hex()}")
+        if (args.isNotEmpty()) components.add("args=${args.hex()}")
         f?.let {
             var flags = if (it and Registers.ZERO_FLAG != 0u.toUByte()) "Z" else ""
             flags += if (it and Registers.SUBTRACT_FLAG != 0u.toUByte()) "N" else ""

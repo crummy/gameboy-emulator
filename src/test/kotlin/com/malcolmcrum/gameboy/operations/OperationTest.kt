@@ -17,21 +17,23 @@ class OperationTest(val opcode: UByte, var initial: State = State(), var expecte
     fun execute() {
         println("Initial: $initial")
         givenRegisters(initial)
-        givenROM(listOf(opcode).plus(initial.args))
+        givenROM(initial.pc ?: 0u, listOf(opcode).plus(initial.args))
         givenRAM(initial.ram)
 
         executeInstruction()
 
-        assertThat(registers, opcode.hex()).isEqualTo(expected)
-        assertThat(mmu, opcode.hex()).isEqualTo(expected.ram)
+        assertThat(registers, operationDescription(opcode)).isEqualTo(expected)
+        assertThat(mmu, operationDescription(opcode)).isEqualTo(expected.ram)
     }
+
+    private fun operationDescription(opcode: UByte) = "${opcode.hex()}: ${operations[opcode.toInt()].name}"
 
     private fun executeInstruction() {
         operations[opcode.toInt()].operation.invoke()
     }
 
-    private fun givenROM(instructions: List<UByte>) {
-        instructions.forEachIndexed { index, instruction -> mmu[index.toUInt()] = instruction }
+    private fun givenROM(pc: UShort, instructions: List<UByte>) {
+        instructions.forEachIndexed { index, instruction -> mmu[pc + index.toUInt()] = instruction }
     }
 
     private fun givenRAM(ram: Map<UInt, UInt>) {
@@ -56,6 +58,6 @@ class OperationTest(val opcode: UByte, var initial: State = State(), var expecte
 
 
 @ExperimentalUnsignedTypes
-fun test(instruction: Int, name: String? = null, block: OperationTest.() -> Unit) {
+fun test(instruction: Int, block: OperationTest.() -> Unit) {
     OperationTest(instruction.toUByte()).apply(block).execute()
 }
