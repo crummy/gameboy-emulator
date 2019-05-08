@@ -1,6 +1,6 @@
 package com.malcolmcrum.gameboy
 
-// Remember: Z80 is small endian
+// Remember: GBZ80 is small endian
 @ExperimentalUnsignedTypes
 data class Registers(
         var a: UByte = 0u,

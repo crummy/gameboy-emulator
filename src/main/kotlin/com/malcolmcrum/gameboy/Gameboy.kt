@@ -4,7 +4,7 @@ import java.io.File
 
 @ExperimentalUnsignedTypes
 class Gameboy {
-    val z80 = Z80()
+    val z80 = GBZ80()
 
     companion object {
         @JvmStatic
