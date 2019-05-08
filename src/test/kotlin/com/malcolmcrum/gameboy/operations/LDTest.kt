@@ -30,5 +30,21 @@ internal class LDTest {
         }
     }
 
+    @Test
+    fun `LD (BC),A`() {
+        test(0x02) {
+            initial = State(a = 0x34u, bc = 0x442Au)
+            expected = State(ram = mapOf(0x442Au to 0x34u))
+        }
+    }
+
+    @Test
+    fun `LD (C),A`() {
+        test(0xe2) {
+            initial = State(a = 0x34u, c = 0xFAu)
+            expected = State(ram = mapOf(0xFFFAu to 0x34u))
+        }
+    }
+
 
 }
