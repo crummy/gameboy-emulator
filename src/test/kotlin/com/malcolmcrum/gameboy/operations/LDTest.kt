@@ -22,5 +22,13 @@ internal class LDTest {
         }
     }
 
+    @Test
+    fun `LD ($xx),A`() {
+        test(0xe0) {
+            initial = State(a = 0x69u, args = listOf(0x32u))
+            expected = State(ram = mapOf(0x0032u to 0x69u))
+        }
+    }
+
 
 }

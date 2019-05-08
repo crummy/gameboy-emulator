@@ -4,13 +4,13 @@ package com.malcolmcrum.gameboy
 class MMU {
     var inBios = true // bios is unmapped soon after boot
 
-    val bios = UByteArray(0x00FF-0x0000)
-    val rom = UByteArray(0x8000-0x0000)
-    val wram = UByteArray(0x7FFF-0x4000) // working ram
-    val eram = UByteArray(0xBFFF-0xA000) // external ram
-    val zram = UByteArray(1)
-    val vram = UByteArray(0x9FFF-0x8000) // video ram (belongs in GPU?)
-    val oam = UByteArray(160) // object attribute memory
+    val bios = UByteArray(0x00FF)
+    val rom = UByteArray(0x8000)
+    val workingRam = UByteArray(0x4000) // working ram
+    val externalRam = UByteArray(0x2000) // external ram
+    val zram = UByteArray(0x80) // high speed ram?
+    val videoRam = UByteArray(0xA000-0x8000) // video ram (belongs in GPU?)
+    val oam = UByteArray(0xA0) // object attribute memory
 
     fun load(game: UByteArray) {
         inBios = false
@@ -34,10 +34,10 @@ class MMU {
                 if (inBios) bios[addr] else rom[addr]
             }
             in (0x1000u until 0x8000u) -> rom[addr]
-            in (0x8000u until 0xA000u) -> vram[addr and 0x1FFFu]
-            in (0xA000u until 0xC000u) -> eram[addr and 0x1FFFu]
-            in (0xC000u until 0xE000u) -> wram[addr and 0x1FFFu]
-            in (0xE000u until 0xFE00u) -> wram[addr and 0x1FFFu] // working ram shadow
+            in (0x8000u until 0xA000u) -> videoRam[addr and 0x1FFFu]
+            in (0xA000u until 0xC000u) -> externalRam[addr and 0x1FFFu]
+            in (0xC000u until 0xE000u) -> workingRam[addr and 0x1FFFu]
+            in (0xE000u until 0xFE00u) -> workingRam[addr and 0x1FFFu] // working ram shadow
             in (0xFE00u until 0xFEA0u) -> oam[addr and 0xFFu]
             in (0xFEA0u until 0xFF00u) -> 0u
             in (0xFF00u until 0xFF80u) -> TODO() // io control handling
@@ -58,10 +58,10 @@ class MMU {
                 else rom[address] = value
             }
             in (0x1000u until 0x8000u) -> rom[address] = value
-            in (0x8000u until 0xA000u) -> vram[address and 0x1FFFu] = value
-            in (0xA000u until 0xC000u) -> eram[address and 0x1FFFu] = value
-            in (0xC000u until 0xE000u) -> wram[address and 0x1FFFu] = value
-            in (0xE000u until 0xFE00u) -> wram[address and 0x1FFFu] = value
+            in (0x8000u until 0xA000u) -> videoRam[address and 0x1FFFu] = value
+            in (0xA000u until 0xC000u) -> externalRam[address and 0x1FFFu] = value
+            in (0xC000u until 0xE000u) -> workingRam[address and 0x1FFFu] = value
+            in (0xE000u until 0xFE00u) -> workingRam[address and 0x1FFFu] = value
             in (0xFE00u until 0xFEA0u) -> oam[address and 0xFFu] = value
             in (0xFEA0u until 0xFF00u) -> throw IllegalAccessException()
             in (0xFF00u until 0xFF80u) -> throw IllegalAccessException()
