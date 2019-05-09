@@ -388,14 +388,14 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     private fun push(short: UShort) {
         storeInMemory(registers.sp - 1u).invoke(short.lowerByte)
         storeInMemory(registers.sp - 2u).invoke(short.upperByte)
-        registers.sp = (registers.sp + 2u).toUShort()
+        registers.sp = (registers.sp - 2u).toUShort()
         registers.tick()
     }
 
     private fun pop(short: UShort) {
         storeInMemory(registers.sp).invoke(short.lowerByte)
         storeInMemory(registers.sp + 1u).invoke(short.upperByte)
-        registers.sp = (registers.sp + 1u).toUShort()
+        registers.sp = (registers.sp + 2u).toUShort()
         registers.tick()
     }
 

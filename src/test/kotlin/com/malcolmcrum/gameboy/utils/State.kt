@@ -36,8 +36,8 @@ data class State(
             c = it.upperByte
         }
         ram.forEach { (address, byte) ->
-            assert(address <= 0xFFFFu) { "RAM address too big" } // TODO: choose lower min, to fit actual ram limits
-            assert(byte <= 0xFFu) { "ram contains bytes. data is too big" }
+            assert(address <= 0xFFFFu) { "RAM address ${address.hex()} too big" } // TODO: choose lower min, to fit actual ram limits
+            assert(byte <= 0xFFu) { "ram contains bytes; ${byte.hex()} is too big" }
         }
     }
 

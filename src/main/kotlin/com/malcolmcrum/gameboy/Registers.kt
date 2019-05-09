@@ -18,7 +18,7 @@ data class Registers(
 ) {
 
     var af: UShort
-        get() = createUShort(f, a)
+        get() = createUShort(f and 0xF0u, a) // lower 4 bytes of f are always 0
         set(new) {
             a = new.lowerByte
             b = new.upperByte
