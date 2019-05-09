@@ -41,6 +41,20 @@ internal class TimingTest {
         return opcodes.unprefixed.values
     }
 
+    @ParameterizedTest
+    @MethodSource
+    fun `CB prefixed`(op: OpCode) {
+        val code = Integer.decode(op.addr)
+        operations[code].operation.invoke()
+        assertThat(op.cycles).contains(registers.t.toInt())
+    }
+
+    fun `CB prefixed`(): Collection<OpCode> {
+        val json = Files.readAllBytes(file).toString(Charset.defaultCharset())
+        val opcodes = Json.parse<OpCodes>(json)
+        return opcodes.cbprefixed.values
+    }
+
     companion object {
         val file = Paths.get("src/test/resources/opcodes.json")!!
     }
