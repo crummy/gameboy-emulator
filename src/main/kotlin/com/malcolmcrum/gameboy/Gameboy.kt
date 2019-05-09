@@ -17,10 +17,11 @@ class Gameboy {
     private fun boot(rom: File) {
         val gameData = rom.readBytes().asUByteArray()
         z80.mmu.load(gameData)
+        z80.registers.pc = 0x100u
         describeGame()
         repeat(99) {
-            z80.execute()
-            z80.registers.pc = z80.registers.pc and 0xFFFFu
+            val instructionBytes = z80.execute(debug = true)
+            z80.registers.pc = (z80.registers.pc + instructionBytes.toUInt()).toUShort()
             z80.clock.add(z80.registers.m, z80.registers.t)
         }
     }
