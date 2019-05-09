@@ -6,6 +6,7 @@ import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.parse
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
@@ -20,6 +21,11 @@ internal class TimingTest {
     val registers = Registers()
     val mmu = MMU().apply { inBios = false }
     val operations = OperationBuilder(registers, mmu, { null }).operations
+
+    @BeforeEach
+    fun `reset registers`() {
+        registers.reset()
+    }
 
     @ParameterizedTest
     @MethodSource

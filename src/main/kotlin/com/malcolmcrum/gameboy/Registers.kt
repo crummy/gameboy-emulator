@@ -89,8 +89,8 @@ data class Registers(
     // TODO: should this be in Operations.kt?
     fun tick(times: Int = 1) {
         repeat(times) {
-            m = 1u
-            t = 4u
+            m = (m + 1u).toUByte()
+            t = (t + 4u).toUByte()
         }
     }
 
