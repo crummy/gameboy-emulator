@@ -18,28 +18,28 @@ data class Registers(
 ) {
 
     var af: UShort
-        get() = createUShort(f and 0xF0u, a) // lower 4 bytes of f are always 0
-        set(new) {
-            a = new.lowerByte
-            b = new.upperByte
+        get() = createUShort(f, a)
+        set(value) {
+            a = value.upperByte
+            f = value.lowerByte and 0xF0u  // lower 4 bytes of f are always 0
         }
     var bc: UShort
-        get() = createUShort(c, b)
-        set(new) {
-            b = new.lowerByte
-            c = new.upperByte
+        get() = createUShort(b, c)
+        set(value) {
+            b = value.upperByte
+            c = value.lowerByte
         }
     var de: UShort
-        get() = createUShort(e, d)
-        set(new) {
-            d = new.lowerByte
-            e = new.upperByte
+        get() = createUShort(d, e)
+        set(value) {
+            d = value.upperByte
+            e = value.lowerByte
         }
     var hl: UShort
-        get() = createUShort(l, h)
-        set(new) {
-            h = new.lowerByte
-            l = new.upperByte
+        get() = createUShort(h, l)
+        set(value) {
+            h = value.upperByte
+            l = value.lowerByte
         }
 
     fun setFlags(carry: Boolean = false, zero: Boolean = false, halfCarry: Boolean = false, subtract: Boolean = false) {

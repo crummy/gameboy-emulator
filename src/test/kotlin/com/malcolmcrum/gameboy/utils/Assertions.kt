@@ -14,6 +14,13 @@ fun Assert<UByte>.isEqualToByte(expected: UByte) = given { actual ->
 }
 
 @ExperimentalUnsignedTypes
+fun Assert<UShort>.isEqualToWord(expected: UShort) = given { actual ->
+    val match = actual == expected.toUShort()
+    if (match) return
+    expected("byte does not match.", expected.hex(), actual.hex())
+}
+
+@ExperimentalUnsignedTypes
 fun Assert<Registers>.isEqualTo(expected: State) = given { actual ->
     val match =  expected.a?.equals(actual.a) ?: true &&
             expected.b?.equals(actual.b) ?: true &&

@@ -215,10 +215,10 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0xb3] = Operation("OR E", 1) { or(registers.e) }
         operations[0xb4] = Operation("OR H", 1) { or(registers.h) }
         operations[0xb5] = Operation("OR L", 1) { or(registers.l) }
-        operations[0xf1] = Operation("POP AF", 1) { pop(registers.af) }
-        operations[0xc1] = Operation("POP BC", 1) { pop(registers.bc) }
-        operations[0xd1] = Operation("POP DE", 1) { pop(registers.de) }
-        operations[0xe1] = Operation("POP HL", 1) { pop(registers.hl) }
+        operations[0xf1] = Operation("POP AF", 1) { pop(storeInRegisterAF()) }
+        operations[0xc1] = Operation("POP BC", 1) { pop(storeInRegisterBC()) }
+        operations[0xd1] = Operation("POP DE", 1) { pop(storeInRegisterDE()) }
+        operations[0xe1] = Operation("POP HL", 1) { pop(storeInRegisterHL()) }
         operations[0xf5] = Operation("PUSH AF", 1) { push(registers.af) }
         operations[0xc5] = Operation("PUSH BC", 1) { push(registers.bc) }
         operations[0xd5] = Operation("PUSH DE", 1) { push(registers.de) }
@@ -386,15 +386,14 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     }
 
     private fun push(short: UShort) {
-        storeInMemory(registers.sp - 1u).invoke(short.lowerByte)
-        storeInMemory(registers.sp - 2u).invoke(short.upperByte)
+        storeWordInMemory(registers.sp).invoke(short)
         registers.sp = (registers.sp - 2u).toUShort()
         registers.tick()
     }
 
-    private fun pop(short: UShort) {
-        storeInMemory(registers.sp).invoke(short.lowerByte)
-        storeInMemory(registers.sp + 1u).invoke(short.upperByte)
+    private fun pop(destination: (UShort) -> Unit) {
+        val result = readWordFromMemory(registers.sp).invoke()
+        destination.invoke(result)
         registers.sp = (registers.sp + 2u).toUShort()
         registers.tick()
     }
@@ -645,6 +644,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     private fun storeInRegisterE(): (UByte) -> Unit = { v -> registers.e = v }
     private fun storeInRegisterH(): (UByte) -> Unit = { v -> registers.h = v }
     private fun storeInRegisterL(): (UByte) -> Unit = { v -> registers.l = v }
+    private fun storeInRegisterAF(): (UShort) -> Unit = { v -> registers.af = v }
     private fun storeInRegisterBC(): (UShort) -> Unit = { v -> registers.bc = v }
     private fun storeInRegisterDE(): (UShort) -> Unit = { v -> registers.de = v }
     private fun storeInRegisterHL(): (UShort) -> Unit = { v -> registers.hl = v }

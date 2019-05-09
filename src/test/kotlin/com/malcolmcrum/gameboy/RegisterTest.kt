@@ -2,7 +2,6 @@ package com.malcolmcrum.gameboy
 
 import assertk.assertAll
 import assertk.assertThat
-import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
 import com.malcolmcrum.gameboy.Registers.Companion.CARRY_FLAG
@@ -10,6 +9,7 @@ import com.malcolmcrum.gameboy.Registers.Companion.HALF_CARRY_FLAG
 import com.malcolmcrum.gameboy.Registers.Companion.SUBTRACT_FLAG
 import com.malcolmcrum.gameboy.Registers.Companion.ZERO_FLAG
 import com.malcolmcrum.gameboy.utils.isEqualToByte
+import com.malcolmcrum.gameboy.utils.isEqualToWord
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -28,7 +28,7 @@ internal class RegisterTest {
             b = 0x12u
             c = 0x34u
 
-            assertThat(bc).isEqualTo(0x3412u.toUShort())
+            assertThat(bc).isEqualToWord(0x1234u.toUShort())
         }
     }
 
@@ -40,6 +40,26 @@ internal class RegisterTest {
             assertAll {
                 assertThat(b).isEqualToByte(0xDEu)
                 assertThat(c).isEqualToByte(0xAFu)
+            }
+        }
+    }
+
+    @Test
+    fun `test bc read and write`() {
+        with(registers) {
+            bc = 0xDEAFu
+            assertThat(bc).isEqualToWord(0xDEAFu)
+        }
+    }
+
+    @Test
+    fun `test af write`() {
+        with (registers) {
+            af = 0xFFFFu
+
+            assertAll {
+                assertThat(a).isEqualToByte(0xFFu)
+                assertThat(f).isEqualToByte(0xF0u)
             }
         }
     }
