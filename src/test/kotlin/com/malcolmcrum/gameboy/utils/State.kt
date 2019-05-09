@@ -27,13 +27,13 @@ data class State(
     init {
         hl?.let {
             assert(h == null && l == null) { "Set HL xor (H or L), but not both." }
-            h = it.lowerByte
-            l = it.upperByte
+            h = it.upperByte
+            l = it.lowerByte
         }
         bc?.let {
             assert(b == null && c == null) { "Set BC xor (B or C), but not both." }
-            b = it.lowerByte
-            c = it.upperByte
+            b = it.upperByte
+            c = it.lowerByte
         }
         ram.forEach { (address, byte) ->
             assert(address <= 0xFFFFu) { "RAM address ${address.hex()} too big" } // TODO: choose lower min, to fit actual ram limits
