@@ -380,19 +380,23 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
             val upperByte = readFromMemory(registers.sp + 1u).invoke()
             registers.pc = createUShort(upperByte, lowerByte)
             registers.sp = (registers.sp + 2u).toUShort()
+            registers.tick(2)
         }
+        registers.tick()
     }
 
     private fun push(short: UShort) {
         storeInMemory(registers.sp - 1u).invoke(short.lowerByte)
         storeInMemory(registers.sp - 2u).invoke(short.upperByte)
         registers.sp = (registers.sp + 2u).toUShort()
+        registers.tick()
     }
 
     private fun pop(short: UShort) {
         storeInMemory(registers.sp).invoke(short.lowerByte)
         storeInMemory(registers.sp + 1u).invoke(short.upperByte)
         registers.sp = (registers.sp + 1u).toUShort()
+        registers.tick()
     }
 
     private fun or(source: () -> UByte) {
@@ -401,6 +405,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
 
     private fun or(source: UByte) {
         registers.a = registers.a or source
+        registers.tick()
     }
 
     private fun createLDOperations(reg: String, save: (UByte) -> Unit, startIndex: Int) {
@@ -492,10 +497,12 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
 
     private fun di() {
         interrupts.invoke(false)
+        registers.tick()
     }
 
     private fun ei() {
         interrupts.invoke(true)
+        registers.tick()
     }
 
     private fun dec(save: (UByte) -> Unit, source: UByte) {
@@ -667,6 +674,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
 
     private fun load(destination: (UShort) -> Unit, source: UShort) {
         destination.invoke(source)
+        registers.tick(2)
     }
 
     @JvmName("load16")
