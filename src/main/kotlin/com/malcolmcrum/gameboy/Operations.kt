@@ -163,7 +163,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0x28] = Operation("JR Z,\$xx", 2) { jr(readFromArgument(), registers.zero) }
         operations[0xea] = Operation("LD (\$aabb),A", 3) { load(storeInMemory(readWordArgument().invoke()), registers.a) }
         operations[0x08] = Operation("LD (\$aabb),SP", 3) { load(storeWordInMemory(readWordArgument().invoke()), registers.sp) }
-        operations[0xe0] = Operation("LD (\$xx),A", 2) { load(storeInMemory(readFromMemory(registers.sp).invoke()), registers.a) }
+        operations[0xe0] = Operation("LD (\$xx),A", 2) { load(storeInMemory(readFromArgument().invoke()), registers.a) }
         operations[0x02] = Operation("LD (BC),A", 1) { load(storeInMemory(registers.bc), registers.a) }
         operations[0xe2] = Operation("LD (C),A", 1) { load(storeInMemory(registers.c), registers.a) }
         operations[0x12] = Operation("LD (DE),A", 1) { load(storeInMemory(registers.de), registers.a) }
