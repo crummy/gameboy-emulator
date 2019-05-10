@@ -45,6 +45,4 @@ internal class LDTest {
             expected = State(ram = mapOf(0xFFFAu to 0x34u))
         }
     }
-
-
 }

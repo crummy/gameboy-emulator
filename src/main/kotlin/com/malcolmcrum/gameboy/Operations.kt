@@ -5,7 +5,9 @@ data class Operation(
         val name: String,
         val instructionBytes: Int,
         val operation: () -> Unit
-)
+) {
+    override fun toString() = name
+}
 
 @ExperimentalUnsignedTypes
 class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (Boolean) -> Unit) {
@@ -15,6 +17,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         // instructionBytes is 1 (not 2) for all CB operations, because the first byte has already been read
         val cbOperations: Array<Operation> = Array(256) { Operation("MISSING", 1) { TODO() } }
         createBitOperations(cbOperations, 0x46, 0)
+        createBitOperations(cbOperations, 0x4e, 1)
         createBitOperations(cbOperations, 0x4e, 1)
         createBitOperations(cbOperations, 0x55, 2)
         createBitOperations(cbOperations, 0x5e, 3)
@@ -188,13 +191,13 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         createLDOperations("B", storeInRegisterB(), 0x47)
         operations[0x01] = Operation("LD C,\$xx", 2) { load(storeInRegisterC(), readFromArgument()) }
         operations[0x0e] = Operation("LD C,(HL)", 1) { load(storeInRegisterC(), readFromMemory(registers.hl)) }
-        createLDOperations("C", storeInRegisterC(), 0x4e)
+        createLDOperations("C", storeInRegisterC(), 0x4f)
         operations[0x16] = Operation("LD D,\$xx", 2) { load(storeInRegisterD(), readFromArgument()) }
         operations[0x56] = Operation("LD D,(HL)", 1) { load(storeInRegisterD(), readFromMemory(registers.hl)) }
         createLDOperations("D", storeInRegisterD(), 0x57)
         operations[0x11] = Operation("LD E,\$xx", 2) { load(storeInRegisterE(), readFromArgument()) }
         operations[0x1e] = Operation("LD E,(HL)", 1) { load(storeInRegisterE(), readFromMemory(registers.hl)) }
-        createLDOperations("E", storeInRegisterE(), 0x56)
+        createLDOperations("E", storeInRegisterE(), 0x5f)
         operations[0x26] = Operation("LD H,\$xx", 2) { load(storeInRegisterH(), readFromArgument()) }
         operations[0x66] = Operation("LD H,(HL)", 1) { load(storeInRegisterH(), readFromMemory(registers.hl)) }
         createLDOperations("H", storeInRegisterH(), 0x67)
@@ -202,7 +205,12 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0xf8] = Operation("LD HL,SP", 1) { load(storeInRegisterHL(), registers.sp) }
         operations[0x2e] = Operation("LD L,\$xx", 2) { load(storeInRegisterL(), readFromArgument()) }
         operations[0x6e] = Operation("LD L,(HL)", 1) { load(storeInRegisterL(), readFromMemory(registers.hl)) }
-        createLDOperations("L", storeInRegisterL(), 0x68)
+        operations[0x68] = Operation("LD L,B", 1) { load(storeInRegisterL(), registers.b) }
+        operations[0x69] = Operation("LD L,C", 1) { load(storeInRegisterL(), registers.c) }
+        operations[0x6a] = Operation("LD L,D", 1) { load(storeInRegisterL(), registers.d) }
+        operations[0x6b] = Operation("LD L,E", 1) { load(storeInRegisterL(), registers.e) }
+        operations[0x6c] = Operation("LD L,H", 1) { load(storeInRegisterL(), registers.h) }
+        operations[0x6d] = Operation("LD L,L", 1) { load(storeInRegisterL(), registers.l) }
         operations[0x31] = Operation("LD SP,\$aabb", 3) { load(storeInRegisterSP(), readWordArgument()) }
         operations[0xf9] = Operation("LD SP,HL", 1) { load(storeInRegisterSP(), registers.hl) }
         operations[0x00] = Operation("NOP", 1) { nop() }
@@ -386,8 +394,8 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     }
 
     private fun push(short: UShort) {
-        storeWordInMemory(registers.sp).invoke(short)
         registers.sp = (registers.sp - 2u).toUShort()
+        storeWordInMemory(registers.sp).invoke(short)
         registers.tick()
     }
 
@@ -630,10 +638,9 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     }
 
     private fun readWordFromMemory(absolute: UShort): () -> UShort = {
-        val upperByte = mmu[absolute + 1u]
-        registers.tick()
         val lowerByte = mmu[absolute]
-        registers.tick()
+        val upperByte = mmu[absolute + 1u]
+        registers.tick(2)
         createUShort(upperByte, lowerByte)
     }
 
@@ -666,10 +673,9 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     }
 
     private fun storeWordInMemory(word: UShort): (UShort) -> Unit = { value ->
-        mmu[word] = value.lowerByte
-        registers.tick()
-        mmu[word + 1u] = value.upperByte
-        registers.tick()
+        mmu[word] = value.upperByte
+        mmu[word + 1u] = value.lowerByte
+        registers.tick(2)
     }
 
     private fun load(destination: (UShort) -> Unit, source: UShort) {

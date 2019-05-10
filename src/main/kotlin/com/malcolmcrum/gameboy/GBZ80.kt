@@ -1,7 +1,10 @@
 package com.malcolmcrum.gameboy
 
+import mu.KotlinLogging
+
 @ExperimentalUnsignedTypes
 class GBZ80 {
+    private val log = KotlinLogging.logger {}
 
     val clock = Clock()
     val registers = Registers()
@@ -9,14 +12,14 @@ class GBZ80 {
     val interruptsEnabled = false
     val operations = OperationBuilder(registers, mmu) { interruptsEnabled }.operations
 
-    fun execute(debug: Boolean = false): Int {
+    fun execute() {
         val opCode = mmu[registers.pc].toInt()
         val operation = operations[opCode]
-        if (debug) {
-            println(operation.name)
-        }
+        log.debug { "${registers.pc.hex()}: ${opCode.toUByte().hex()} ${operation.name}" }
         operation.operation.invoke()
-        return operation.instructionBytes
+
+        registers.pc = (registers.pc + operation.instructionBytes.toUInt()).toUShort()
+        clock.add(registers.m, registers.t)
     }
 
 }

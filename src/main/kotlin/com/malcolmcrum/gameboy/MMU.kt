@@ -1,7 +1,11 @@
 package com.malcolmcrum.gameboy
 
+import mu.KotlinLogging
+
 @ExperimentalUnsignedTypes
 class MMU {
+    private val log = KotlinLogging.logger {}
+
     var inBios = true // bios is unmapped soon after boot
 
     val bios = UByteArray(0x00FF)
@@ -12,13 +16,13 @@ class MMU {
     val videoRam = UByteArray(0xA000-0x8000) // video ram (belongs in GPU?)
     val oam = UByteArray(0xA0) // object attribute memory
 
-    fun load(game: UByteArray) {
+    fun load(vararg game: UByte) {
         inBios = false
-        game.copyInto(rom)
-        rom.forEachIndexed { i, byte ->
+        game.forEachIndexed { i, byte ->
             if (i % 40 == 39) println()
             print(String.format("%02x ", byte.toInt()))
         }
+        game.copyInto(rom)
         println()
     }
 
@@ -28,7 +32,7 @@ class MMU {
     }
 
     operator fun get(addr: UShort): UByte {
-        return when(addr) {
+        val value = when(addr) {
             in (0x0000u..0x1000u) -> {
                 if (addr == 0x0100u.toUShort()) inBios = false
                 if (inBios) bios[addr] else rom[addr]
@@ -44,6 +48,8 @@ class MMU {
             in (0xFF80u..0xFFFFu) -> zram[addr and 0x7Fu]
             else -> throw ArrayIndexOutOfBoundsException(addr.toString())
         }
+        log.debug { "mmu[${addr.hex()}] contains ${value.hex()}"}
+        return value
     }
 
     operator fun set(address: UInt, value: UByte) {
@@ -52,6 +58,7 @@ class MMU {
     }
 
     operator fun set(address: UShort, value: UByte) {
+        log.debug { "mmu[${address.hex()}] <= ${value.hex()}"}
         when(address) {
             in (0x0000u..0x1000u) -> {
                 if (inBios) throw IllegalAccessException("Cannot write to BIOS")

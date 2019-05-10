@@ -17,6 +17,8 @@ dependencies {
     testCompile("org.junit.jupiter:junit-jupiter-api:5.4.2")
     testCompile("org.junit.jupiter:junit-jupiter-params:5.4.2")
     testCompile("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.11.0")
+    implementation("io.github.microutils:kotlin-logging:1.6.26")
+    implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation(kotlin("stdlib-jdk8"))
 }
 
@@ -33,6 +35,7 @@ val compileKotlin: KotlinCompile by tasks
 compileKotlin.kotlinOptions {
     jvmTarget = "1.8"
 }
+
 val compileTestKotlin: KotlinCompile by tasks
 compileTestKotlin.kotlinOptions {
     jvmTarget = "1.8"
