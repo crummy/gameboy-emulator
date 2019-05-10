@@ -17,14 +17,14 @@ data class Registers(
 ) {
     var f: UByte = 0u
         set(value) {
-            field = value and 0xf0u
+            field = value and 0xf0u // lower 4 bytes of f are always 0
         }
 
     var af: UShort
         get() = createUShort(a, f)
         set(value) {
             a = value.upperByte
-            f = value.lowerByte and 0xF0u  // lower 4 bytes of f are always 0
+            f = value.lowerByte
         }
     var bc: UShort
         get() = createUShort(b, c)
