@@ -667,14 +667,14 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         return storeInMemory(indirectAddress.toUShort())
     }
 
-    private fun storeInMemory(absolute: UByte) = { value: UByte ->
-        mmu[0xFF00u + absolute] = value
+    private fun storeInMemory(offset: UByte) = { value: UByte ->
+        mmu[0xFF00u + offset] = value
         registers.tick()
     }
 
-    private fun storeWordInMemory(word: UShort): (UShort) -> Unit = { value ->
-        mmu[word] = value.upperByte
-        mmu[word + 1u] = value.lowerByte
+    private fun storeWordInMemory(address: UShort): (UShort) -> Unit = { value ->
+        mmu[address + 1u] = value.upperByte
+        mmu[address] = value.lowerByte
         registers.tick(2)
     }
 
