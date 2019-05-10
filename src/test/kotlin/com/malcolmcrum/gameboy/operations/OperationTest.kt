@@ -10,7 +10,7 @@ import com.malcolmcrum.gameboy.utils.isEqualTo
 import mu.KotlinLogging
 
 @ExperimentalUnsignedTypes
-class OperationTest(vararg var opcode: UByte, var initial: State = State(), var expected: State = State()) {
+class OperationTest(var opcode: UByte, var initial: State = State(), var expected: State = State()) {
     private val log = KotlinLogging.logger {}
 
     val registers = Registers()
@@ -20,21 +20,19 @@ class OperationTest(vararg var opcode: UByte, var initial: State = State(), var 
     fun execute() {
         log.debug { "Initial: $initial" }
         givenRegisters(initial)
-        givenROM(initial.pc ?: 0u, opcode.toList().plus(initial.args))
+        givenROM(initial.pc ?: 0u, listOf(opcode).plus(initial.args))
         givenRAM(initial.ram)
 
         executeInstruction()
 
-        assertThat(registers, operationDescription(opcode[0])).isEqualTo(expected)
-        assertThat(mmu, operationDescription(opcode[0])).isEqualTo(expected.ram)
+        assertThat(registers, operationDescription(opcode)).isEqualTo(expected)
+        assertThat(mmu, operationDescription(opcode)).isEqualTo(expected.ram)
     }
 
     private fun operationDescription(opcode: UByte) = "${opcode.hex()}: ${operations[opcode.toInt()]}"
 
     private fun executeInstruction() {
-        for (op in opcode) {
-            operations[op.toInt()].operation.invoke()
-        }
+        operations[opcode.toInt()].operation.invoke()
     }
 
     private fun givenROM(pc: UShort, instructions: List<UByte>) {
@@ -65,10 +63,4 @@ class OperationTest(vararg var opcode: UByte, var initial: State = State(), var 
 @ExperimentalUnsignedTypes
 fun test(instruction: Int, block: OperationTest.() -> Unit) {
     OperationTest(instruction.toUByte()).apply(block).execute()
-}
-
-@ExperimentalUnsignedTypes
-fun test(vararg instructions: Int, block: OperationTest.() -> Unit) {
-    val instructionBytes = instructions.map { it.toUByte() }.toUByteArray()
-    OperationTest(*instructionBytes).apply(block).execute()
 }
