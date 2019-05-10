@@ -10,15 +10,18 @@ data class Registers(
         var e: UByte = 0u,
         var h: UByte = 0u,
         var l: UByte = 0u,
-        var f: UByte = 0u,
         var pc: UShort = 0u,
         var sp: UShort = 0u,
         var m: UByte = 0u,
         var t: UByte = 0u
 ) {
+    var f: UByte = 0u
+        set(value) {
+            field = value and 0xf0u
+        }
 
     var af: UShort
-        get() = createUShort(f, a)
+        get() = createUShort(a, f)
         set(value) {
             a = value.upperByte
             f = value.lowerByte and 0xF0u  // lower 4 bytes of f are always 0
