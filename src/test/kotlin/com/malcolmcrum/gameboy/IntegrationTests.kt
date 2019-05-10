@@ -19,4 +19,17 @@ internal class IntegrationTests {
 
         assertThat(z80.registers).isEqualTo(State(a = 0x45u, b = 0x45u, c = 0x45u))
     }
+
+    @Test
+    fun `PUSH HL then POP BC`() {
+        z80.mmu.load(0xe5u, 0xc1u)
+        z80.registers.hl = 0x1234u
+        z80.registers.sp = 0x4442u
+
+        z80.execute()
+        z80.execute()
+
+        assertThat(z80.registers).isEqualTo(State(sp = 0x4442u, bc = 0x1234u))
+
+    }
 }
