@@ -232,13 +232,13 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0xd5] = Operation("PUSH DE", 1) { push(registers.de) }
         operations[0xe5] = Operation("PUSH HL", 1) { push(registers.hl) }
         operations[0xc9] = Operation("RET", 1) { ret() }
-        operations[0xd8] = Operation("RET", 1) { ret { registers.carry}}
-        operations[0xd0] = Operation("RET", 1) { ret { !registers.carry}}
-        operations[0xc0] = Operation("RET", 1) { ret { !registers.zero} }
-        operations[0xc8] = Operation("RET", 1) { ret { registers.zero }}
+        operations[0xd8] = Operation("RET C", 1) { ret { registers.carry}}
+        operations[0xd0] = Operation("RET NC", 1) { ret { !registers.carry}}
+        operations[0xc0] = Operation("RET NZ", 1) { ret { !registers.zero} }
+        operations[0xc8] = Operation("RET Z", 1) { ret { registers.zero }}
         operations[0xc8] = Operation("RETI", 1) { reti() }
         operations[0x17] = Operation("RLA", 1) { rla() }
-        operations[0x07] = Operation("RLCA", 1) { rlac() }
+        operations[0x07] = Operation("RLCA", 1) { rlca() }
         operations[0x1f] = Operation("RRA", 1) { rra() }
         operations[0x0f] = Operation("RRCA", 1) { rrca() }
         operations[0xc7] = Operation("RST $00", 1) { rst(0x00u) }
@@ -368,7 +368,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         }
     }
 
-    private fun rlac() {
+    private fun rlca() {
         with (registers) {
             carry = a.getBit(7)
             val newLowBit = if (carry) 1 else 0
