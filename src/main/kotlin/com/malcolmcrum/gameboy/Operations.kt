@@ -246,7 +246,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0xd7] = Operation("RST $10", 1) { rst(0x10u) }
         operations[0xdf] = Operation("RST $18", 1) { rst(0x18u) }
         operations[0xe7] = Operation("RST $20", 1) { rst(0x20u) }
-        operations[0xcf] = Operation("RST $28", 1) { rst(0x28u) }
+        operations[0xef] = Operation("RST $28", 1) { rst(0x28u) }
         operations[0xf7] = Operation("RST $30", 1) { rst(0x30u) }
         operations[0xff] = Operation("RST $38", 1) { rst(0x38u) }
         operations[0xde] = Operation("SBC A,\$xx", 2) { sbca(readFromMemory(registers.sp + 1u)) }
