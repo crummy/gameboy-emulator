@@ -74,6 +74,16 @@ internal class BytesTest {
 
             assertThat(1u.toUByte().getBit(0)).isTrue()
             assertThat(0u.toUByte().getBit(0)).isFalse()
+
+            val ff = 0xffu.toUByte()
+            assertThat(ff.getBit(7), "0xff bit 7").isTrue()
+            assertThat(ff.getBit(6), "0xff bit 6").isTrue()
+            assertThat(ff.getBit(5), "0xff bit 5").isTrue()
+            assertThat(ff.getBit(4), "0xff bit 4").isTrue()
+            assertThat(ff.getBit(3), "0xff bit 3").isTrue()
+            assertThat(ff.getBit(2), "0xff bit 2").isTrue()
+            assertThat(ff.getBit(1), "0xff bit 1").isTrue()
+            assertThat(ff.getBit(0), "0xff bit 0").isTrue()
         }
 
 

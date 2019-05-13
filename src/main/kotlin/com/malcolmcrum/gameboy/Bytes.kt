@@ -57,5 +57,5 @@ fun List<UByte>.hex(): String = this.map { "${it.hex()}}" }.toString()
 @ExperimentalUnsignedTypes
 fun UByte.getBit(position: Int): Boolean {
     assert(position <= 7)
-    return (this.toUInt() shr position) == 1u
+    return (this.toUInt() shr position) and 0x01u == 1u
 }

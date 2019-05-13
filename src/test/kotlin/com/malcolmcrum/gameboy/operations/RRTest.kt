@@ -17,7 +17,7 @@ internal class RRTest {
         fun `0xff`() {
             test(opcode) {
                 initial = State(0b11111111u, f = 0u)
-                expected = State(0b11111111u, f = Registers.CARRY_FLAG)
+                expected = State(0b01111111u, f = Registers.CARRY_FLAG)
             }
         }
 

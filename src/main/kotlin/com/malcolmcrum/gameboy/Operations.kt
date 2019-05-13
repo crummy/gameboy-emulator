@@ -344,17 +344,19 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     private fun rra() {
         with (registers) {
             val newHighBit = if (carry) 1 else 0
+            f = 0u
             carry = a.getBit(0)
-            a = ((a.toInt() shr 1) + (newHighBit shr 7)).toUByte()
+            a = ((a.toInt() ushr 1) + (newHighBit shr 7)).toUByte()
             tick()
         }
     }
 
     private fun rrca() {
         with (registers) {
-            carry = a.getBit(0)
             val newHighBit = if (carry) 1 else 0
-            a = ((a.toInt() shr 1) + (newHighBit shr 7)).toUByte()
+            f = 0u
+            carry = a.getBit(0)
+            a = ((a.toInt() ushr 1) + (newHighBit shr 7)).toUByte()
             tick()
         }
     }
@@ -362,6 +364,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     private fun rla() {
         with (registers) {
             val newLowBit = if (carry) 1 else 0
+            f = 0u
             carry = a.getBit(7)
             a = ((a.toInt() shl 1) + newLowBit).toUByte()
             tick()
@@ -370,6 +373,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
 
     private fun rlca() {
         with (registers) {
+            f = 0u
             carry = a.getBit(7)
             val newLowBit = if (carry) 1 else 0
             a = ((a.toInt() shl 1) + newLowBit).toUByte()
