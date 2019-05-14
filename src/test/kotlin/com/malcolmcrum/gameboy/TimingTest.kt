@@ -33,7 +33,7 @@ internal class TimingTest {
     @MethodSource
     fun unprefixed(op: OpCode) {
         val code = Integer.decode(op.addr)
-        operations[code].operation.invoke()
+        operations[code].invoke(0u)
         assertThat(op.cycles).contains(registers.t.toInt())
     }
 
@@ -47,7 +47,7 @@ internal class TimingTest {
     @MethodSource
     fun `CB prefixed`(op: OpCode) {
         val code = Integer.decode(op.addr)
-        operations[code].operation.invoke()
+        operations[code].invoke(0u)
         assertThat(op.cycles).contains(registers.t.toInt())
     }
 
