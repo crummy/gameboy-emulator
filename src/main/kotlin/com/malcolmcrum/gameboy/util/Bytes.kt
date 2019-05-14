@@ -1,4 +1,4 @@
-package com.malcolmcrum.gameboy
+package com.malcolmcrum.gameboy.util
 
 @ExperimentalUnsignedTypes
 val UShort.upperByte

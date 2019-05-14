@@ -6,12 +6,21 @@ import com.almasb.fxgl.dsl.getGameScene
 import com.almasb.fxgl.dsl.getGameState
 import com.almasb.fxgl.dsl.getInput
 import com.almasb.fxgl.input.UserAction
+import com.malcolmcrum.gameboy.emulator.GBZ80
 import javafx.scene.input.KeyCode
 import javafx.scene.text.Text
+import java.io.File
 
 @ExperimentalUnsignedTypes
 class App : GameApplication() {
     var z80 = GBZ80()
+
+    init {
+        val rom = File("src/main/resources/tetris.gb")
+        val gameData = rom.readBytes().asUByteArray()
+        z80.mmu.load(*gameData)
+        z80.registers.pc = 0x100u
+    }
 
     override fun initSettings(settings: GameSettings) {
         settings.width = 1024
@@ -30,12 +39,18 @@ class App : GameApplication() {
         registers.translateX = 50.0
         registers.translateY = 50.0
         registers.textProperty().bind(getGameState().stringProperty(REGISTERS))
-
         getGameScene().addUINode(registers)
+
+        val instruction = Text()
+        instruction.translateX = 50.0
+        instruction.translateY = 100.0
+        instruction.textProperty().bind(getGameState().stringProperty(INSTRUCTION))
+        getGameScene().addUINode(instruction)
     }
 
     override fun initGameVars(vars: MutableMap<String, Any>) {
         vars[REGISTERS] = z80.registers.toString()
+        vars[INSTRUCTION] = z80.nextInstruction().toString()
     }
 
     companion object {
@@ -45,6 +60,7 @@ class App : GameApplication() {
         }
 
         const val REGISTERS = "REGISTERS"
+        const val INSTRUCTION = "INSTRUCTION"
     }
 
 }
@@ -53,5 +69,6 @@ class NextStep(val z80: GBZ80) : UserAction("step") {
     override fun onActionEnd() {
         z80.execute()
         getGameState().setValue(App.REGISTERS, z80.registers.toString())
+        getGameState().setValue(App.INSTRUCTION, z80.nextInstruction().toString())
     }
 }

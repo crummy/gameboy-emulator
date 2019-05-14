@@ -2,9 +2,9 @@ package com.malcolmcrum.gameboy.utils
 
 import assertk.Assert
 import assertk.assertions.support.expected
-import com.malcolmcrum.gameboy.MMU
+import com.malcolmcrum.gameboy.emulator.MMU
 import com.malcolmcrum.gameboy.Registers
-import com.malcolmcrum.gameboy.hex
+import com.malcolmcrum.gameboy.util.hex
 
 @ExperimentalUnsignedTypes
 fun Assert<UByte>.isEqualToByte(expected: UByte) = given { actual ->

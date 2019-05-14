@@ -2,6 +2,8 @@ package com.malcolmcrum.gameboy
 
 import assertk.assertThat
 import assertk.assertions.contains
+import com.malcolmcrum.gameboy.emulator.MMU
+import com.malcolmcrum.gameboy.emulator.OperationBuilder
 import kotlinx.serialization.ImplicitReflectionSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

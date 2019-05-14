@@ -1,10 +1,10 @@
 package com.malcolmcrum.gameboy.operations
 
 import assertk.assertThat
-import com.malcolmcrum.gameboy.MMU
-import com.malcolmcrum.gameboy.OperationBuilder
+import com.malcolmcrum.gameboy.emulator.MMU
+import com.malcolmcrum.gameboy.emulator.OperationBuilder
 import com.malcolmcrum.gameboy.Registers
-import com.malcolmcrum.gameboy.hex
+import com.malcolmcrum.gameboy.util.hex
 import com.malcolmcrum.gameboy.utils.State
 import com.malcolmcrum.gameboy.utils.isEqualTo
 import mu.KotlinLogging

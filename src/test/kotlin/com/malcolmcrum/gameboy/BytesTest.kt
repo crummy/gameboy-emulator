@@ -3,8 +3,8 @@ package com.malcolmcrum.gameboy
 import assertk.assertAll
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import assertk.assertions.isFalse
-import assertk.assertions.isTrue
+import com.malcolmcrum.gameboy.util.createUByte
+import com.malcolmcrum.gameboy.util.createUShort
 import com.malcolmcrum.gameboy.utils.isEqualToByte
 import org.junit.jupiter.api.Test
 

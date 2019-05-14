@@ -1,4 +1,4 @@
-package com.malcolmcrum.gameboy
+package com.malcolmcrum.gameboy.emulator
 
 @ExperimentalUnsignedTypes
 data class Clock(

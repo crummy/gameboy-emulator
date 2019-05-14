@@ -1,7 +1,12 @@
-package com.malcolmcrum.gameboy
+package com.malcolmcrum.gameboy.emulator
+
+import com.malcolmcrum.gameboy.util.createUShort
+import com.malcolmcrum.gameboy.util.getBit
+import com.malcolmcrum.gameboy.util.lowerByte
+import com.malcolmcrum.gameboy.util.upperByte
 
 @ExperimentalUnsignedTypes
-abstract class Z80Operation(val name: String) {
+abstract class Z80Operation(val mnemonic: String) {
     abstract fun invoke(pc: UShort): UShort
 }
 
@@ -16,7 +21,7 @@ open class Operation(
         return (pc + instructionBytes.toUInt()).toUShort()
     }
 
-    override fun toString() = name
+    override fun toString() = mnemonic
 }
 
 @ExperimentalUnsignedTypes
@@ -252,10 +257,10 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0xd5] = Operation("PUSH DE", 1) { push(registers.de) }
         operations[0xe5] = Operation("PUSH HL", 1) { push(registers.hl) }
         operations[0xc9] = Operation("RET", 1) { ret() }
-        operations[0xd8] = Operation("RET C", 1) { ret { registers.carry}}
-        operations[0xd0] = Operation("RET NC", 1) { ret { !registers.carry}}
-        operations[0xc0] = Operation("RET NZ", 1) { ret { !registers.zero} }
-        operations[0xc8] = Operation("RET Z", 1) { ret { registers.zero }}
+        operations[0xd8] = Operation("RET C", 1) { ret { registers.carry } }
+        operations[0xd0] = Operation("RET NC", 1) { ret { !registers.carry } }
+        operations[0xc0] = Operation("RET NZ", 1) { ret { !registers.zero } }
+        operations[0xc8] = Operation("RET Z", 1) { ret { registers.zero } }
         operations[0xc8] = Operation("RETI", 1) { reti() }
         operations[0x17] = Operation("RLA", 1) { rla() }
         operations[0x07] = Operation("RLCA", 1) { rlca() }
@@ -280,23 +285,23 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0x9d] = Operation("SBC A,L", 1) { sbca(registers.l) }
         operations[0x37] = Operation("SCF", 1) { scf() }
         operations[0x10] = Operation("STOP", 1) { stop() }
-        operations[0xd6] = Operation("SUB \$xx", 2) { sub(readFromMemory(registers.sp + 1u))}
-        operations[0x97] = Operation("SUB A", 1) { sub(registers.a)}
-        operations[0x90] = Operation("SUB B", 1) { sub(registers.b)}
-        operations[0x91] = Operation("SUB C", 1) { sub(registers.c)}
-        operations[0x92] = Operation("SUB D", 1) { sub(registers.d)}
-        operations[0x93] = Operation("SUB E", 1) { sub(registers.e)}
-        operations[0x94] = Operation("SUB H", 1) { sub(registers.h)}
-        operations[0x95] = Operation("SUB L", 1) { sub(registers.l)}
-        operations[0xEE] = Operation("XOR \$xx", 1) { xor(readFromMemory(registers.sp + 1u))}
-        operations[0xAE] = Operation("XOR (HL)", 1) { xor(readFromMemory(registers.hl))}
-        operations[0xAF] = Operation("XOR A", 1) { xor(registers.a)}
-        operations[0xA8] = Operation("XOR B", 1) { xor(registers.b)}
-        operations[0xA9] = Operation("XOR C", 1) { xor(registers.c)}
-        operations[0xAA] = Operation("XOR D", 1) { xor(registers.d)}
-        operations[0xAB] = Operation("XOR E", 1) { xor(registers.e)}
-        operations[0xAC] = Operation("XOR H", 1) { xor(registers.h)}
-        operations[0xAD] = Operation("XOR L", 1) { xor(registers.l)}
+        operations[0xd6] = Operation("SUB \$xx", 2) { sub(readFromMemory(registers.sp + 1u)) }
+        operations[0x97] = Operation("SUB A", 1) { sub(registers.a) }
+        operations[0x90] = Operation("SUB B", 1) { sub(registers.b) }
+        operations[0x91] = Operation("SUB C", 1) { sub(registers.c) }
+        operations[0x92] = Operation("SUB D", 1) { sub(registers.d) }
+        operations[0x93] = Operation("SUB E", 1) { sub(registers.e) }
+        operations[0x94] = Operation("SUB H", 1) { sub(registers.h) }
+        operations[0x95] = Operation("SUB L", 1) { sub(registers.l) }
+        operations[0xEE] = Operation("XOR \$xx", 1) { xor(readFromMemory(registers.sp + 1u)) }
+        operations[0xAE] = Operation("XOR (HL)", 1) { xor(readFromMemory(registers.hl)) }
+        operations[0xAF] = Operation("XOR A", 1) { xor(registers.a) }
+        operations[0xA8] = Operation("XOR B", 1) { xor(registers.b) }
+        operations[0xA9] = Operation("XOR C", 1) { xor(registers.c) }
+        operations[0xAA] = Operation("XOR D", 1) { xor(registers.d) }
+        operations[0xAB] = Operation("XOR E", 1) { xor(registers.e) }
+        operations[0xAC] = Operation("XOR H", 1) { xor(registers.h) }
+        operations[0xAD] = Operation("XOR L", 1) { xor(registers.l) }
 
 
         operations[0xcb] = Operation("0xCB operations", 2) { cbOperations[registers.sp++.toInt()] }

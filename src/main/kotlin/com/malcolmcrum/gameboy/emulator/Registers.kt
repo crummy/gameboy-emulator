@@ -1,4 +1,9 @@
-package com.malcolmcrum.gameboy
+package com.malcolmcrum.gameboy.emulator
+
+import com.malcolmcrum.gameboy.util.createUShort
+import com.malcolmcrum.gameboy.util.hex
+import com.malcolmcrum.gameboy.util.lowerByte
+import com.malcolmcrum.gameboy.util.upperByte
 
 // Remember: GBZ80 is small endian
 @ExperimentalUnsignedTypes

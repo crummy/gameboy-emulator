@@ -1,9 +1,9 @@
 package com.malcolmcrum.gameboy.utils
 
 import com.malcolmcrum.gameboy.Registers
-import com.malcolmcrum.gameboy.hex
-import com.malcolmcrum.gameboy.lowerByte
-import com.malcolmcrum.gameboy.upperByte
+import com.malcolmcrum.gameboy.util.hex
+import com.malcolmcrum.gameboy.util.lowerByte
+import com.malcolmcrum.gameboy.util.upperByte
 
 @ExperimentalUnsignedTypes
 data class State(

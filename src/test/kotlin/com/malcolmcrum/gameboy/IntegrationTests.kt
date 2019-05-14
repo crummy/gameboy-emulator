@@ -1,6 +1,7 @@
 package com.malcolmcrum.gameboy
 
 import assertk.assertThat
+import com.malcolmcrum.gameboy.emulator.GBZ80
 import com.malcolmcrum.gameboy.utils.State
 import com.malcolmcrum.gameboy.utils.isEqualTo
 import org.junit.jupiter.api.Test

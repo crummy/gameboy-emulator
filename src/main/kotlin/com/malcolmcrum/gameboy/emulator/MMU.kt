@@ -1,5 +1,6 @@
-package com.malcolmcrum.gameboy
+package com.malcolmcrum.gameboy.emulator
 
+import com.malcolmcrum.gameboy.util.hex
 import mu.KotlinLogging
 
 @ExperimentalUnsignedTypes

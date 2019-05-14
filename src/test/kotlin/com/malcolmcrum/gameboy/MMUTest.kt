@@ -1,6 +1,7 @@
 package com.malcolmcrum.gameboy
 
 import assertk.assertThat
+import com.malcolmcrum.gameboy.emulator.MMU
 import com.malcolmcrum.gameboy.utils.isEqualToByte
 import org.junit.jupiter.api.Test
 
