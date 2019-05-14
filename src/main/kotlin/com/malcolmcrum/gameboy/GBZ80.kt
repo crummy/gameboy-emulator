@@ -16,9 +16,8 @@ class GBZ80 {
         val opCode = mmu[registers.pc].toInt()
         val operation = operations[opCode]
         log.debug { "${registers.pc.hex()}: ${opCode.toUByte().hex()} ${detailedOpcode(operation.name)}" }
-        operation.operation.invoke()
+        registers.pc = operation.invoke(registers.pc)
 
-        registers.pc = (registers.pc + operation.instructionBytes.toUInt()).toUShort()
         clock.add(registers.m, registers.t)
     }
 

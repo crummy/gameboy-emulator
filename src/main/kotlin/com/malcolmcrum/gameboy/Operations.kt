@@ -1,17 +1,35 @@
 package com.malcolmcrum.gameboy
 
 @ExperimentalUnsignedTypes
-data class Operation(
-        val name: String,
+abstract class Z80Operation(val name: String) {
+    abstract fun invoke(pc: UShort): UShort
+}
+
+@ExperimentalUnsignedTypes
+open class Operation(
+        name: String,
         val instructionBytes: Int,
         val operation: () -> Unit
-) {
+): Z80Operation(name) {
+    override fun invoke(pc: UShort): UShort {
+        operation.invoke()
+        return (pc + instructionBytes.toUInt()).toUShort()
+    }
+
     override fun toString() = name
 }
 
 @ExperimentalUnsignedTypes
+class Jump(name: String, val instructionBytes: Int, val operation: () -> UShort?) : Z80Operation(name) {
+    override fun invoke(pc: UShort): UShort {
+        val destination = operation.invoke()
+        return destination ?: (pc + instructionBytes.toUInt()).toUShort()
+    }
+}
+
+@ExperimentalUnsignedTypes
 class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (Boolean) -> Unit) {
-    val operations: Array<Operation> = Array(256) { Operation("MISSING", 1) { TODO() } }
+    val operations: Array<Z80Operation> = Array(256) { Operation("MISSING", 1) { TODO() } }
 
     init {
         // instructionBytes is 1 (not 2) for all CB operations, because the first byte has already been read
@@ -150,17 +168,17 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0x23] = Operation("INC HL", 1) { inc(storeInRegisterHL(), registers.hl) }
         operations[0x2c] = Operation("INC L", 1) { inc(storeInRegisterL(), registers.l) }
         operations[0x33] = Operation("INC SP", 1) { inc(storeInRegisterSP(), registers.sp) }
-        operations[0xc3] = Operation("JP \$aabb", 3) { jp(readWordArgument()) }
-        operations[0xe9] = Operation("JP (HL)", 1) { jp({ registers.hl }) }
-        operations[0xda] = Operation("JP C,\$aabb", 3) { jp(readWordArgument(), registers.carry) }
-        operations[0xd2] = Operation("JP NC,\$aabb", 3) { jp(readWordArgument(), !registers.carry) }
-        operations[0xc2] = Operation("JP NZ,\$aabb", 3) { jp(readWordArgument(), !registers.zero) }
-        operations[0xca] = Operation("JP Z,\$aabb", 3) { jp(readWordArgument(), registers.zero) }
-        operations[0x18] = Operation("JR \$xx", 2) { jr(readFromArgument()) }
-        operations[0x38] = Operation("JR C,\$xx", 2) { jr(readFromArgument(), registers.carry) }
-        operations[0x30] = Operation("JR NC,\$xx", 2) { jr(readFromArgument(), !registers.carry) }
-        operations[0x20] = Operation("JR NZ,\$xx", 2) { jr(readFromArgument(), !registers.zero) }
-        operations[0x28] = Operation("JR Z,\$xx", 2) { jr(readFromArgument(), registers.zero) }
+        operations[0xc3] = Jump("JP \$aabb", 3) { jp(readWordArgument()) }
+        operations[0xe9] = Jump("JP (HL)", 1) { jp({ registers.hl }) }
+        operations[0xda] = Jump("JP C,\$aabb", 3) { jp(readWordArgument(), registers.carry) }
+        operations[0xd2] = Jump("JP NC,\$aabb", 3) { jp(readWordArgument(), !registers.carry) }
+        operations[0xc2] = Jump("JP NZ,\$aabb", 3) { jp(readWordArgument(), !registers.zero) }
+        operations[0xca] = Jump("JP Z,\$aabb", 3) { jp(readWordArgument(), registers.zero) }
+        operations[0x18] = Jump("JR \$xx", 2) { jr(readFromArgument()) }
+        operations[0x38] = Jump("JR C,\$xx", 2) { jr(readFromArgument(), registers.carry) }
+        operations[0x30] = Jump("JR NC,\$xx", 2) { jr(readFromArgument(), !registers.carry) }
+        operations[0x20] = Jump("JR NZ,\$xx", 2) { jr(readFromArgument(), !registers.zero) }
+        operations[0x28] = Jump("JR Z,\$xx", 2) { jr(readFromArgument(), registers.zero) }
         operations[0xea] = Operation("LD (\$aabb),A", 3) { load(storeInMemory(readWordArgument().invoke()), registers.a) }
         operations[0x08] = Operation("LD (\$aabb),SP", 3) { load(storeWordInMemory(readWordArgument().invoke()), registers.sp) }
         operations[0xe0] = Operation("LD (\$xx),A", 2) { load(storeInMemory(readFromArgument().invoke()), registers.a) }
@@ -189,14 +207,16 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0x06] = Operation("LD B,\$xx", 2) { load(storeInRegisterB(), readFromArgument()) }
         operations[0x46] = Operation("LD B,(HL)", 1) { load(storeInRegisterB(), readFromMemory(registers.hl)) }
         createLDOperations("B", storeInRegisterB(), 0x47)
-        operations[0x01] = Operation("LD C,\$xx", 2) { load(storeInRegisterC(), readFromArgument()) }
-        operations[0x0e] = Operation("LD C,(HL)", 1) { load(storeInRegisterC(), readFromMemory(registers.hl)) }
+        operations[0x01] = Operation("LD BC,\$aabb", 3) { load(storeInRegisterBC(), readWordArgument()) }
+        operations[0x0e] = Operation("LD C,\$xx", 2) { load(storeInRegisterC(), readFromArgument()) }
+        operations[0x4e] = Operation("LD C,(HL)", 1) { load(storeInRegisterC(), readFromMemory(registers.hl)) }
         createLDOperations("C", storeInRegisterC(), 0x4f)
         operations[0x16] = Operation("LD D,\$xx", 2) { load(storeInRegisterD(), readFromArgument()) }
         operations[0x56] = Operation("LD D,(HL)", 1) { load(storeInRegisterD(), readFromMemory(registers.hl)) }
         createLDOperations("D", storeInRegisterD(), 0x57)
-        operations[0x11] = Operation("LD E,\$xx", 2) { load(storeInRegisterE(), readFromArgument()) }
-        operations[0x1e] = Operation("LD E,(HL)", 1) { load(storeInRegisterE(), readFromMemory(registers.hl)) }
+        operations[0x11] = Operation("LD DE,\$aabb", 3) { load(storeInRegisterDE(), readWordArgument()) }
+        operations[0x1e] = Operation("LD E,\$xx", 2) { load(storeInRegisterE(), readFromArgument()) }
+        operations[0x5e] = Operation("LD E,(HL)", 1) { load(storeInRegisterE(), readFromMemory(registers.hl)) }
         createLDOperations("E", storeInRegisterE(), 0x5f)
         operations[0x26] = Operation("LD H,\$xx", 2) { load(storeInRegisterH(), readFromArgument()) }
         operations[0x66] = Operation("LD H,(HL)", 1) { load(storeInRegisterH(), readFromMemory(registers.hl)) }
@@ -458,20 +478,24 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         cbOperations[startIndex - 1] = Operation("BIT $bitIndex,L", 1) { bit(bitIndex, registers.l) }
     }
 
-    private fun jr(offset: () -> UByte, condition: Boolean = true) {
-        if (condition) {
-            registers.pc = (registers.pc + offset.invoke()).toUShort()
-            registers.tick()
-        }
+    private fun jr(offset: () -> UByte, condition: Boolean = true): UShort? {
         registers.tick()
+        return if (condition) {
+            registers.tick()
+            (registers.pc + offset.invoke()).toUShort()
+        } else {
+            null
+        }
     }
 
-    private fun jp(source: () -> UShort, condition: Boolean = true) {
-        if (condition) {
-            registers.pc = source.invoke()
-            registers.tick()
-        }
+    private fun jp(source: () -> UShort, condition: Boolean = true): UShort? {
         registers.tick()
+        return if (condition) {
+            registers.tick()
+            source.invoke()
+        } else {
+            null
+        }
     }
 
     // TODO: half-carry
