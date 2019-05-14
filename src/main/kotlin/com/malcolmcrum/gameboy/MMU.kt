@@ -48,7 +48,7 @@ class MMU {
             in (0xFF80u..0xFFFFu) -> zram[addr and 0x7Fu]
             else -> throw ArrayIndexOutOfBoundsException(addr.toString())
         }
-        log.debug { "mmu[${addr.hex()}] contains ${value.hex()}"}
+        log.trace { "mmu[${addr.hex()}] contains ${value.hex()}"}
         return value
     }
 
@@ -58,7 +58,7 @@ class MMU {
     }
 
     operator fun set(address: UShort, value: UByte) {
-        log.debug { "mmu[${address.hex()}] <= ${value.hex()}"}
+        log.trace { "mmu[${address.hex()}] <= ${value.hex()}"}
         when(address) {
             in (0x0000u..0x1000u) -> {
                 if (inBios) throw IllegalAccessException("Cannot write to BIOS")

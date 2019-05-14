@@ -15,11 +15,16 @@ class GBZ80 {
     fun execute() {
         val opCode = mmu[registers.pc].toInt()
         val operation = operations[opCode]
-        log.debug { "${registers.pc.hex()}: ${opCode.toUByte().hex()} ${operation.name}" }
+        log.debug { "${registers.pc.hex()}: ${opCode.toUByte().hex()} ${detailedOpcode(operation.name)}" }
         operation.operation.invoke()
 
         registers.pc = (registers.pc + operation.instructionBytes.toUInt()).toUShort()
         clock.add(registers.m, registers.t)
+    }
+
+    fun detailedOpcode(operation: String): String {
+        return operation.replace("\$aabb", createUShort(mmu[registers.pc + 2u], mmu[registers.pc + 1u]).hex())
+                .replace("\$xx", mmu[registers.pc + 1u].hex())
     }
 
 }
