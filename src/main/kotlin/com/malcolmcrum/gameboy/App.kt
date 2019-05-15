@@ -7,6 +7,7 @@ import com.almasb.fxgl.dsl.getGameState
 import com.almasb.fxgl.dsl.getInput
 import com.almasb.fxgl.input.UserAction
 import com.malcolmcrum.gameboy.emulator.GBZ80
+import com.malcolmcrum.gameboy.ui.RegisterView
 import javafx.scene.input.KeyCode
 import javafx.scene.text.Text
 import java.io.File
@@ -35,11 +36,9 @@ class App : GameApplication() {
     }
 
     override fun initUI() {
-        val registers = Text()
-        registers.translateX = 50.0
-        registers.translateY = 50.0
-        registers.textProperty().bind(getGameState().stringProperty(REGISTERS))
-        getGameScene().addUINode(registers)
+        val registerView = RegisterView()
+        registerView.translateX = 600.0
+        getGameScene().addUINode(registerView)
 
         val instruction = Text()
         instruction.translateX = 50.0
@@ -49,7 +48,7 @@ class App : GameApplication() {
     }
 
     override fun initGameVars(vars: MutableMap<String, Any>) {
-        vars[REGISTERS] = z80.registers.toString()
+        vars[REGISTERS] = z80.registers
         vars[INSTRUCTION] = z80.nextInstruction().toString()
     }
 
@@ -65,10 +64,11 @@ class App : GameApplication() {
 
 }
 
+@ExperimentalUnsignedTypes
 class NextStep(val z80: GBZ80) : UserAction("step") {
     override fun onActionEnd() {
         z80.execute()
-        getGameState().setValue(App.REGISTERS, z80.registers.toString())
+        getGameState().setValue(App.REGISTERS, z80.registers.copy())
         getGameState().setValue(App.INSTRUCTION, z80.nextInstruction().toString())
     }
 }
