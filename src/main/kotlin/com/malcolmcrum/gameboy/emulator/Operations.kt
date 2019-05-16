@@ -46,13 +46,12 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
     private val operations: Array<Z80Operation> = Array(256) { x -> Operation("MISSING $x", 1) { TODO() } }
     private val cbOperations: Array<CBOperation> = Array(256) { x -> CBOperation("MISSING $x") { TODO() } }
 
-    operator fun get(address: Int): Z80Operation {
-        return get(address.toUInt())
+    operator fun get(opcode: Int): Z80Operation {
+        return get(opcode.toUInt())
     }
 
-    operator fun get(address: UInt): Z80Operation {
-        val opcode = mmu[address].toInt()
-        return if (opcode == CB_OPCODE) cbOperations[opcode] else operations[opcode]
+    operator fun get(opcode: UInt): Z80Operation {
+        return if (opcode == CB_OPCODE) cbOperations[opcode.toInt()] else operations[opcode.toInt()]
     }
 
     init {
@@ -806,6 +805,6 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
     }
 
     companion object {
-        const val CB_OPCODE = 0xcb
+        const val CB_OPCODE = 0xcbu
     }
 }

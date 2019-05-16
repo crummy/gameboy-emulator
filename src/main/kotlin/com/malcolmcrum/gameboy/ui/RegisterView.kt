@@ -31,7 +31,6 @@ class RegisterView : VBox(), PropertyChangeListener<Registers> {
     }
 
     override fun onChange(prev: Registers, now: Registers) {
-        println(now)
         a.text = "A: " + now.a.hex()
         if (prev.a != now.a) a.styleClass.add("highlighted") else a.styleClass.remove("highlighted")
         b.text = "B: " + now.b.hex()

@@ -19,10 +19,6 @@ class MMU {
 
     fun load(vararg game: UByte) {
         inBios = false
-        game.forEachIndexed { i, byte ->
-            if (i % 40 == 39) println()
-            print(String.format("%02x ", byte.toInt()))
-        }
         game.copyInto(rom)
         println()
     }
