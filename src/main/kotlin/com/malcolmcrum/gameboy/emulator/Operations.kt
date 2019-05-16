@@ -6,16 +6,16 @@ import com.malcolmcrum.gameboy.util.lowerByte
 import com.malcolmcrum.gameboy.util.upperByte
 
 @ExperimentalUnsignedTypes
-abstract class Z80Operation(val mnemonic: String) {
+abstract class Z80Operation(val mnemonic: String, val instructionBytes: Int) {
     abstract fun invoke(pc: UShort): UShort
 }
 
 @ExperimentalUnsignedTypes
 open class Operation(
         name: String,
-        val instructionBytes: Int,
+        instructionBytes: Int,
         val operation: () -> Unit
-): Z80Operation(name) {
+): Z80Operation(name, instructionBytes) {
     override fun invoke(pc: UShort): UShort {
         operation.invoke()
         return (pc + instructionBytes.toUInt()).toUShort()
@@ -25,7 +25,7 @@ open class Operation(
 }
 
 @ExperimentalUnsignedTypes
-class Jump(name: String, val instructionBytes: Int, val operation: () -> UShort?) : Z80Operation(name) {
+class Jump(name: String, instructionBytes: Int, val operation: () -> UShort?) : Z80Operation(name, instructionBytes) {
     override fun invoke(pc: UShort): UShort {
         val destination = operation.invoke()
         return destination ?: (pc + instructionBytes.toUInt()).toUShort()
