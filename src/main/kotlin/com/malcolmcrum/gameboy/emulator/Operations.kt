@@ -8,13 +8,14 @@ import com.malcolmcrum.gameboy.util.upperByte
 @ExperimentalUnsignedTypes
 abstract class Z80Operation(val mnemonic: String, val instructionBytes: Int) {
     abstract fun invoke(pc: UShort): UShort
+    override fun toString() = mnemonic
 }
 
 @ExperimentalUnsignedTypes
-class Operation(
+open class Operation(
         name: String,
         instructionBytes: Int,
-        val operation: () -> Unit
+        private val operation: () -> Unit
 ) : Z80Operation(name, instructionBytes) {
     override fun invoke(pc: UShort): UShort {
         operation.invoke()
@@ -25,14 +26,8 @@ class Operation(
 @ExperimentalUnsignedTypes
 class CBOperation(
         name: String,
-        val operation: () -> Unit
-) : Z80Operation(name, 1) {
-    override fun invoke(pc: UShort): UShort {
-        operation.invoke()
-        // Even though a CBOperation takes 1 byte, we already used a byte by reading it, so advance by 2.
-        return (pc + 2u).toUShort()
-    }
-}
+        operation: () -> Unit
+) : Operation(name, 2, operation)
 
 @ExperimentalUnsignedTypes
 class Jump(name: String, instructionBytes: Int, private val operation: () -> UShort?) : Z80Operation(name, instructionBytes) {
@@ -146,11 +141,11 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0xa3] = Operation("AND E", 1) { andA(registers.e) }
         operations[0xa4] = Operation("AND H", 1) { andA(registers.h) }
         operations[0xa5] = Operation("AND L", 1) { andA(registers.l) }
-        operations[0xcd] = Operation("CALL \$aabb", 3) { call(readWordArgument()) }
-        operations[0xdc] = Operation("CALL C,\$aabb", 3) { call(readWordArgument(), registers.carry) }
-        operations[0xd4] = Operation("CALL NC,\$aabb", 3) { call(readWordArgument(), !registers.carry) }
-        operations[0xc4] = Operation("CALL NZ,\$aabb", 3) { call(readWordArgument(), !registers.zero) }
-        operations[0xcc] = Operation("CALL Z,\$aabb", 3) { call(readWordArgument(), registers.zero) }
+        operations[0xcd] = Jump("CALL \$aabb", 3) { call(readWordArgument()) }
+        operations[0xdc] = Jump("CALL C,\$aabb", 3) { call(readWordArgument(), registers.carry) }
+        operations[0xd4] = Jump("CALL NC,\$aabb", 3) { call(readWordArgument(), !registers.carry) }
+        operations[0xc4] = Jump("CALL NZ,\$aabb", 3) { call(readWordArgument(), !registers.zero) }
+        operations[0xcc] = Jump("CALL Z,\$aabb", 3) { call(readWordArgument(), registers.zero) }
         operations[0x3f] = Operation("CCF", 1) { ccf() }
         operations[0xfe] = Operation("CP \$xx", 2) { cp(readFromMemory(registers.sp + 1u)) }
         operations[0xbe] = Operation("CP (HL)", 1) { cp(readFromMemory(registers.hl)) }
@@ -273,24 +268,24 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0xc5] = Operation("PUSH BC", 1) { push(registers.bc) }
         operations[0xd5] = Operation("PUSH DE", 1) { push(registers.de) }
         operations[0xe5] = Operation("PUSH HL", 1) { push(registers.hl) }
-        operations[0xc9] = Operation("RET", 1) { ret() }
-        operations[0xd8] = Operation("RET C", 1) { ret { registers.carry } }
-        operations[0xd0] = Operation("RET NC", 1) { ret { !registers.carry } }
-        operations[0xc0] = Operation("RET NZ", 1) { ret { !registers.zero } }
-        operations[0xc8] = Operation("RET Z", 1) { ret { registers.zero } }
+        operations[0xc9] = Jump("RET", 1) { ret() }
+        operations[0xd8] = Jump("RET C", 1) { ret { registers.carry } }
+        operations[0xd0] = Jump("RET NC", 1) { ret { !registers.carry } }
+        operations[0xc0] = Jump("RET NZ", 1) { ret { !registers.zero } }
+        operations[0xc8] = Jump("RET Z", 1) { ret { registers.zero } }
         operations[0xc8] = Operation("RETI", 1) { reti() }
         operations[0x17] = Operation("RLA", 1) { rla() }
         operations[0x07] = Operation("RLCA", 1) { rlca() }
         operations[0x1f] = Operation("RRA", 1) { rra() }
         operations[0x0f] = Operation("RRCA", 1) { rrca() }
-        operations[0xc7] = Operation("RST $00", 1) { rst(0x00u) }
-        operations[0xcf] = Operation("RST $08", 1) { rst(0x08u) }
-        operations[0xd7] = Operation("RST $10", 1) { rst(0x10u) }
-        operations[0xdf] = Operation("RST $18", 1) { rst(0x18u) }
-        operations[0xe7] = Operation("RST $20", 1) { rst(0x20u) }
-        operations[0xef] = Operation("RST $28", 1) { rst(0x28u) }
-        operations[0xf7] = Operation("RST $30", 1) { rst(0x30u) }
-        operations[0xff] = Operation("RST $38", 1) { rst(0x38u) }
+        operations[0xc7] = Jump("RST $00", 1) { rst(0x00u) }
+        operations[0xcf] = Jump("RST $08", 1) { rst(0x08u) }
+        operations[0xd7] = Jump("RST $10", 1) { rst(0x10u) }
+        operations[0xdf] = Jump("RST $18", 1) { rst(0x18u) }
+        operations[0xe7] = Jump("RST $20", 1) { rst(0x20u) }
+        operations[0xef] = Jump("RST $28", 1) { rst(0x28u) }
+        operations[0xf7] = Jump("RST $30", 1) { rst(0x30u) }
+        operations[0xff] = Jump("RST $38", 1) { rst(0x38u) }
         operations[0xde] = Operation("SBC A,\$xx", 2) { sbca(readFromMemory(registers.sp + 1u)) }
         operations[0x9e] = Operation("SBC A,(HL)", 1) { sbca(readFromMemory(registers.hl)) }
         operations[0x9f] = Operation("SBC A,A", 1) { sbca(registers.a) }
@@ -371,12 +366,12 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         }
     }
 
-    private fun rst(destination: UByte) {
+    private fun rst(destination: UByte): UShort? {
         with(registers) {
             storeInMemory(sp - 1u).invoke(registers.pc.upperByte)
             storeInMemory(sp - 2u).invoke(registers.pc.lowerByte)
-            pc = createUShort(0u, destination)
             sp = (sp - 2u).toUShort()
+            return createUShort(0u, destination)
         }
     }
 
@@ -421,7 +416,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
             val newHighBit = if (carry) 1 else 0
             setFlags(carry = value.getBit(0))
             val result = ((value.toInt() ushr 1) + (newHighBit shr 7)).toUByte()
-            store.invoke(value)
+            store.invoke(result)
             tick()
         }
     }
@@ -477,15 +472,17 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         interrupts.invoke(true)
     }
 
-    private fun ret(condition: () -> Boolean = { true }) {
-        if (condition.invoke()) {
+    private fun ret(condition: () -> Boolean = { true }): UShort? {
+        registers.tick()
+        return if (condition.invoke()) {
             val lowerByte = readFromMemory(registers.sp).invoke()
             val upperByte = readFromMemory(registers.sp + 1u).invoke()
-            registers.pc = createUShort(upperByte, lowerByte)
             registers.sp = (registers.sp + 2u).toUShort()
             registers.tick(2)
+            createUShort(upperByte, lowerByte)
+        } else {
+            null
         }
-        registers.tick()
     }
 
     private fun push(short: UShort) {
@@ -693,14 +690,16 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         }
     }
 
-    private fun call(destination: () -> UShort, conditional: Boolean = true) {
+    private fun call(destination: () -> UShort, conditional: Boolean = true): UShort? {
         with(registers) {
-            if (conditional) {
-                pc = destination.invoke()
+            tick(2)
+            return if (conditional) {
                 sp = (sp - 2u).toUShort()
                 tick(2)
+                destination.invoke()
+            } else {
+                null
             }
-            tick(2)
         }
     }
 
@@ -825,7 +824,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         }
     }
 
-    fun nop() {
+    private fun nop() {
         registers.tick()
     }
 

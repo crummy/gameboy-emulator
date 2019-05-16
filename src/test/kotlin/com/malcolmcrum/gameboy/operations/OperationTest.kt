@@ -32,7 +32,7 @@ class OperationTest(var opcode: UByte, var initial: State = State(), var expecte
     private fun operationDescription(opcode: UByte) = "${opcode.hex()}: ${operations[opcode.toInt()]}"
 
     private fun executeInstruction() {
-        operations[opcode.toInt()].invoke(registers.sp)
+        registers.pc = operations[opcode.toInt()].invoke(registers.sp)
     }
 
     private fun givenROM(pc: UShort, instructions: List<UByte>) {
