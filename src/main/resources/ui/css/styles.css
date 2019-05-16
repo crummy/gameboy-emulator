@@ -7,5 +7,5 @@
 }
 
 .highlighted {
-    -fx-background-color: yellow;
+    -fx-font-weight: bold
 }
