@@ -69,7 +69,7 @@ class App : GameApplication() {
 class NextStep(val z80: GBZ80) : UserAction("step") {
     override fun onActionEnd() {
         z80.execute()
-        getGameState().setValue(App.REGISTERS, z80.registers.copy())
+        getGameState().setValue(App.REGISTERS, z80.registers.copy().apply { f = z80.registers.f })
         getGameState().setValue(App.INSTRUCTION, z80.registers.pc)
     }
 }

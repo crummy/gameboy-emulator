@@ -500,7 +500,10 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         registers.tick()
         return if (condition) {
             registers.tick()
-            (registers.pc + offset.invoke()).toUShort()
+            // Two things:
+            // JR uses a *signed* jump, to allow for backwards jumps. So we have to convert to bytes first.
+            // Add two for the instruction bytes - not 100% sure why only here and not jp() though.
+            (registers.pc.toShort() + offset.invoke().toByte() + 2).toUShort()
         } else {
             null
         }
