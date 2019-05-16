@@ -33,6 +33,7 @@ class CBOperation(
         return (pc + 2u).toUShort()
     }
 }
+
 @ExperimentalUnsignedTypes
 class Jump(name: String, instructionBytes: Int, private val operation: () -> UShort?) : Z80Operation(name, instructionBytes) {
     override fun invoke(pc: UShort): UShort {
@@ -72,38 +73,38 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         createResOperations(0xae, 5)
         createResOperations(0xb6, 6)
         createResOperations(0xbe, 7)
-        cbOperations[0x16] = CBOperation("RL (HL)") { TODO() }
-        cbOperations[0x17] = CBOperation("RL A") { TODO() }
-        cbOperations[0x10] = CBOperation("RL B") { TODO() }
-        cbOperations[0x11] = CBOperation("RL C") { TODO() }
-        cbOperations[0x12] = CBOperation("RL D") { TODO() }
-        cbOperations[0x13] = CBOperation("RL E") { TODO() }
-        cbOperations[0x14] = CBOperation("RL H") { TODO() }
-        cbOperations[0x15] = CBOperation("RL L") { TODO() }
-        cbOperations[0x06] = CBOperation("RLC (HL)") { TODO() }
-        cbOperations[0x07] = CBOperation("RLC A") { TODO() }
-        cbOperations[0x00] = CBOperation("RLC B") { TODO() }
-        cbOperations[0x01] = CBOperation("RLC C") { TODO() }
-        cbOperations[0x02] = CBOperation("RLC D") { TODO() }
-        cbOperations[0x03] = CBOperation("RLC E") { TODO() }
-        cbOperations[0x04] = CBOperation("RLC H") { TODO() }
-        cbOperations[0x05] = CBOperation("RLC L") { TODO() }
-        cbOperations[0x1e] = CBOperation("RR (HL)") { TODO() }
-        cbOperations[0x1f] = CBOperation("RR A") { TODO() }
-        cbOperations[0x18] = CBOperation("RR B") { TODO() }
-        cbOperations[0x19] = CBOperation("RR C") { TODO() }
-        cbOperations[0x1a] = CBOperation("RR D") { TODO() }
-        cbOperations[0x1b] = CBOperation("RR E") { TODO() }
-        cbOperations[0x1c] = CBOperation("RR H") { TODO() }
-        cbOperations[0x1d] = CBOperation("RR L") { TODO() }
-        cbOperations[0x0e] = CBOperation("RRC (HL)") { TODO() }
-        cbOperations[0x0f] = CBOperation("RRC A") { TODO() }
-        cbOperations[0x08] = CBOperation("RRC B") { TODO() }
-        cbOperations[0x09] = CBOperation("RRC C") { TODO() }
-        cbOperations[0x0a] = CBOperation("RRC D") { TODO() }
-        cbOperations[0x0b] = CBOperation("RRC E") { TODO() }
-        cbOperations[0x0c] = CBOperation("RRC H") { TODO() }
-        cbOperations[0x0d] = CBOperation("RRC L") { TODO() }
+        cbOperations[0x16] = CBOperation("RL (HL)") { rl(storeInMemory(registers.hl), readFromMemory(registers.hl)) }
+        cbOperations[0x17] = CBOperation("RL A") { rl(storeInRegisterA(), registers.a) }
+        cbOperations[0x10] = CBOperation("RL B") { rl(storeInRegisterB(), registers.b) }
+        cbOperations[0x11] = CBOperation("RL C") { rl(storeInRegisterC(), registers.c) }
+        cbOperations[0x12] = CBOperation("RL D") { rl(storeInRegisterD(), registers.d) }
+        cbOperations[0x13] = CBOperation("RL E") { rl(storeInRegisterE(), registers.e) }
+        cbOperations[0x14] = CBOperation("RL H") { rl(storeInRegisterH(), registers.h) }
+        cbOperations[0x15] = CBOperation("RL L") { rl(storeInRegisterL(), registers.l) }
+        cbOperations[0x06] = CBOperation("RLC (HL)") { rlc(storeInMemory(registers.hl), readFromMemory(registers.hl)) }
+        cbOperations[0x07] = CBOperation("RLC A") { rlc(storeInRegisterA(), registers.a) }
+        cbOperations[0x00] = CBOperation("RLC B") { rlc(storeInRegisterB(), registers.b) }
+        cbOperations[0x01] = CBOperation("RLC C") { rlc(storeInRegisterC(), registers.c) }
+        cbOperations[0x02] = CBOperation("RLC D") { rlc(storeInRegisterD(), registers.d) }
+        cbOperations[0x03] = CBOperation("RLC E") { rlc(storeInRegisterE(), registers.e) }
+        cbOperations[0x04] = CBOperation("RLC H") { rlc(storeInRegisterH(), registers.h) }
+        cbOperations[0x05] = CBOperation("RLC L") { rlc(storeInRegisterL(), registers.l) }
+        cbOperations[0x1e] = CBOperation("RR (HL)") { rr(storeInMemory(registers.hl), readFromMemory(registers.hl)) }
+        cbOperations[0x1f] = CBOperation("RR A") { rr(storeInRegisterA(), registers.a) }
+        cbOperations[0x18] = CBOperation("RR B") { rr(storeInRegisterB(), registers.b) }
+        cbOperations[0x19] = CBOperation("RR C") { rr(storeInRegisterC(), registers.c) }
+        cbOperations[0x1a] = CBOperation("RR D") { rr(storeInRegisterD(), registers.d) }
+        cbOperations[0x1b] = CBOperation("RR E") { rr(storeInRegisterE(), registers.e) }
+        cbOperations[0x1c] = CBOperation("RR H") { rr(storeInRegisterH(), registers.h) }
+        cbOperations[0x1d] = CBOperation("RR L") { rr(storeInRegisterL(), registers.l) }
+        cbOperations[0x0e] = CBOperation("RRC (HL)") { rrc(storeInMemory(registers.hl), readFromMemory(registers.hl)) }
+        cbOperations[0x0f] = CBOperation("RRC A") { rrc(storeInRegisterA(), registers.a) }
+        cbOperations[0x08] = CBOperation("RRC B") { rrc(storeInRegisterB(), registers.b) }
+        cbOperations[0x09] = CBOperation("RRC C") { rrc(storeInRegisterC(), registers.c) }
+        cbOperations[0x0a] = CBOperation("RRC D") { rrc(storeInRegisterD(), registers.d) }
+        cbOperations[0x0b] = CBOperation("RRC E") { rrc(storeInRegisterE(), registers.e) }
+        cbOperations[0x0c] = CBOperation("RRC H") { rrc(storeInRegisterH(), registers.h) }
+        cbOperations[0x0d] = CBOperation("RRC L") { rrc(storeInRegisterL(), registers.l) }
         createSetOperations(0xc6, 0)
         createSetOperations(0xce, 1)
         createSetOperations(0xd6, 2)
@@ -388,11 +389,39 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         }
     }
 
+    private fun rr(store: (UByte) -> Unit, read: () -> UByte) {
+        rr(store, read.invoke())
+    }
+
+    private fun rr(store: (UByte) -> Unit, value: UByte) {
+        with (registers) {
+            val newHighBit = if (carry) 1 else 0
+            setFlags(carry = a.getBit(0))
+            val result = ((value.toInt() ushr 1) + (newHighBit shr 7)).toUByte()
+            store.invoke(result)
+            tick()
+        }
+    }
+
     private fun rrca() {
         with(registers) {
             val newHighBit = if (carry) 1 else 0
             setFlags(carry = a.getBit(0))
             a = ((a.toInt() ushr 1) + (newHighBit shr 7)).toUByte()
+            tick()
+        }
+    }
+
+    private fun rrc(store: (UByte) -> Unit, read: () -> UByte) {
+        rrc(store, read.invoke())
+    }
+
+    private fun rrc(store: (UByte) -> Unit, value: UByte) {
+        with(registers) {
+            val newHighBit = if (carry) 1 else 0
+            setFlags(carry = value.getBit(0))
+            val result = ((value.toInt() ushr 1) + (newHighBit shr 7)).toUByte()
+            store.invoke(value)
             tick()
         }
     }
@@ -411,6 +440,34 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
             setFlags(carry = a.getBit(7))
             val newLowBit = if (carry) 1 else 0
             a = ((a.toInt() shl 1) + newLowBit).toUByte()
+            tick()
+        }
+    }
+
+    private fun rl(store: (UByte) -> Unit, read: () -> UByte) {
+        rl(store, read.invoke())
+    }
+
+    private fun rl(store: (UByte) -> Unit, value: UByte) {
+        with(registers) {
+            val newLowBit = if (carry) 1 else 0
+            setFlags(carry = value.getBit(0))
+            val result = ((value.toInt() shl 1) + newLowBit).toUByte()
+            store.invoke(result)
+            tick()
+        }
+    }
+
+    private fun rlc(store: (UByte) -> Unit, read: () -> UByte) {
+        rlc(store, read.invoke())
+    }
+
+    private fun rlc(store: (UByte) -> Unit, value: UByte) {
+        with (registers) {
+            setFlags(carry = value.getBit(7))
+            val newLowBit = if (carry) 1 else 0
+            val result = ((value.toInt() shl 1) + newLowBit).toUByte()
+            store.invoke(result)
             tick()
         }
     }
@@ -464,14 +521,14 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
     }
 
     private fun createSetOperations(startIndex: Int, bitIndex: Int) {
-        cbOperations[startIndex] = CBOperation("SET $bitIndex,(HL)") { TODO() }
-        cbOperations[startIndex + 1] = CBOperation("SET $bitIndex,A") { TODO() }
-        cbOperations[startIndex - 6] = CBOperation("SET $bitIndex,B") { TODO() }
-        cbOperations[startIndex - 5] = CBOperation("SET $bitIndex,C") { TODO() }
-        cbOperations[startIndex - 4] = CBOperation("SET $bitIndex,D") { TODO() }
-        cbOperations[startIndex - 3] = CBOperation("SET $bitIndex,E") { TODO() }
-        cbOperations[startIndex - 2] = CBOperation("SET $bitIndex,H") { TODO() }
-        cbOperations[startIndex - 1] = CBOperation("SET $bitIndex,L") { TODO() }
+        cbOperations[startIndex] = CBOperation("SET $bitIndex,(HL)") { set(bitIndex, storeInMemory(registers.hl), readFromMemory(registers.hl)) }
+        cbOperations[startIndex + 1] = CBOperation("SET $bitIndex,A") { set(bitIndex, storeInRegisterA(), { registers.a }) }
+        cbOperations[startIndex - 6] = CBOperation("SET $bitIndex,B") { set(bitIndex, storeInRegisterB(), { registers.b }) }
+        cbOperations[startIndex - 5] = CBOperation("SET $bitIndex,C") { set(bitIndex, storeInRegisterC(), { registers.c }) }
+        cbOperations[startIndex - 4] = CBOperation("SET $bitIndex,D") { set(bitIndex, storeInRegisterD(), { registers.d }) }
+        cbOperations[startIndex - 3] = CBOperation("SET $bitIndex,E") { set(bitIndex, storeInRegisterE(), { registers.e }) }
+        cbOperations[startIndex - 2] = CBOperation("SET $bitIndex,H") { set(bitIndex, storeInRegisterH(), { registers.h }) }
+        cbOperations[startIndex - 1] = CBOperation("SET $bitIndex,L") { set(bitIndex, storeInRegisterL(), { registers.l }) }
     }
 
     private fun createResOperations(startIndex: Int, bitIndex: Int) {
@@ -647,9 +704,17 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         }
     }
 
+    private fun set(index: Int, save: (UByte) -> Unit, load: () -> UByte) {
+        val mask = (1 shl index).toUByte()
+        val result = load.invoke() or mask
+        save.invoke(result)
+        registers.tick()
+    }
+
     private fun res(index: Int, save: (UByte) -> Unit, load: () -> UByte) {
         val mask = (1 shl index).toUByte()
-        save.invoke(load.invoke() xor mask)
+        val result = load.invoke() xor mask
+        save.invoke(result)
         registers.tick()
     }
 
