@@ -14,8 +14,8 @@ abstract class Z80Operation(val mnemonic: String, val instructionBytes: Int) {
 open class Operation(
         name: String,
         instructionBytes: Int,
-        private val operation: () -> Unit
-): Z80Operation(name, instructionBytes) {
+        val operation: () -> Unit
+) : Z80Operation(name, instructionBytes) {
     override fun invoke(pc: UShort): UShort {
         operation.invoke()
         return (pc + instructionBytes.toUInt()).toUShort()
@@ -23,10 +23,6 @@ open class Operation(
 
     override fun toString() = mnemonic
 }
-
-@ExperimentalUnsignedTypes
-class CBOperations(name: String, instructionBytes: Int, operation: () -> Unit): Operation(name, instructionBytes, operation)
-
 @ExperimentalUnsignedTypes
 class Jump(name: String, instructionBytes: Int, private val operation: () -> UShort?) : Z80Operation(name, instructionBytes) {
     override fun invoke(pc: UShort): UShort {
@@ -36,29 +32,37 @@ class Jump(name: String, instructionBytes: Int, private val operation: () -> USh
 }
 
 @ExperimentalUnsignedTypes
-class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (Boolean) -> Unit) {
-    val operations: Array<Z80Operation> = Array(256) { x -> Operation("MISSING $x", 1) { TODO() } }
+class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolean) -> Unit) {
+    private val operations: Array<Z80Operation> = Array(256) { x -> Operation("MISSING $x", 1) { TODO() } }
+    private val cbOperations: Array<Z80Operation> = Array(256) { x -> Operation("MISSING $x", 1) { TODO() } }
+
+    operator fun get(address: Int): Z80Operation {
+        return get(address.toUInt())
+    }
+
+    operator fun get(address: UInt): Z80Operation {
+        val opcode = mmu[address].toInt()
+        return if (opcode == CB_OPCODE) cbOperations[opcode] else operations[opcode]
+    }
 
     init {
-        // instructionBytes is 1 (not 2) for all CB operations, because the first byte has already been read
-        val cbOperations: Array<Operation> = Array(256) { x -> Operation("MISSING $x", 1) { TODO() } }
-        createBitOperations(cbOperations, 0x46, 0)
-        createBitOperations(cbOperations, 0x4e, 1)
-        createBitOperations(cbOperations, 0x4e, 1)
-        createBitOperations(cbOperations, 0x55, 2)
-        createBitOperations(cbOperations, 0x5e, 3)
-        createBitOperations(cbOperations, 0x66, 4)
-        createBitOperations(cbOperations, 0x6e, 5)
-        createBitOperations(cbOperations, 0x76, 6)
-        createBitOperations(cbOperations, 0x7d, 7)
-        createResOperations(cbOperations, 0x86, 0)
-        createResOperations(cbOperations, 0x8e, 1)
-        createResOperations(cbOperations, 0x96, 2)
-        createResOperations(cbOperations, 0x9e, 3)
-        createResOperations(cbOperations, 0xa6, 4)
-        createResOperations(cbOperations, 0xae, 5)
-        createResOperations(cbOperations, 0xb6, 6)
-        createResOperations(cbOperations, 0xbe, 7)
+        createBitOperations(0x46, 0)
+        createBitOperations(0x4e, 1)
+        createBitOperations(0x4e, 1)
+        createBitOperations(0x55, 2)
+        createBitOperations(0x5e, 3)
+        createBitOperations(0x66, 4)
+        createBitOperations(0x6e, 5)
+        createBitOperations(0x76, 6)
+        createBitOperations(0x7d, 7)
+        createResOperations(0x86, 0)
+        createResOperations(0x8e, 1)
+        createResOperations(0x96, 2)
+        createResOperations(0x9e, 3)
+        createResOperations(0xa6, 4)
+        createResOperations(0xae, 5)
+        createResOperations(0xb6, 6)
+        createResOperations(0xbe, 7)
         cbOperations[0x16] = Operation("RL (HL)", 1) { TODO() }
         cbOperations[0x17] = Operation("RL A", 1) { TODO() }
         cbOperations[0x10] = Operation("RL B", 1) { TODO() }
@@ -91,14 +95,14 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         cbOperations[0x0b] = Operation("RRC E", 1) { TODO() }
         cbOperations[0x0c] = Operation("RRC H", 1) { TODO() }
         cbOperations[0x0d] = Operation("RRC L", 1) { TODO() }
-        createSetOperations(cbOperations, 0xc6, 0)
-        createSetOperations(cbOperations, 0xce, 1)
-        createSetOperations(cbOperations, 0xd6, 2)
-        createSetOperations(cbOperations, 0xde, 3)
-        createSetOperations(cbOperations, 0xe6, 4)
-        createSetOperations(cbOperations, 0xee, 5)
-        createSetOperations(cbOperations, 0xf6, 6)
-        createSetOperations(cbOperations, 0xfe, 7)
+        createSetOperations(0xc6, 0)
+        createSetOperations(0xce, 1)
+        createSetOperations(0xd6, 2)
+        createSetOperations(0xde, 3)
+        createSetOperations(0xe6, 4)
+        createSetOperations(0xee, 5)
+        createSetOperations(0xf6, 6)
+        createSetOperations(0xfe, 7)
 
         operations[0xce] = Operation("ADC A,\$xx", 2) { adcA(readFromArgument()) }
         operations[0x8e] = Operation("ADC A,(HL)", 1) { adcA(readFromMemory(registers.hl)) }
@@ -305,9 +309,6 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0xAB] = Operation("XOR E", 1) { xor(registers.e) }
         operations[0xAC] = Operation("XOR H", 1) { xor(registers.h) }
         operations[0xAD] = Operation("XOR L", 1) { xor(registers.l) }
-
-
-        operations[0xcb] = CBOperations("0xCB operations", 2) { cbOperations[registers.sp++.toInt()] }
     }
 
     private fun readWordArgument() = readWordFromMemory(registers.pc + 1u)
@@ -370,7 +371,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     }
 
     private fun rra() {
-        with (registers) {
+        with(registers) {
             val newHighBit = if (carry) 1 else 0
             setFlags(carry = a.getBit(0))
             a = ((a.toInt() ushr 1) + (newHighBit shr 7)).toUByte()
@@ -379,7 +380,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     }
 
     private fun rrca() {
-        with (registers) {
+        with(registers) {
             val newHighBit = if (carry) 1 else 0
             setFlags(carry = a.getBit(0))
             a = ((a.toInt() ushr 1) + (newHighBit shr 7)).toUByte()
@@ -388,7 +389,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     }
 
     private fun rla() {
-        with (registers) {
+        with(registers) {
             val newLowBit = if (carry) 1 else 0
             setFlags(carry = a.getBit(7))
             a = ((a.toInt() shl 1) + newLowBit).toUByte()
@@ -397,7 +398,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
     }
 
     private fun rlca() {
-        with (registers) {
+        with(registers) {
             setFlags(carry = a.getBit(7))
             val newLowBit = if (carry) 1 else 0
             a = ((a.toInt() shl 1) + newLowBit).toUByte()
@@ -453,7 +454,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[startIndex - 2] = Operation("LD $reg,L", 1) { load(save, registers.l) }
     }
 
-    private fun createSetOperations(cbOperations: Array<Operation>, startIndex: Int, bitIndex: Int) {
+    private fun createSetOperations(startIndex: Int, bitIndex: Int) {
         cbOperations[startIndex] = Operation("SET $bitIndex,(HL)", 1) { TODO() }
         cbOperations[startIndex + 1] = Operation("SET $bitIndex,A", 1) { TODO() }
         cbOperations[startIndex - 6] = Operation("SET $bitIndex,B", 1) { TODO() }
@@ -464,7 +465,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         cbOperations[startIndex - 1] = Operation("SET $bitIndex,L", 1) { TODO() }
     }
 
-    private fun createResOperations(cbOperations: Array<Operation>, startIndex: Int, bitIndex: Int) {
+    private fun createResOperations(startIndex: Int, bitIndex: Int) {
         cbOperations[startIndex] = Operation("RES $bitIndex,(HL)", 1) { res(bitIndex, storeInMemory(registers.hl), readFromMemory(registers.hl)) }
         cbOperations[startIndex + 1] = Operation("RES $bitIndex,A", 1) { res(bitIndex, storeInRegisterA(), { registers.a }) }
         cbOperations[startIndex - 6] = Operation("RES $bitIndex,A", 1) { res(bitIndex, storeInRegisterB(), { registers.b }) }
@@ -475,7 +476,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         cbOperations[startIndex - 1] = Operation("RES $bitIndex,L", 1) { res(bitIndex, storeInRegisterL(), { registers.l }) }
     }
 
-    private fun createBitOperations(cbOperations: Array<Operation>, startIndex: Int, bitIndex: Int) {
+    private fun createBitOperations(startIndex: Int, bitIndex: Int) {
         cbOperations[startIndex] = Operation("BIT $bitIndex,(HL)", 1) { bit(bitIndex, readFromMemory(registers.hl)) }
         cbOperations[startIndex + 1] = Operation("BIT $bitIndex,A", 1) { bit(bitIndex, registers.a) }
         cbOperations[startIndex - 6] = Operation("BIT $bitIndex,B", 1) { bit(bitIndex, registers.b) }
@@ -792,5 +793,9 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
             hl = result.toUShort()
             tick()
         }
+    }
+
+    companion object {
+        const val CB_OPCODE = 0xcb
     }
 }

@@ -17,6 +17,7 @@ class InstructionView(instructions: Map<UShort, Instruction>) : ScrollPane(), Pr
 
     init {
         this.contents.styleClass.add("instructions")
+        this.styleClass.add("scrollpane")
         this.stylesheets.add("ui/css/styles.css")
         contents.children.addAll(this.instructions.values)
         this.content = contents
@@ -26,8 +27,7 @@ class InstructionView(instructions: Map<UShort, Instruction>) : ScrollPane(), Pr
 
     private fun toText(address: UShort, i: Instruction): Text {
         val text = Text()
-        val secondOp = i.secondOpCode?.hex() ?: ""
-        text.text = "${address.hex()} $secondOp: ${i.expandedName}"
+        text.text = "${address.hex()}: ${i.expandedName}"
         return text
     }
 

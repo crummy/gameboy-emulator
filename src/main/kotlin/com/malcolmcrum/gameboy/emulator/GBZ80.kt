@@ -12,7 +12,7 @@ class GBZ80 {
     val registers = Registers()
     val mmu = MMU()
     val interruptsEnabled = false
-    val operations = OperationBuilder(registers, mmu) { interruptsEnabled }.operations
+    val operations = Operations(registers, mmu) { interruptsEnabled }
 
     fun execute() {
         val opCode = mmu[registers.pc].toInt()

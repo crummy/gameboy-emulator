@@ -1,6 +1,6 @@
 package com.malcolmcrum.gameboy.operations
 
-import com.malcolmcrum.gameboy.Registers
+import com.malcolmcrum.gameboy.emulator.Registers
 import com.malcolmcrum.gameboy.utils.State
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested

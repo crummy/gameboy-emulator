@@ -1,3 +1,7 @@
+.scrollpane {
+    -fx-fit-to-width: true;
+}
+
 .instructions {
     -fx-font-family: monospace;
 }

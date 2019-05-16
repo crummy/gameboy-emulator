@@ -2,8 +2,8 @@ package com.malcolmcrum.gameboy.operations
 
 import assertk.assertThat
 import com.malcolmcrum.gameboy.emulator.MMU
-import com.malcolmcrum.gameboy.emulator.OperationBuilder
-import com.malcolmcrum.gameboy.Registers
+import com.malcolmcrum.gameboy.emulator.Operations
+import com.malcolmcrum.gameboy.emulator.Registers
 import com.malcolmcrum.gameboy.util.hex
 import com.malcolmcrum.gameboy.utils.State
 import com.malcolmcrum.gameboy.utils.isEqualTo
@@ -15,7 +15,7 @@ class OperationTest(var opcode: UByte, var initial: State = State(), var expecte
 
     val registers = Registers()
     val mmu = MMU().apply { inBios = false }
-    val operations = OperationBuilder(registers, mmu, { null }).operations
+    val operations = Operations(registers, mmu, { null })
 
     fun execute() {
         log.debug { "Initial: $initial" }
