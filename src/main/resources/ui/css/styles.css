@@ -2,10 +2,10 @@
     -fx-fit-to-width: true;
 }
 
-.instructions {
+.monospaced {
     -fx-font-family: monospace;
 }
 
-.instructions .highlighted {
-    -fx-background-color: lightblue;
+.highlighted {
+    -fx-background-color: yellow;
 }

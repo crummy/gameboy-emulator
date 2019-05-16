@@ -42,9 +42,8 @@ class App : GameApplication() {
 
         val instructionView = InstructionView(parseInstructions(z80.mmu, z80.operations))
         instructionView.prefHeight = 600.0
-        instructionView.prefWidth = 100.0
+        instructionView.prefWidth = 200.0
         instructionView.translateX = 0.0
-        instructionView.isFitToWidth = true
         getGameScene().addUINode(instructionView)
     }
 

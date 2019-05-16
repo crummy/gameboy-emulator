@@ -2,7 +2,6 @@ package com.malcolmcrum.gameboy
 
 import com.malcolmcrum.gameboy.emulator.MMU
 import com.malcolmcrum.gameboy.emulator.Operations
-import com.malcolmcrum.gameboy.ui.InstructionView
 import com.malcolmcrum.gameboy.util.createUShort
 import com.malcolmcrum.gameboy.util.hex
 
@@ -12,7 +11,6 @@ fun parseInstructions(mmu: MMU, operations: Operations): Map<UShort, Instruction
     val rom = mmu.rom
     var address = 0
     while (address < rom.size - 2) {
-        InstructionView.log.info("Loading address $address from rom of size ${rom.size}")
         val opcode = rom[address]
         val operation = operations[opcode.toInt()]
         val name = operation.mnemonic.replace("\$aabb", createUShort(rom[address + 2], rom[address + 1]).hex())

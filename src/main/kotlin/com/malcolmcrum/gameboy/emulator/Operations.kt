@@ -11,7 +11,7 @@ abstract class Z80Operation(val mnemonic: String, val instructionBytes: Int) {
 }
 
 @ExperimentalUnsignedTypes
-open class Operation(
+class Operation(
         name: String,
         instructionBytes: Int,
         val operation: () -> Unit
@@ -20,8 +20,18 @@ open class Operation(
         operation.invoke()
         return (pc + instructionBytes.toUInt()).toUShort()
     }
+}
 
-    override fun toString() = mnemonic
+@ExperimentalUnsignedTypes
+class CBOperation(
+        name: String,
+        val operation: () -> Unit
+) : Z80Operation(name, 1) {
+    override fun invoke(pc: UShort): UShort {
+        operation.invoke()
+        // Even though a CBOperation takes 1 byte, we already used a byte by reading it, so advance by 2.
+        return (pc + 2u).toUShort()
+    }
 }
 @ExperimentalUnsignedTypes
 class Jump(name: String, instructionBytes: Int, private val operation: () -> UShort?) : Z80Operation(name, instructionBytes) {
@@ -34,7 +44,7 @@ class Jump(name: String, instructionBytes: Int, private val operation: () -> USh
 @ExperimentalUnsignedTypes
 class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolean) -> Unit) {
     private val operations: Array<Z80Operation> = Array(256) { x -> Operation("MISSING $x", 1) { TODO() } }
-    private val cbOperations: Array<Z80Operation> = Array(256) { x -> Operation("MISSING $x", 1) { TODO() } }
+    private val cbOperations: Array<CBOperation> = Array(256) { x -> CBOperation("MISSING $x") { TODO() } }
 
     operator fun get(address: Int): Z80Operation {
         return get(address.toUInt())
@@ -63,38 +73,38 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         createResOperations(0xae, 5)
         createResOperations(0xb6, 6)
         createResOperations(0xbe, 7)
-        cbOperations[0x16] = Operation("RL (HL)", 1) { TODO() }
-        cbOperations[0x17] = Operation("RL A", 1) { TODO() }
-        cbOperations[0x10] = Operation("RL B", 1) { TODO() }
-        cbOperations[0x11] = Operation("RL C", 1) { TODO() }
-        cbOperations[0x12] = Operation("RL D", 1) { TODO() }
-        cbOperations[0x13] = Operation("RL E", 1) { TODO() }
-        cbOperations[0x14] = Operation("RL H", 1) { TODO() }
-        cbOperations[0x15] = Operation("RL L", 1) { TODO() }
-        cbOperations[0x06] = Operation("RLC (HL)", 1) { TODO() }
-        cbOperations[0x07] = Operation("RLC A", 1) { TODO() }
-        cbOperations[0x00] = Operation("RLC B", 1) { TODO() }
-        cbOperations[0x01] = Operation("RLC C", 1) { TODO() }
-        cbOperations[0x02] = Operation("RLC D", 1) { TODO() }
-        cbOperations[0x03] = Operation("RLC E", 1) { TODO() }
-        cbOperations[0x04] = Operation("RLC H", 1) { TODO() }
-        cbOperations[0x05] = Operation("RLC L", 1) { TODO() }
-        cbOperations[0x1e] = Operation("RR (HL)", 1) { TODO() }
-        cbOperations[0x1f] = Operation("RR A", 1) { TODO() }
-        cbOperations[0x18] = Operation("RR B", 1) { TODO() }
-        cbOperations[0x19] = Operation("RR C", 1) { TODO() }
-        cbOperations[0x1a] = Operation("RR D", 1) { TODO() }
-        cbOperations[0x1b] = Operation("RR E", 1) { TODO() }
-        cbOperations[0x1c] = Operation("RR H", 1) { TODO() }
-        cbOperations[0x1d] = Operation("RR L", 1) { TODO() }
-        cbOperations[0x0e] = Operation("RRC (HL)", 1) { TODO() }
-        cbOperations[0x0f] = Operation("RRC A", 1) { TODO() }
-        cbOperations[0x08] = Operation("RRC B", 1) { TODO() }
-        cbOperations[0x09] = Operation("RRC C", 1) { TODO() }
-        cbOperations[0x0a] = Operation("RRC D", 1) { TODO() }
-        cbOperations[0x0b] = Operation("RRC E", 1) { TODO() }
-        cbOperations[0x0c] = Operation("RRC H", 1) { TODO() }
-        cbOperations[0x0d] = Operation("RRC L", 1) { TODO() }
+        cbOperations[0x16] = CBOperation("RL (HL)") { TODO() }
+        cbOperations[0x17] = CBOperation("RL A") { TODO() }
+        cbOperations[0x10] = CBOperation("RL B") { TODO() }
+        cbOperations[0x11] = CBOperation("RL C") { TODO() }
+        cbOperations[0x12] = CBOperation("RL D") { TODO() }
+        cbOperations[0x13] = CBOperation("RL E") { TODO() }
+        cbOperations[0x14] = CBOperation("RL H") { TODO() }
+        cbOperations[0x15] = CBOperation("RL L") { TODO() }
+        cbOperations[0x06] = CBOperation("RLC (HL)") { TODO() }
+        cbOperations[0x07] = CBOperation("RLC A") { TODO() }
+        cbOperations[0x00] = CBOperation("RLC B") { TODO() }
+        cbOperations[0x01] = CBOperation("RLC C") { TODO() }
+        cbOperations[0x02] = CBOperation("RLC D") { TODO() }
+        cbOperations[0x03] = CBOperation("RLC E") { TODO() }
+        cbOperations[0x04] = CBOperation("RLC H") { TODO() }
+        cbOperations[0x05] = CBOperation("RLC L") { TODO() }
+        cbOperations[0x1e] = CBOperation("RR (HL)") { TODO() }
+        cbOperations[0x1f] = CBOperation("RR A") { TODO() }
+        cbOperations[0x18] = CBOperation("RR B") { TODO() }
+        cbOperations[0x19] = CBOperation("RR C") { TODO() }
+        cbOperations[0x1a] = CBOperation("RR D") { TODO() }
+        cbOperations[0x1b] = CBOperation("RR E") { TODO() }
+        cbOperations[0x1c] = CBOperation("RR H") { TODO() }
+        cbOperations[0x1d] = CBOperation("RR L") { TODO() }
+        cbOperations[0x0e] = CBOperation("RRC (HL)") { TODO() }
+        cbOperations[0x0f] = CBOperation("RRC A") { TODO() }
+        cbOperations[0x08] = CBOperation("RRC B") { TODO() }
+        cbOperations[0x09] = CBOperation("RRC C") { TODO() }
+        cbOperations[0x0a] = CBOperation("RRC D") { TODO() }
+        cbOperations[0x0b] = CBOperation("RRC E") { TODO() }
+        cbOperations[0x0c] = CBOperation("RRC H") { TODO() }
+        cbOperations[0x0d] = CBOperation("RRC L") { TODO() }
         createSetOperations(0xc6, 0)
         createSetOperations(0xce, 1)
         createSetOperations(0xd6, 2)
@@ -455,36 +465,36 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
     }
 
     private fun createSetOperations(startIndex: Int, bitIndex: Int) {
-        cbOperations[startIndex] = Operation("SET $bitIndex,(HL)", 1) { TODO() }
-        cbOperations[startIndex + 1] = Operation("SET $bitIndex,A", 1) { TODO() }
-        cbOperations[startIndex - 6] = Operation("SET $bitIndex,B", 1) { TODO() }
-        cbOperations[startIndex - 5] = Operation("SET $bitIndex,C", 1) { TODO() }
-        cbOperations[startIndex - 4] = Operation("SET $bitIndex,D", 1) { TODO() }
-        cbOperations[startIndex - 3] = Operation("SET $bitIndex,E", 1) { TODO() }
-        cbOperations[startIndex - 2] = Operation("SET $bitIndex,H", 1) { TODO() }
-        cbOperations[startIndex - 1] = Operation("SET $bitIndex,L", 1) { TODO() }
+        cbOperations[startIndex] = CBOperation("SET $bitIndex,(HL)") { TODO() }
+        cbOperations[startIndex + 1] = CBOperation("SET $bitIndex,A") { TODO() }
+        cbOperations[startIndex - 6] = CBOperation("SET $bitIndex,B") { TODO() }
+        cbOperations[startIndex - 5] = CBOperation("SET $bitIndex,C") { TODO() }
+        cbOperations[startIndex - 4] = CBOperation("SET $bitIndex,D") { TODO() }
+        cbOperations[startIndex - 3] = CBOperation("SET $bitIndex,E") { TODO() }
+        cbOperations[startIndex - 2] = CBOperation("SET $bitIndex,H") { TODO() }
+        cbOperations[startIndex - 1] = CBOperation("SET $bitIndex,L") { TODO() }
     }
 
     private fun createResOperations(startIndex: Int, bitIndex: Int) {
-        cbOperations[startIndex] = Operation("RES $bitIndex,(HL)", 1) { res(bitIndex, storeInMemory(registers.hl), readFromMemory(registers.hl)) }
-        cbOperations[startIndex + 1] = Operation("RES $bitIndex,A", 1) { res(bitIndex, storeInRegisterA(), { registers.a }) }
-        cbOperations[startIndex - 6] = Operation("RES $bitIndex,A", 1) { res(bitIndex, storeInRegisterB(), { registers.b }) }
-        cbOperations[startIndex - 5] = Operation("RES $bitIndex,B", 1) { res(bitIndex, storeInRegisterC(), { registers.c }) }
-        cbOperations[startIndex - 4] = Operation("RES $bitIndex,C", 1) { res(bitIndex, storeInRegisterD(), { registers.d }) }
-        cbOperations[startIndex - 3] = Operation("RES $bitIndex,D", 1) { res(bitIndex, storeInRegisterE(), { registers.e }) }
-        cbOperations[startIndex - 2] = Operation("RES $bitIndex,H", 1) { res(bitIndex, storeInRegisterH(), { registers.h }) }
-        cbOperations[startIndex - 1] = Operation("RES $bitIndex,L", 1) { res(bitIndex, storeInRegisterL(), { registers.l }) }
+        cbOperations[startIndex] = CBOperation("RES $bitIndex,(HL)") { res(bitIndex, storeInMemory(registers.hl), readFromMemory(registers.hl)) }
+        cbOperations[startIndex + 1] = CBOperation("RES $bitIndex,A") { res(bitIndex, storeInRegisterA(), { registers.a }) }
+        cbOperations[startIndex - 6] = CBOperation("RES $bitIndex,A") { res(bitIndex, storeInRegisterB(), { registers.b }) }
+        cbOperations[startIndex - 5] = CBOperation("RES $bitIndex,B") { res(bitIndex, storeInRegisterC(), { registers.c }) }
+        cbOperations[startIndex - 4] = CBOperation("RES $bitIndex,C") { res(bitIndex, storeInRegisterD(), { registers.d }) }
+        cbOperations[startIndex - 3] = CBOperation("RES $bitIndex,D") { res(bitIndex, storeInRegisterE(), { registers.e }) }
+        cbOperations[startIndex - 2] = CBOperation("RES $bitIndex,H") { res(bitIndex, storeInRegisterH(), { registers.h }) }
+        cbOperations[startIndex - 1] = CBOperation("RES $bitIndex,L") { res(bitIndex, storeInRegisterL(), { registers.l }) }
     }
 
     private fun createBitOperations(startIndex: Int, bitIndex: Int) {
-        cbOperations[startIndex] = Operation("BIT $bitIndex,(HL)", 1) { bit(bitIndex, readFromMemory(registers.hl)) }
-        cbOperations[startIndex + 1] = Operation("BIT $bitIndex,A", 1) { bit(bitIndex, registers.a) }
-        cbOperations[startIndex - 6] = Operation("BIT $bitIndex,B", 1) { bit(bitIndex, registers.b) }
-        cbOperations[startIndex - 5] = Operation("BIT $bitIndex,C", 1) { bit(bitIndex, registers.c) }
-        cbOperations[startIndex - 4] = Operation("BIT $bitIndex,D", 1) { bit(bitIndex, registers.d) }
-        cbOperations[startIndex - 3] = Operation("BIT $bitIndex,E", 1) { bit(bitIndex, registers.e) }
-        cbOperations[startIndex - 2] = Operation("BIT $bitIndex,H", 1) { bit(bitIndex, registers.h) }
-        cbOperations[startIndex - 1] = Operation("BIT $bitIndex,L", 1) { bit(bitIndex, registers.l) }
+        cbOperations[startIndex] = CBOperation("BIT $bitIndex,(HL)") { bit(bitIndex, readFromMemory(registers.hl)) }
+        cbOperations[startIndex + 1] = CBOperation("BIT $bitIndex,A") { bit(bitIndex, registers.a) }
+        cbOperations[startIndex - 6] = CBOperation("BIT $bitIndex,B") { bit(bitIndex, registers.b) }
+        cbOperations[startIndex - 5] = CBOperation("BIT $bitIndex,C") { bit(bitIndex, registers.c) }
+        cbOperations[startIndex - 4] = CBOperation("BIT $bitIndex,D") { bit(bitIndex, registers.d) }
+        cbOperations[startIndex - 3] = CBOperation("BIT $bitIndex,E") { bit(bitIndex, registers.e) }
+        cbOperations[startIndex - 2] = CBOperation("BIT $bitIndex,H") { bit(bitIndex, registers.h) }
+        cbOperations[startIndex - 1] = CBOperation("BIT $bitIndex,L") { bit(bitIndex, registers.l) }
     }
 
     private fun jr(offset: () -> UByte, condition: Boolean = true): UShort? {

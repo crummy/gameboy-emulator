@@ -8,7 +8,6 @@ import com.malcolmcrum.gameboy.util.hex
 import javafx.scene.control.ScrollPane
 import javafx.scene.layout.VBox
 import javafx.scene.text.Text
-import org.slf4j.LoggerFactory
 
 @ExperimentalUnsignedTypes
 class InstructionView(instructions: Map<UShort, Instruction>) : ScrollPane(), PropertyChangeListener<UShort> {
@@ -16,7 +15,7 @@ class InstructionView(instructions: Map<UShort, Instruction>) : ScrollPane(), Pr
     val instructions: Map<UShort, Text> = instructions.map { it.key to toText(it.key, it.value) }.toMap()
 
     init {
-        this.contents.styleClass.add("instructions")
+        this.contents.styleClass.add("monospaced")
         this.styleClass.add("scrollpane")
         this.stylesheets.add("ui/css/styles.css")
         contents.children.addAll(this.instructions.values)
@@ -37,9 +36,5 @@ class InstructionView(instructions: Map<UShort, Instruction>) : ScrollPane(), Pr
             it.styleClass.add("highlighted")
             this.vvalue = it.layoutY / contents.height
         }
-    }
-
-    companion object {
-        val log = LoggerFactory.getLogger(InstructionView::class.java)
     }
 }
