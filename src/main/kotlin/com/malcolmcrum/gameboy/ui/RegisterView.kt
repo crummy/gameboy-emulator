@@ -24,7 +24,6 @@ class RegisterView : VBox(), PropertyChangeListener<Registers> {
     val flags = Text()
 
     init {
-        this.stylesheets.add("ui/css/styles.css")
         this.styleClass.add("monospaced")
         children.addAll(a, b, c, d, e, h, l, f, pc, sp, flags)
         getGameState().addListener(App.REGISTERS, this)

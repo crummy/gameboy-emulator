@@ -17,7 +17,6 @@ class InstructionView(instructions: Map<UShort, Instruction>) : ScrollPane(), Pr
     init {
         this.contents.styleClass.add("monospaced")
         this.styleClass.add("scrollpane")
-        this.stylesheets.add("ui/css/styles.css")
         contents.children.addAll(this.instructions.values)
         this.content = contents
 

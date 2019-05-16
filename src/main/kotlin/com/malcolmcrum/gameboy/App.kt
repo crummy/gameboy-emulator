@@ -27,6 +27,7 @@ class App : GameApplication() {
         settings.width = 1024
         settings.height = 600
         settings.title = "Gameboy"
+        settings.css = "styles.css"
     }
 
     override fun initInput() {
