@@ -25,7 +25,7 @@ import java.nio.file.Paths
 internal class TimingTest {
     val registers = Registers()
     val mmu = MMU().apply { inBios = false }
-    val operations = Operations(registers, mmu, { null })
+    val operations = Operations(registers, mmu) { }
 
     @BeforeEach
     fun `reset registers`() {
