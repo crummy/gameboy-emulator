@@ -40,7 +40,7 @@ class App : GameApplication() {
         registerView.translateX = 600.0
         getGameScene().addUINode(registerView)
 
-        val instructionView = InstructionView(z80.mmu.rom, z80.operations)
+        val instructionView = InstructionView(parseInstructions(z80.mmu, z80.operations))
         instructionView.prefHeight = 600.0
         instructionView.prefWidth = 100.0
         instructionView.translateX = 0.0

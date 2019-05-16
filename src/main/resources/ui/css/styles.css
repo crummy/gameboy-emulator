@@ -1,0 +1,7 @@
+.instructions {
+    -fx-font-family: monospace;
+}
+
+.instructions .highlighted {
+    -fx-background-color: lightblue;
+}

@@ -14,7 +14,7 @@ abstract class Z80Operation(val mnemonic: String, val instructionBytes: Int) {
 open class Operation(
         name: String,
         instructionBytes: Int,
-        val operation: () -> Unit
+        private val operation: () -> Unit
 ): Z80Operation(name, instructionBytes) {
     override fun invoke(pc: UShort): UShort {
         operation.invoke()
@@ -25,7 +25,10 @@ open class Operation(
 }
 
 @ExperimentalUnsignedTypes
-class Jump(name: String, instructionBytes: Int, val operation: () -> UShort?) : Z80Operation(name, instructionBytes) {
+class CBOperations(name: String, instructionBytes: Int, operation: () -> Unit): Operation(name, instructionBytes, operation)
+
+@ExperimentalUnsignedTypes
+class Jump(name: String, instructionBytes: Int, private val operation: () -> UShort?) : Z80Operation(name, instructionBytes) {
     override fun invoke(pc: UShort): UShort {
         val destination = operation.invoke()
         return destination ?: (pc + instructionBytes.toUInt()).toUShort()
@@ -34,11 +37,11 @@ class Jump(name: String, instructionBytes: Int, val operation: () -> UShort?) : 
 
 @ExperimentalUnsignedTypes
 class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (Boolean) -> Unit) {
-    val operations: Array<Z80Operation> = Array(256) { Operation("MISSING", 1) { TODO() } }
+    val operations: Array<Z80Operation> = Array(256) { x -> Operation("MISSING $x", 1) { TODO() } }
 
     init {
         // instructionBytes is 1 (not 2) for all CB operations, because the first byte has already been read
-        val cbOperations: Array<Operation> = Array(256) { Operation("MISSING", 1) { TODO() } }
+        val cbOperations: Array<Operation> = Array(256) { x -> Operation("MISSING $x", 1) { TODO() } }
         createBitOperations(cbOperations, 0x46, 0)
         createBitOperations(cbOperations, 0x4e, 1)
         createBitOperations(cbOperations, 0x4e, 1)
@@ -304,7 +307,7 @@ class OperationBuilder(val registers: Registers, val mmu: MMU, val interrupts: (
         operations[0xAD] = Operation("XOR L", 1) { xor(registers.l) }
 
 
-        operations[0xcb] = Operation("0xCB operations", 2) { cbOperations[registers.sp++.toInt()] }
+        operations[0xcb] = CBOperations("0xCB operations", 2) { cbOperations[registers.sp++.toInt()] }
     }
 
     private fun readWordArgument() = readWordFromMemory(registers.pc + 1u)
