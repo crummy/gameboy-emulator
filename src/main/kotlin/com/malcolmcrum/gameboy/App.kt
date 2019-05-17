@@ -9,11 +9,14 @@ import com.almasb.fxgl.input.UserAction
 import com.malcolmcrum.gameboy.emulator.GBZ80
 import com.malcolmcrum.gameboy.ui.InstructionView
 import com.malcolmcrum.gameboy.ui.RegisterView
+import com.malcolmcrum.gameboy.ui.TileView
 import javafx.scene.input.KeyCode
+import javafx.scene.layout.BorderPane
 import java.io.File
 
 @ExperimentalUnsignedTypes
 class App : GameApplication() {
+    private lateinit var tileView: TileView
     var z80 = GBZ80()
 
     init {
@@ -34,20 +37,31 @@ class App : GameApplication() {
         val input = getInput()
 
         input.addAction(NextStep(z80), KeyCode.SPACE)
+        input.addAction(object: UserAction("tile") {
+            override fun onActionEnd() {
+                tileView.render()
+            }
+        }, KeyCode.T)
     }
 
     override fun initUI() {
+        val borderPane = BorderPane()
+        borderPane.id = "everything"
+        borderPane.prefHeight = 600.0
+        borderPane.prefWidth = 1024.0
+
         val registerView = RegisterView()
         registerView.translateX = 600.0
-        getGameScene().addUINode(registerView)
+        borderPane.bottom = registerView
 
         val instructionView = InstructionView(parseInstructions(z80.mmu, z80.operations))
-        instructionView.prefHeight = 600.0
-        instructionView.prefWidth = 200.0
-        instructionView.translateX = 0.0
-        getGameScene().addUINode(instructionView)
-    }
+        borderPane.left = instructionView
 
+        tileView = TileView(z80.gpu)
+        borderPane.center = tileView
+
+        getGameScene().addUINodes(borderPane)
+    }
     override fun initGameVars(vars: MutableMap<String, Any>) {
         vars[REGISTERS] = z80.registers
         vars[INSTRUCTION] = z80.registers.pc

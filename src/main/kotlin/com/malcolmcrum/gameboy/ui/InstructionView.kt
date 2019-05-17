@@ -15,10 +15,10 @@ class InstructionView(instructions: Map<UShort, Instruction>) : ScrollPane(), Pr
     val instructions: Map<UShort, Text> = instructions.map { it.key to toText(it.key, it.value) }.toMap()
 
     init {
-        this.contents.styleClass.add("monospaced")
-        this.styleClass.add("scrollpane")
+        contents.styleClass.add("monospaced")
+        styleClass.add("scrollpane")
         contents.children.addAll(this.instructions.values)
-        this.content = contents
+        content = contents
 
         getGameState().addListener(App.INSTRUCTION, this)
     }

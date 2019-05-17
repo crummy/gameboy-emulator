@@ -1,3 +1,7 @@
+#everything {
+    -fx-background-color: antiquewhite;
+}
+
 .scrollpane {
     -fx-fit-to-width: true;
 }
@@ -8,4 +12,10 @@
 
 .highlighted {
     -fx-font-weight: bold
+}
+
+.tiles {
+    -fx-border-color: black;
+    -fx-border-style: solid;
+    -fx-border-width: 5;
 }

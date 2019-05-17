@@ -11,6 +11,7 @@ class GBZ80 {
     val clock = Clock()
     val registers = Registers()
     val mmu = MMU()
+    val gpu = GPU(mmu.videoRam, mmu.oam)
     val interruptsEnabled = false
     val operations = Operations(registers, mmu) { interruptsEnabled }
 
