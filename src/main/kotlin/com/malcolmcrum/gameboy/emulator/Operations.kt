@@ -114,6 +114,24 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         createSetOperations(0xee, 5)
         createSetOperations(0xf6, 6)
         createSetOperations(0xfe, 7)
+        cbOperations[0x26] = CBOperation("SLA (HL)") { sla(storeInMemory(registers.hl), readFromMemory(registers.hl))}
+        cbOperations[0x27] = CBOperation("SLA A") { sla(storeInRegisterA(), { registers.a})}
+        cbOperations[0x20] = CBOperation("SLA B") { sla(storeInRegisterB(), { registers.b})}
+        cbOperations[0x21] = CBOperation("SLA C") { sla(storeInRegisterC(), { registers.c})}
+        cbOperations[0x22] = CBOperation("SLA D") { sla(storeInRegisterD(), { registers.d})}
+        cbOperations[0x23] = CBOperation("SLA E") { sla(storeInRegisterE(), { registers.e})}
+        cbOperations[0x24] = CBOperation("SLA H") { sla(storeInRegisterH(), { registers.h})}
+        cbOperations[0x25] = CBOperation("SLA L") { sla(storeInRegisterL(), { registers.l})}
+        cbOperations[0x25] = CBOperation("SLA L") { sla(storeInRegisterL(), { registers.l})}
+        cbOperations[0x2e] = CBOperation("SRA (HL)") { sra(storeInMemory(registers.hl), readFromMemory(registers.hl))}
+        cbOperations[0x2f] = CBOperation("SRA A") { sra(storeInRegisterA(), { registers.a})}
+        cbOperations[0x28] = CBOperation("SRA B") { sra(storeInRegisterB(), { registers.b})}
+        cbOperations[0x29] = CBOperation("SRA C") { sra(storeInRegisterC(), { registers.c})}
+        cbOperations[0x2a] = CBOperation("SRA D") { sra(storeInRegisterD(), { registers.d})}
+        cbOperations[0x2b] = CBOperation("SRA E") { sra(storeInRegisterE(), { registers.e})}
+        cbOperations[0x2c] = CBOperation("SRA H") { sra(storeInRegisterH(), { registers.h})}
+        cbOperations[0x2d] = CBOperation("SRA L") { sra(storeInRegisterL(), { registers.l})}
+        cbOperations[0x2e] = CBOperation("SRA L") { sra(storeInRegisterL(), { registers.l})}
 
         operations[0xce] = Operation("ADC A,n8", 2) { adcA(readFromArgument()) }
         operations[0x8e] = Operation("ADC A,(HL)", 1) { adcA(readFromMemory(registers.hl)) }
@@ -320,6 +338,29 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0xAB] = Operation("XOR E", 1) { xor(registers.e) }
         operations[0xAC] = Operation("XOR H", 1) { xor(registers.h) }
         operations[0xAD] = Operation("XOR L", 1) { xor(registers.l) }
+    }
+
+    private fun sla(write: (UByte) -> Unit, read: () -> UByte) {
+        with(registers) {
+            val value = read.invoke()
+            val newCarry = value.getBit(7)
+            val result = (value.toUInt() shl 1).toUByte()
+            setFlags(zero = result == 0u.toUByte(), carry = newCarry)
+            write.invoke(result)
+            tick()
+        }
+    }
+
+    private fun sra(write: (UByte) -> Unit, read: () -> UByte) {
+        with(registers) {
+            val value = read.invoke()
+            val newCarry = value.getBit(0)
+            val newLeftBit = if (value.getBit(7)) 1u else 0u
+            val result = (value.toUInt() shr 1 or (newLeftBit shl 7)).toUByte()
+            setFlags(zero = result == 0u.toUByte(), carry = newCarry)
+            write.invoke(result)
+            tick()
+        }
     }
 
     private fun readWordArgument() = readWordFromMemory(registers.pc + 1u)
