@@ -114,24 +114,30 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         createSetOperations(0xee, 5)
         createSetOperations(0xf6, 6)
         createSetOperations(0xfe, 7)
-        cbOperations[0x26] = CBOperation("SLA (HL)") { sla(storeInMemory(registers.hl), readFromMemory(registers.hl))}
-        cbOperations[0x27] = CBOperation("SLA A") { sla(storeInRegisterA(), { registers.a})}
-        cbOperations[0x20] = CBOperation("SLA B") { sla(storeInRegisterB(), { registers.b})}
-        cbOperations[0x21] = CBOperation("SLA C") { sla(storeInRegisterC(), { registers.c})}
-        cbOperations[0x22] = CBOperation("SLA D") { sla(storeInRegisterD(), { registers.d})}
-        cbOperations[0x23] = CBOperation("SLA E") { sla(storeInRegisterE(), { registers.e})}
-        cbOperations[0x24] = CBOperation("SLA H") { sla(storeInRegisterH(), { registers.h})}
-        cbOperations[0x25] = CBOperation("SLA L") { sla(storeInRegisterL(), { registers.l})}
-        cbOperations[0x25] = CBOperation("SLA L") { sla(storeInRegisterL(), { registers.l})}
-        cbOperations[0x2e] = CBOperation("SRA (HL)") { sra(storeInMemory(registers.hl), readFromMemory(registers.hl))}
-        cbOperations[0x2f] = CBOperation("SRA A") { sra(storeInRegisterA(), { registers.a})}
-        cbOperations[0x28] = CBOperation("SRA B") { sra(storeInRegisterB(), { registers.b})}
-        cbOperations[0x29] = CBOperation("SRA C") { sra(storeInRegisterC(), { registers.c})}
-        cbOperations[0x2a] = CBOperation("SRA D") { sra(storeInRegisterD(), { registers.d})}
-        cbOperations[0x2b] = CBOperation("SRA E") { sra(storeInRegisterE(), { registers.e})}
-        cbOperations[0x2c] = CBOperation("SRA H") { sra(storeInRegisterH(), { registers.h})}
-        cbOperations[0x2d] = CBOperation("SRA L") { sra(storeInRegisterL(), { registers.l})}
-        cbOperations[0x2e] = CBOperation("SRA L") { sra(storeInRegisterL(), { registers.l})}
+        cbOperations[0x26] = CBOperation("SLA (HL)") { sla(storeInMemory(registers.hl), readFromMemory(registers.hl)) }
+        cbOperations[0x27] = CBOperation("SLA A") { sla(storeInRegisterA(), { registers.a }) }
+        cbOperations[0x20] = CBOperation("SLA B") { sla(storeInRegisterB(), { registers.b }) }
+        cbOperations[0x21] = CBOperation("SLA C") { sla(storeInRegisterC(), { registers.c }) }
+        cbOperations[0x22] = CBOperation("SLA D") { sla(storeInRegisterD(), { registers.d }) }
+        cbOperations[0x23] = CBOperation("SLA E") { sla(storeInRegisterE(), { registers.e }) }
+        cbOperations[0x24] = CBOperation("SLA H") { sla(storeInRegisterH(), { registers.h }) }
+        cbOperations[0x25] = CBOperation("SLA L") { sla(storeInRegisterL(), { registers.l }) }
+        cbOperations[0x2e] = CBOperation("SRA (HL)") { sra(storeInMemory(registers.hl), readFromMemory(registers.hl)) }
+        cbOperations[0x2f] = CBOperation("SRA A") { sra(storeInRegisterA(), { registers.a }) }
+        cbOperations[0x28] = CBOperation("SRA B") { sra(storeInRegisterB(), { registers.b }) }
+        cbOperations[0x29] = CBOperation("SRA C") { sra(storeInRegisterC(), { registers.c }) }
+        cbOperations[0x2a] = CBOperation("SRA D") { sra(storeInRegisterD(), { registers.d }) }
+        cbOperations[0x2b] = CBOperation("SRA E") { sra(storeInRegisterE(), { registers.e }) }
+        cbOperations[0x2c] = CBOperation("SRA H") { sra(storeInRegisterH(), { registers.h }) }
+        cbOperations[0x2d] = CBOperation("SRA L") { sra(storeInRegisterL(), { registers.l }) }
+        cbOperations[0x3e] = CBOperation("SRL (HL)") { sra(storeInMemory(registers.hl), readFromMemory(registers.hl)) }
+        cbOperations[0x3f] = CBOperation("SRL A") { srl(storeInRegisterA(), { registers.a }) }
+        cbOperations[0x38] = CBOperation("SRL B") { srl(storeInRegisterB(), { registers.b }) }
+        cbOperations[0x39] = CBOperation("SRL C") { srl(storeInRegisterC(), { registers.c }) }
+        cbOperations[0x3a] = CBOperation("SRL D") { srl(storeInRegisterD(), { registers.d }) }
+        cbOperations[0x3b] = CBOperation("SRL E") { srl(storeInRegisterE(), { registers.e }) }
+        cbOperations[0x3c] = CBOperation("SRL H") { srl(storeInRegisterH(), { registers.h }) }
+        cbOperations[0x3d] = CBOperation("SRL L") { srl(storeInRegisterL(), { registers.l }) }
 
         operations[0xce] = Operation("ADC A,n8", 2) { adcA(readFromArgument()) }
         operations[0x8e] = Operation("ADC A,(HL)", 1) { adcA(readFromMemory(registers.hl)) }
@@ -363,6 +369,17 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         }
     }
 
+    private fun srl(write: (UByte) -> Unit, read: () -> UByte) {
+        with(registers) {
+            val value = read.invoke()
+            val newCarry = value.getBit(0)
+            val result = (value.toUInt() shr 1).toUByte()
+            setFlags(zero = result == 0u.toUByte(), carry = newCarry)
+            write.invoke(result)
+            tick()
+        }
+    }
+
     private fun readWordArgument() = readWordFromMemory(registers.pc + 1u)
 
     private fun readFromArgument() = readFromMemory(registers.pc + 1u)
@@ -436,7 +453,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
     }
 
     private fun rr(store: (UByte) -> Unit, value: UByte) {
-        with (registers) {
+        with(registers) {
             val newHighBit = if (carry) 1 else 0
             setFlags(carry = a.getBit(0))
             val result = ((value.toInt() ushr 1) + (newHighBit shr 7)).toUByte()
@@ -505,7 +522,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
     }
 
     private fun rlc(store: (UByte) -> Unit, value: UByte) {
-        with (registers) {
+        with(registers) {
             setFlags(carry = value.getBit(7))
             val newLowBit = if (carry) 1 else 0
             val result = ((value.toInt() shl 1) + newLowBit).toUByte()
