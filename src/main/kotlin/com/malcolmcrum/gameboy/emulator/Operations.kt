@@ -109,7 +109,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         createSetOperations(0xf6, 6)
         createSetOperations(0xfe, 7)
 
-        operations[0xce] = Operation("ADC A,\$xx", 2) { adcA(readFromArgument()) }
+        operations[0xce] = Operation("ADC A,n8", 2) { adcA(readFromArgument()) }
         operations[0x8e] = Operation("ADC A,(HL)", 1) { adcA(readFromMemory(registers.hl)) }
         operations[0x8f] = Operation("ADC A,A", 1) { adcA(registers.a) }
         operations[0x88] = Operation("ADC A,B", 1) { adcA(registers.b) }
@@ -118,7 +118,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0x8b] = Operation("ADC A,E", 1) { adcA(registers.e) }
         operations[0x8c] = Operation("ADC A,H", 1) { adcA(registers.h) }
         operations[0x8d] = Operation("ADC A,L", 1) { adcA(registers.l) }
-        operations[0xc6] = Operation("ADD A,\$xx", 2) { addA(readFromArgument()) }
+        operations[0xc6] = Operation("ADD A,n8", 2) { addA(readFromArgument()) }
         operations[0x86] = Operation("ADD A,(HL)", 1) { addA(readFromMemory(registers.hl)) }
         operations[0x87] = Operation("ADD A,A", 1) { addA(registers.a) }
         operations[0x80] = Operation("ADD A,B", 1) { addA(registers.b) }
@@ -131,8 +131,8 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0x19] = Operation("ADD HL,DE", 1) { addHL(registers.de) }
         operations[0x29] = Operation("ADD HL,HL", 1) { addHL(registers.hl) }
         operations[0x39] = Operation("ADD HL,SP", 1) { addHL(registers.sp) }
-        operations[0xe8] = Operation("ADD SP,\$xx", 2) { addSP(readFromArgument()) }
-        operations[0xe6] = Operation("AND \$xx", 2) { andA(readFromArgument()) }
+        operations[0xe8] = Operation("ADD SP,e8", 2) { addSP(readFromArgument()) }
+        operations[0xe6] = Operation("AND n8", 2) { andA(readFromArgument()) }
         operations[0xa6] = Operation("AND (HL)", 1) { andA(readFromMemory(registers.hl)) }
         operations[0xa7] = Operation("AND A", 1) { andA(registers.a) }
         operations[0xa0] = Operation("AND B", 1) { andA(registers.b) }
@@ -141,13 +141,13 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0xa3] = Operation("AND E", 1) { andA(registers.e) }
         operations[0xa4] = Operation("AND H", 1) { andA(registers.h) }
         operations[0xa5] = Operation("AND L", 1) { andA(registers.l) }
-        operations[0xcd] = Jump("CALL \$aabb", 3) { call(readWordArgument()) }
-        operations[0xdc] = Jump("CALL C,\$aabb", 3) { call(readWordArgument(), registers.carry) }
-        operations[0xd4] = Jump("CALL NC,\$aabb", 3) { call(readWordArgument(), !registers.carry) }
-        operations[0xc4] = Jump("CALL NZ,\$aabb", 3) { call(readWordArgument(), !registers.zero) }
-        operations[0xcc] = Jump("CALL Z,\$aabb", 3) { call(readWordArgument(), registers.zero) }
+        operations[0xcd] = Jump("CALL n16", 3) { call(readWordArgument()) }
+        operations[0xdc] = Jump("CALL C,n16", 3) { call(readWordArgument(), registers.carry) }
+        operations[0xd4] = Jump("CALL NC,n16", 3) { call(readWordArgument(), !registers.carry) }
+        operations[0xc4] = Jump("CALL NZ,n16", 3) { call(readWordArgument(), !registers.zero) }
+        operations[0xcc] = Jump("CALL Z,n16", 3) { call(readWordArgument(), registers.zero) }
         operations[0x3f] = Operation("CCF", 1) { ccf() }
-        operations[0xfe] = Operation("CP \$xx", 2) { cp(readFromMemory(registers.sp + 1u)) }
+        operations[0xfe] = Operation("CP n8", 2) { cp(readFromMemory(registers.sp + 1u)) }
         operations[0xbe] = Operation("CP (HL)", 1) { cp(readFromMemory(registers.hl)) }
         operations[0xbf] = Operation("CP A", 1) { cp(registers.a) }
         operations[0xb8] = Operation("CP B", 1) { cp(registers.b) }
@@ -185,24 +185,24 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0x23] = Operation("INC HL", 1) { inc(storeInRegisterHL(), registers.hl) }
         operations[0x2c] = Operation("INC L", 1) { inc(storeInRegisterL(), registers.l) }
         operations[0x33] = Operation("INC SP", 1) { inc(storeInRegisterSP(), registers.sp) }
-        operations[0xc3] = Jump("JP \$aabb", 3) { jp(readWordArgument()) }
+        operations[0xc3] = Jump("JP n16", 3) { jp(readWordArgument()) }
         operations[0xe9] = Jump("JP (HL)", 1) { jp({ registers.hl }) }
-        operations[0xda] = Jump("JP C,\$aabb", 3) { jp(readWordArgument(), registers.carry) }
-        operations[0xd2] = Jump("JP NC,\$aabb", 3) { jp(readWordArgument(), !registers.carry) }
-        operations[0xc2] = Jump("JP NZ,\$aabb", 3) { jp(readWordArgument(), !registers.zero) }
-        operations[0xca] = Jump("JP Z,\$aabb", 3) { jp(readWordArgument(), registers.zero) }
-        operations[0x18] = Jump("JR \$xx", 2) { jr(readFromArgument()) }
-        operations[0x38] = Jump("JR C,\$xx", 2) { jr(readFromArgument(), registers.carry) }
-        operations[0x30] = Jump("JR NC,\$xx", 2) { jr(readFromArgument(), !registers.carry) }
-        operations[0x20] = Jump("JR NZ,\$xx", 2) { jr(readFromArgument(), !registers.zero) }
-        operations[0x28] = Jump("JR Z,\$xx", 2) { jr(readFromArgument(), registers.zero) }
-        operations[0xea] = Operation("LD (\$aabb),A", 3) { load(storeInMemory(readWordArgument().invoke()), registers.a) }
-        operations[0x08] = Operation("LD (\$aabb),SP", 3) { load(storeWordInMemory(readWordArgument().invoke()), registers.sp) }
-        operations[0xe0] = Operation("LD (\$xx),A", 2) { load(storeInMemory(readFromArgument().invoke()), registers.a) }
+        operations[0xda] = Jump("JP C,n16", 3) { jp(readWordArgument(), registers.carry) }
+        operations[0xd2] = Jump("JP NC,n16", 3) { jp(readWordArgument(), !registers.carry) }
+        operations[0xc2] = Jump("JP NZ,n16", 3) { jp(readWordArgument(), !registers.zero) }
+        operations[0xca] = Jump("JP Z,n16", 3) { jp(readWordArgument(), registers.zero) }
+        operations[0x18] = Jump("JR e8", 2) { jr(readFromArgument()) }
+        operations[0x38] = Jump("JR C,e8", 2) { jr(readFromArgument(), registers.carry) }
+        operations[0x30] = Jump("JR NC,e8", 2) { jr(readFromArgument(), !registers.carry) }
+        operations[0x20] = Jump("JR NZ,e8", 2) { jr(readFromArgument(), !registers.zero) }
+        operations[0x28] = Jump("JR Z,e8", 2) { jr(readFromArgument(), registers.zero) }
+        operations[0xea] = Operation("LD (n16),A", 3) { load(storeInMemory(readWordArgument().invoke()), registers.a) }
+        operations[0x08] = Operation("LD (n16),SP", 3) { load(storeWordInMemory(readWordArgument().invoke()), registers.sp) }
+        operations[0xe0] = Operation("LD (n8),A", 2) { load(storeInMemory(readFromArgument().invoke()), registers.a) }
         operations[0x02] = Operation("LD (BC),A", 1) { load(storeInMemory(registers.bc), registers.a) }
         operations[0xe2] = Operation("LD (C),A", 1) { load(storeInMemory(registers.c), registers.a) }
         operations[0x12] = Operation("LD (DE),A", 1) { load(storeInMemory(registers.de), registers.a) }
-        operations[0x36] = Operation("LD (HL),\$xx", 2) { load(storeInMemory(registers.hl), readFromArgument()) }
+        operations[0x36] = Operation("LD (HL),n8", 2) { load(storeInMemory(registers.hl), readFromArgument()) }
         operations[0x77] = Operation("LD (HL),A", 1) { load(storeInMemory(registers.hl), registers.a) }
         operations[0x70] = Operation("LD (HL),B", 1) { load(storeInMemory(registers.hl), registers.b) }
         operations[0x71] = Operation("LD (HL),C", 1) { load(storeInMemory(registers.hl), registers.c) }
@@ -212,8 +212,8 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0x75] = Operation("LD (HL),L", 1) { load(storeInMemory(registers.hl), registers.l) }
         operations[0x32] = Operation("LD (HL-),A", 1) { load(storeInMemory(registers.hl), registers.a) { registers.hl-- } }
         operations[0x22] = Operation("LD (HL+),A", 1) { load(storeInMemory(registers.hl), registers.a) { registers.hl++ } }
-        operations[0x3e] = Operation("LD A,\$xx", 2) { load(storeInRegisterA(), readFromArgument()) }
-        operations[0xfa] = Operation("LD A,(\$aabb)", 3) { load(storeInRegisterA(), readFromMemory(readWordArgument().invoke())) }
+        operations[0x3e] = Operation("LD A,n8", 2) { load(storeInRegisterA(), readFromArgument()) }
+        operations[0xfa] = Operation("LD A,(n16)", 3) { load(storeInRegisterA(), readFromMemory(readWordArgument().invoke())) }
         operations[0xf0] = Operation("LD A,(BC)", 1) { load(storeInRegisterA(), readFromMemory(registers.bc)) }
         operations[0xf0] = Operation("LD A,(C)", 1) { load(storeInRegisterA(), readFromMemory(registers.c)) }
         operations[0xf0] = Operation("LD A,(DE)", 1) { load(storeInRegisterA(), readFromMemory(registers.de)) }
@@ -221,26 +221,26 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0xf0] = Operation("LD A,(HL-)", 1) { load(storeInRegisterA(), readFromMemory(registers.hl)) { registers.hl-- } }
         operations[0xf0] = Operation("LD A,(HL+)", 1) { load(storeInRegisterA(), readFromMemory(registers.hl)) { registers.hl++ } }
         createLDOperations("A", storeInRegisterA(), 0x7F)
-        operations[0x06] = Operation("LD B,\$xx", 2) { load(storeInRegisterB(), readFromArgument()) }
+        operations[0x06] = Operation("LD B,n8", 2) { load(storeInRegisterB(), readFromArgument()) }
         operations[0x46] = Operation("LD B,(HL)", 1) { load(storeInRegisterB(), readFromMemory(registers.hl)) }
         createLDOperations("B", storeInRegisterB(), 0x47)
-        operations[0x01] = Operation("LD BC,\$aabb", 3) { load(storeInRegisterBC(), readWordArgument()) }
-        operations[0x0e] = Operation("LD C,\$xx", 2) { load(storeInRegisterC(), readFromArgument()) }
+        operations[0x01] = Operation("LD BC,n16", 3) { load(storeInRegisterBC(), readWordArgument()) }
+        operations[0x0e] = Operation("LD C,n8", 2) { load(storeInRegisterC(), readFromArgument()) }
         operations[0x4e] = Operation("LD C,(HL)", 1) { load(storeInRegisterC(), readFromMemory(registers.hl)) }
         createLDOperations("C", storeInRegisterC(), 0x4f)
-        operations[0x16] = Operation("LD D,\$xx", 2) { load(storeInRegisterD(), readFromArgument()) }
+        operations[0x16] = Operation("LD D,n8", 2) { load(storeInRegisterD(), readFromArgument()) }
         operations[0x56] = Operation("LD D,(HL)", 1) { load(storeInRegisterD(), readFromMemory(registers.hl)) }
         createLDOperations("D", storeInRegisterD(), 0x57)
-        operations[0x11] = Operation("LD DE,\$aabb", 3) { load(storeInRegisterDE(), readWordArgument()) }
-        operations[0x1e] = Operation("LD E,\$xx", 2) { load(storeInRegisterE(), readFromArgument()) }
+        operations[0x11] = Operation("LD DE,n16", 3) { load(storeInRegisterDE(), readWordArgument()) }
+        operations[0x1e] = Operation("LD E,n8", 2) { load(storeInRegisterE(), readFromArgument()) }
         operations[0x5e] = Operation("LD E,(HL)", 1) { load(storeInRegisterE(), readFromMemory(registers.hl)) }
         createLDOperations("E", storeInRegisterE(), 0x5f)
-        operations[0x26] = Operation("LD H,\$xx", 2) { load(storeInRegisterH(), readFromArgument()) }
+        operations[0x26] = Operation("LD H,n8", 2) { load(storeInRegisterH(), readFromArgument()) }
         operations[0x66] = Operation("LD H,(HL)", 1) { load(storeInRegisterH(), readFromMemory(registers.hl)) }
         createLDOperations("H", storeInRegisterH(), 0x67)
-        operations[0x21] = Operation("LD HL,\$aabb", 3) { load(storeInRegisterHL(), readWordArgument()) }
+        operations[0x21] = Operation("LD HL,n16", 3) { load(storeInRegisterHL(), readWordArgument()) }
         operations[0xf8] = Operation("LD HL,SP", 1) { load(storeInRegisterHL(), registers.sp) }
-        operations[0x2e] = Operation("LD L,\$xx", 2) { load(storeInRegisterL(), readFromArgument()) }
+        operations[0x2e] = Operation("LD L,n8", 2) { load(storeInRegisterL(), readFromArgument()) }
         operations[0x6e] = Operation("LD L,(HL)", 1) { load(storeInRegisterL(), readFromMemory(registers.hl)) }
         operations[0x68] = Operation("LD L,B", 1) { load(storeInRegisterL(), registers.b) }
         operations[0x69] = Operation("LD L,C", 1) { load(storeInRegisterL(), registers.c) }
@@ -248,10 +248,10 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0x6b] = Operation("LD L,E", 1) { load(storeInRegisterL(), registers.e) }
         operations[0x6c] = Operation("LD L,H", 1) { load(storeInRegisterL(), registers.h) }
         operations[0x6d] = Operation("LD L,L", 1) { load(storeInRegisterL(), registers.l) }
-        operations[0x31] = Operation("LD SP,\$aabb", 3) { load(storeInRegisterSP(), readWordArgument()) }
+        operations[0x31] = Operation("LD SP,n16", 3) { load(storeInRegisterSP(), readWordArgument()) }
         operations[0xf9] = Operation("LD SP,HL", 1) { load(storeInRegisterSP(), registers.hl) }
         operations[0x00] = Operation("NOP", 1) { nop() }
-        operations[0xf6] = Operation("OR \$xx", 2) { or(readFromArgument()) }
+        operations[0xf6] = Operation("OR n8", 2) { or(readFromArgument()) }
         operations[0xb6] = Operation("OR (HL)", 1) { or(readFromMemory(registers.hl)) }
         operations[0xb7] = Operation("OR A", 1) { or(registers.a) }
         operations[0xb0] = Operation("OR B", 1) { or(registers.b) }
@@ -286,7 +286,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0xef] = Jump("RST $28", 1) { rst(0x28u) }
         operations[0xf7] = Jump("RST $30", 1) { rst(0x30u) }
         operations[0xff] = Jump("RST $38", 1) { rst(0x38u) }
-        operations[0xde] = Operation("SBC A,\$xx", 2) { sbca(readFromMemory(registers.sp + 1u)) }
+        operations[0xde] = Operation("SBC A,n8", 2) { sbca(readFromMemory(registers.sp + 1u)) }
         operations[0x9e] = Operation("SBC A,(HL)", 1) { sbca(readFromMemory(registers.hl)) }
         operations[0x9f] = Operation("SBC A,A", 1) { sbca(registers.a) }
         operations[0x98] = Operation("SBC A,B", 1) { sbca(registers.b) }
@@ -297,7 +297,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0x9d] = Operation("SBC A,L", 1) { sbca(registers.l) }
         operations[0x37] = Operation("SCF", 1) { scf() }
         operations[0x10] = Operation("STOP", 1) { stop() }
-        operations[0xd6] = Operation("SUB \$xx", 2) { sub(readFromMemory(registers.sp + 1u)) }
+        operations[0xd6] = Operation("SUB n8", 2) { sub(readFromMemory(registers.sp + 1u)) }
         operations[0x97] = Operation("SUB A", 1) { sub(registers.a) }
         operations[0x90] = Operation("SUB B", 1) { sub(registers.b) }
         operations[0x91] = Operation("SUB C", 1) { sub(registers.c) }
@@ -305,7 +305,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0x93] = Operation("SUB E", 1) { sub(registers.e) }
         operations[0x94] = Operation("SUB H", 1) { sub(registers.h) }
         operations[0x95] = Operation("SUB L", 1) { sub(registers.l) }
-        operations[0xEE] = Operation("XOR \$xx", 1) { xor(readFromMemory(registers.sp + 1u)) }
+        operations[0xEE] = Operation("XOR n8", 1) { xor(readFromMemory(registers.sp + 1u)) }
         operations[0xAE] = Operation("XOR (HL)", 1) { xor(readFromMemory(registers.hl)) }
         operations[0xAF] = Operation("XOR A", 1) { xor(registers.a) }
         operations[0xA8] = Operation("XOR B", 1) { xor(registers.b) }

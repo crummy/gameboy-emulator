@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 @ExperimentalUnsignedTypes
 internal class ANDTest {
     @Nested
-    @DisplayName("AND \$xx")
+    @DisplayName("AND n8")
     inner class AND_XX {
         val opcode = 0xe6
 

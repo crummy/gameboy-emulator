@@ -18,7 +18,7 @@ internal class JPTest {
     }
 
     @Nested
-    @DisplayName("JP C,\$aabb")
+    @DisplayName("JP C,n16")
     inner class JP_C_AABB {
         @Test
         fun `carry set`() {

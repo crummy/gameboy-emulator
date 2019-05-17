@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 @ExperimentalUnsignedTypes
 internal class ADDTest {
     @Nested
-    @DisplayName("ADD \$xx")
+    @DisplayName("ADD n8")
     inner class ADD_xx {
         val opcode = 0xc6
 

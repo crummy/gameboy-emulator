@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 @ExperimentalUnsignedTypes
 internal class SBCTest {
     @Nested
-    @DisplayName("SBC A,\$xx")
+    @DisplayName("SBC A,n8")
     inner class SBC_A_XX {
         val opcode = 0xde
 

@@ -13,13 +13,26 @@ fun parseInstructions(mmu: MMU, operations: Operations): Map<UShort, Instruction
     while (address < rom.size - 2) {
         val opcode = rom[address]
         val operation = operations[opcode.toInt()]
-        val name = operation.mnemonic.replace("\$aabb", createUShort(rom[address + 2], rom[address + 1]).hex())
-                .replace("\$xx", rom[address + 1].hex())
+        val name = parseInstruction(operation.mnemonic, mmu, address)
         instructions[address] = Instruction(opcode, operation.mnemonic, name)
 
         address += operation.instructionBytes
     }
     return instructions.map { Pair(it.key.toUShort(), it.value) }.toMap()
+}
+
+@ExperimentalUnsignedTypes
+fun parseInstruction(operation: String, mmu: MMU, address: Int): String {
+    val rom = mmu.rom
+    return operation
+            .replace("n16", createUShort(rom[address + 2], rom[address + 1]).hex())
+            .replace("n8", rom[address + 1].hex())
+            .replace("e8", toSigned(rom[address + 1].toInt()))
+}
+
+@ExperimentalUnsignedTypes
+fun toSigned(int: Int): String {
+    return "${int.toUByte().hex()} (${int.toByte()})"
 }
 
 @ExperimentalUnsignedTypes

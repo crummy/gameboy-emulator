@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 @ExperimentalUnsignedTypes
 internal class SUBTest {
     @Nested
-    @DisplayName("SUB \$xx")
+    @DisplayName("SUB n8")
     inner class SUB_XX {
         val opcode = 0xd6
 

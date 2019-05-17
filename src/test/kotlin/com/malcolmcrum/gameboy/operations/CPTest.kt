@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 @ExperimentalUnsignedTypes
 internal class CPTest {
     @Nested
-    @DisplayName("CP \$xx")
+    @DisplayName("CP n8")
     inner class CP_XX {
         val opcode = 0xfe
 

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 class ADCTest {
 
     @Nested
-    @DisplayName("ADC \$xx")
+    @DisplayName("ADC n8")
     inner class ADCXX {
         val opcode = 0xce
 
