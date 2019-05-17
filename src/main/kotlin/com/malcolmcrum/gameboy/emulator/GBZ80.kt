@@ -17,7 +17,7 @@ class GBZ80 {
 
     fun execute() {
         val opCode = mmu[registers.pc].toInt()
-        val operation = operations[opCode]
+        val operation = operations[registers.pc]
         log.debug { "${registers.pc.hex()}: ${opCode.toUByte().hex()} ${parseInstruction(operation.mnemonic, mmu, registers.pc.toInt())}" }
         registers.pc = operation.invoke(registers.pc)
 

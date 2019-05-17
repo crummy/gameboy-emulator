@@ -10,7 +10,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.parse
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
@@ -21,7 +20,6 @@ import java.nio.file.Paths
 @ExperimentalUnsignedTypes
 @ImplicitReflectionSerializer
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Disabled // just while I finish writing ops
 internal class TimingTest {
     val registers = Registers()
     val mmu = MMU().apply { inBios = false }
@@ -36,7 +34,8 @@ internal class TimingTest {
     @MethodSource
     fun unprefixed(op: OpCode) {
         val code = Integer.decode(op.addr)
-        operations[code].invoke(0u)
+        mmu[0x00u] = code.toUByte()
+        operations[0x00].invoke(0u)
         assertThat(op.cycles).contains(registers.t.toInt())
     }
 
@@ -50,7 +49,9 @@ internal class TimingTest {
     @MethodSource
     fun `CB prefixed`(op: OpCode) {
         val code = Integer.decode(op.addr)
-        operations[code].invoke(0u)
+        mmu[0x00u] = 0xcbu
+        mmu[0x01u] = code.toUByte()
+        operations[0x00].invoke(0u)
         assertThat(op.cycles).contains(registers.t.toInt())
     }
 
