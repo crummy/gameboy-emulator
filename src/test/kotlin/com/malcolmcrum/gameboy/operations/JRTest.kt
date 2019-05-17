@@ -26,7 +26,7 @@ internal class JRTest {
     fun `JR Z,$xx, carry not set`() {
         test(0x38) {
             initial = State(pc = 0x01u, args = listOf(0x22u), f = 0u)
-            expected = State(pc = 0x02u)
+            expected = State(pc = 0x03u)
         }
     }
 }

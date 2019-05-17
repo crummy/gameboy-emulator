@@ -32,7 +32,7 @@ internal class JPTest {
         fun `carry not set`() {
             test(0xda) {
                 initial = State(pc = 0x2233u, args = listOf(0x55u, 0x33u), f = 0u)
-                expected = State(pc = 0x2233u)
+                expected = State(pc = 0x2236u)
             }
         }
     }
