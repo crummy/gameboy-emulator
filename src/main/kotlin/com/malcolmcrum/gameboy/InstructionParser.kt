@@ -12,7 +12,7 @@ fun parseInstructions(mmu: MMU, operations: Operations): Map<UShort, Instruction
     var address = 0
     while (address < rom.size - 2) {
         val opcode = rom[address]
-        val operation = operations[address]
+        val operation = operations[address.toUShort()]
         val name = parseInstruction(operation.mnemonic, mmu, address)
         instructions[address] = Instruction(opcode, operation.mnemonic, name)
 

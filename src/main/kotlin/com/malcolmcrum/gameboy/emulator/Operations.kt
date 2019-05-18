@@ -39,10 +39,6 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private val operations: Array<Z80Operation> = Array(256) { x -> Operation("MISSING $x", 1) { TODO() } }
     private val cbOperations: Array<CBOperation> = Array(256) { x -> CBOperation("MISSING $x") { TODO() } }
 
-    operator fun get(address: Int): Z80Operation {
-        return get(address.toUShort())
-    }
-
     operator fun get(address: UShort): Z80Operation {
         val opcode = mmu[address]
         return if (opcode != CB_OPCODE) {

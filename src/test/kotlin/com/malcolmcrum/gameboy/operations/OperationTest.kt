@@ -4,6 +4,7 @@ import assertk.assertThat
 import com.malcolmcrum.gameboy.emulator.MMU
 import com.malcolmcrum.gameboy.emulator.Operations
 import com.malcolmcrum.gameboy.emulator.Registers
+import com.malcolmcrum.gameboy.emulator.Z80Operation
 import com.malcolmcrum.gameboy.util.hex
 import com.malcolmcrum.gameboy.utils.State
 import com.malcolmcrum.gameboy.utils.isEqualTo
@@ -23,16 +24,16 @@ class OperationTest(var opcode: UByte, var initial: State = State(), var expecte
         givenROM(initial.pc ?: 0u, listOf(opcode).plus(initial.args))
         givenRAM(initial.ram)
 
-        executeInstruction()
+        val op = executeInstruction()
 
-        assertThat(registers, operationDescription(opcode)).isEqualTo(expected)
-        assertThat(mmu, operationDescription(opcode)).isEqualTo(expected.ram)
+        assertThat(registers, "${opcode.hex()}: ${op.mnemonic}").isEqualTo(expected)
+        assertThat(mmu, "${opcode.hex()}: ${op.mnemonic}").isEqualTo(expected.ram)
     }
 
-    private fun operationDescription(opcode: UByte) = "${opcode.hex()}: ${operations[opcode.toInt()]}"
-
-    private fun executeInstruction() {
-        registers.pc = operations[opcode.toInt()].invoke(registers.pc)
+    private fun executeInstruction(): Z80Operation {
+        val operation = operations[registers.pc]
+        registers.pc = operation.invoke(registers.pc)
+        return operation
     }
 
     private fun givenROM(pc: UShort, instructions: List<UByte>) {
