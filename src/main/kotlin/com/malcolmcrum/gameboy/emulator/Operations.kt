@@ -193,32 +193,32 @@ class Operations(val registers: Registers, val mmu: MMU) {
         operations[0x2f] = Operation("CPL", 1) { cpl() }
         operations[0x27] = Operation("DAA", 1) { daa() }
         operations[0x35] = Operation("DEC (HL)", 1) { dec(storeInMemory(registers.hl), readFromMemory(registers.hl)) }
-        operations[0x3D] = Operation("DEC A", 1) { dec(storeInRegisterA(), registers.a) }
-        operations[0x05] = Operation("DEC B", 1) { dec(storeInRegisterB(), registers.b) }
-        operations[0x0b] = Operation("DEC BC", 1) { dec(storeInRegisterBC(), registers.bc) }
-        operations[0x0d] = Operation("DEC C", 1) { dec(storeInRegisterC(), registers.c) }
-        operations[0x15] = Operation("DEC D", 1) { dec(storeInRegisterD(), registers.d) }
-        operations[0x1b] = Operation("DEC DE", 1) { dec(storeInRegisterDE(), registers.de) }
-        operations[0x1d] = Operation("DEC E", 1) { dec(storeInRegisterE(), registers.e) }
-        operations[0x25] = Operation("DEC H", 1) { dec(storeInRegisterH(), registers.h) }
-        operations[0x2b] = Operation("DEC HL", 1) { dec(storeInRegisterHL(), registers.hl) }
-        operations[0x2d] = Operation("DEC L", 1) { dec(storeInRegisterL(), registers.l) }
-        operations[0x3b] = Operation("DEC SP", 1) { dec(storeInRegisterSP(), registers.sp) }
+        operations[0x3D] = Operation("DEC A", 1) { dec(storeInRegisterA(), {registers.a}) }
+        operations[0x05] = Operation("DEC B", 1) { dec(storeInRegisterB(), {registers.b}) }
+        operations[0x0b] = Operation("DEC BC", 1) { dec(storeInRegisterBC(), readFromRegisterBC()) }
+        operations[0x0d] = Operation("DEC C", 1) { dec(storeInRegisterC(), {registers.c}) }
+        operations[0x15] = Operation("DEC D", 1) { dec(storeInRegisterD(), {registers.d}) }
+        operations[0x1b] = Operation("DEC DE", 1) { dec(storeInRegisterDE(), readFromRegisterDE()) }
+        operations[0x1d] = Operation("DEC E", 1) { dec(storeInRegisterE(), {registers.e}) }
+        operations[0x25] = Operation("DEC H", 1) { dec(storeInRegisterH(), {registers.h}) }
+        operations[0x2b] = Operation("DEC HL", 1) { dec(storeInRegisterHL(), readFromRegisterHL()) }
+        operations[0x2d] = Operation("DEC L", 1) { dec(storeInRegisterL(), {registers.l}) }
+        operations[0x3b] = Operation("DEC SP", 1) { dec(storeInRegisterSP(), readFromRegisterSP()) }
         operations[0xf3] = Operation("DI", 1) { di() }
         operations[0xfb] = Operation("EI", 1) { ei() }
         operations[0x76] = Operation("HALT", 1) { halt() }
         operations[0x34] = Operation("INC (HL)", 1) { inc(storeInMemory(registers.hl), readFromMemory(registers.hl)) }
-        operations[0x3c] = Operation("INC A", 1) { inc(storeInRegisterA(), registers.a) }
-        operations[0x04] = Operation("INC B", 1) { inc(storeInRegisterB(), registers.b) }
-        operations[0x03] = Operation("INC BC", 1) { inc(storeInRegisterBC(), registers.bc) }
-        operations[0x0c] = Operation("INC C", 1) { inc(storeInRegisterC(), registers.c) }
-        operations[0x14] = Operation("INC D", 1) { inc(storeInRegisterD(), registers.d) }
-        operations[0x13] = Operation("INC DE", 1) { inc(storeInRegisterDE(), registers.de) }
-        operations[0x1c] = Operation("INC E", 1) { inc(storeInRegisterE(), registers.e) }
-        operations[0x24] = Operation("INC H", 1) { inc(storeInRegisterH(), registers.h) }
-        operations[0x23] = Operation("INC HL", 1) { inc(storeInRegisterHL(), registers.hl) }
-        operations[0x2c] = Operation("INC L", 1) { inc(storeInRegisterL(), registers.l) }
-        operations[0x33] = Operation("INC SP", 1) { inc(storeInRegisterSP(), registers.sp) }
+        operations[0x3c] = Operation("INC A", 1) { inc(storeInRegisterA(), { registers.a }) }
+        operations[0x04] = Operation("INC B", 1) { inc(storeInRegisterB(), { registers.b }) }
+        operations[0x03] = Operation("INC BC", 1) { inc(storeInRegisterBC(), readFromRegisterBC()) }
+        operations[0x0c] = Operation("INC C", 1) { inc(storeInRegisterC(), { registers.c }) }
+        operations[0x14] = Operation("INC D", 1) { inc(storeInRegisterD(), { registers.d }) }
+        operations[0x13] = Operation("INC DE", 1) { inc(storeInRegisterDE(), readFromRegisterDE()) }
+        operations[0x1c] = Operation("INC E", 1) { inc(storeInRegisterE(), { registers.e }) }
+        operations[0x24] = Operation("INC H", 1) { inc(storeInRegisterH(), { registers.h }) }
+        operations[0x23] = Operation("INC HL", 1) { inc(storeInRegisterHL(), readFromRegisterHL()) }
+        operations[0x2c] = Operation("INC L", 1) { inc(storeInRegisterL(), { registers.l }) }
+        operations[0x33] = Operation("INC SP", 1) { inc(storeInRegisterSP(), readFromRegisterSP()) }
         operations[0xc3] = Jump("JP n16", 3) { jp(readWordArgument()) }
         operations[0xe9] = Jump("JP HL", 1) { jp(registers.hl) }
         operations[0xda] = Jump("JP C,n16", 3) { jp(readWordArgument(), registers.carry) }
@@ -587,7 +587,6 @@ class Operations(val registers: Registers, val mmu: MMU) {
         val result = readWordFromMemory(registers.sp).invoke()
         destination.invoke(result)
         registers.sp = (registers.sp + 2u).toUShort()
-        registers.tick()
     }
 
     private fun or(source: () -> UByte) {
@@ -673,26 +672,22 @@ class Operations(val registers: Registers, val mmu: MMU) {
     }
 
     // TODO: half-carry
-    private fun inc(save: (UByte) -> Unit, source: UByte) {
+    private fun inc(save: (UByte) -> Unit, source: () -> UByte) {
         with(registers) {
-            val result = source + 1u
+            val result = source.invoke() + 1u
             setFlags(zero = result and 0xFFu == 0u)
             save.invoke(result.toUByte())
             tick()
         }
     }
 
-    private fun inc(save: (UByte) -> Unit, source: () -> UByte) {
-        inc(save, source.invoke())
-    }
-
     // TODO: half-carry
-    private fun inc(save: (UShort) -> Unit, source: UShort) {
+    @JvmName("incWord")
+    private fun inc(save: (UShort) -> Unit, source: () -> UShort) {
         with(registers) {
-            val result = source + 1u
+            val result = source.invoke() + 1u
             setFlags(zero = result and 0xFFFFu == 0u)
             save.invoke(result.toUShort())
-            tick(2)
         }
     }
 
@@ -711,26 +706,22 @@ class Operations(val registers: Registers, val mmu: MMU) {
         registers.tick()
     }
 
-    private fun dec(save: (UByte) -> Unit, source: UByte) {
+    private fun dec(save: (UByte) -> Unit, source: () -> UByte) {
         with(registers) {
-            val result = source - 1u
+            val result = source.invoke() - 1u
             setFlags(zero = result and 0xFFu == 0u, subtract = true)
             save.invoke(result.toUByte())
             tick()
         }
     }
 
-    private fun dec(save: (UByte) -> Unit, source: () -> UByte) {
-        dec(save, source.invoke())
-    }
-
     // TODO - set half carry flag
-    private fun dec(save: (UShort) -> Unit, source: UShort) {
+    @JvmName("decWord")
+    private fun dec(save: (UShort) -> Unit, source: () -> UShort) {
         with(registers) {
-            val result = source - 1u
+            val result = source.invoke() - 1u
             setFlags(zero = result and 0xFFu == 0u, subtract = true)
             save.invoke(result.toUShort())
-            tick(2)
         }
     }
 
@@ -863,11 +854,15 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun storeInRegisterE(): (UByte) -> Unit = { v -> registers.e = v }
     private fun storeInRegisterH(): (UByte) -> Unit = { v -> registers.h = v }
     private fun storeInRegisterL(): (UByte) -> Unit = { v -> registers.l = v }
-    private fun storeInRegisterAF(): (UShort) -> Unit = { v -> registers.af = v }
-    private fun storeInRegisterBC(): (UShort) -> Unit = { v -> registers.bc = v }
-    private fun storeInRegisterDE(): (UShort) -> Unit = { v -> registers.de = v }
-    private fun storeInRegisterHL(): (UShort) -> Unit = { v -> registers.hl = v }
-    private fun storeInRegisterSP(): (UShort) -> Unit = { v -> registers.sp = v }
+    private fun storeInRegisterAF(): (UShort) -> Unit = { v -> registers.af = v; registers.tick() }
+    private fun storeInRegisterBC(): (UShort) -> Unit = { v -> registers.bc = v; registers.tick() }
+    private fun storeInRegisterDE(): (UShort) -> Unit = { v -> registers.de = v; registers.tick() }
+    private fun storeInRegisterHL(): (UShort) -> Unit = { v -> registers.hl = v; registers.tick() }
+    private fun storeInRegisterSP(): (UShort) -> Unit = { v -> registers.sp = v; registers.tick() }
+    private fun readFromRegisterBC(): () -> UShort = { registers.tick(); registers.bc }
+    private fun readFromRegisterDE(): () -> UShort = { registers.tick(); registers.de }
+    private fun readFromRegisterHL(): () -> UShort = { registers.tick(); registers.hl }
+    private fun readFromRegisterSP(): () -> UShort = { registers.tick(); registers.sp }
 
     private fun storeInMemory(address: UShort) = { value: UByte ->
         mmu[address] = value
@@ -899,13 +894,12 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun load(save: (UShort) -> Unit, load: () -> UShort) {
         val short = load.invoke()
         save.invoke(short)
-        registers.tick()
     }
 
     private fun loadSigned(save: (UShort) -> Unit, load: () -> Int) {
         val short = load.invoke().toUShort()
         save.invoke(short)
-        registers.tick(2)
+        registers.tick()
     }
 
     private fun load(save: (UByte) -> Unit, load: () -> UByte, then: () -> Unit = {}) {
