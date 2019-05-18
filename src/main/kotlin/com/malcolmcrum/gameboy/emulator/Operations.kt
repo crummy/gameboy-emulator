@@ -220,7 +220,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
         operations[0x2c] = Operation("INC L", 1) { inc(storeInRegisterL(), registers.l) }
         operations[0x33] = Operation("INC SP", 1) { inc(storeInRegisterSP(), registers.sp) }
         operations[0xc3] = Jump("JP n16", 3) { jp(readWordArgument()) }
-        operations[0xe9] = Jump("JP (HL)", 1) { jp({ registers.hl }) }
+        operations[0xe9] = Jump("JP HL", 1) { jp(registers.hl) }
         operations[0xda] = Jump("JP C,n16", 3) { jp(readWordArgument(), registers.carry) }
         operations[0xd2] = Jump("JP NC,n16", 3) { jp(readWordArgument(), !registers.carry) }
         operations[0xc2] = Jump("JP NZ,n16", 3) { jp(readWordArgument(), !registers.zero) }
@@ -248,9 +248,9 @@ class Operations(val registers: Registers, val mmu: MMU) {
         operations[0x22] = Operation("LD (HL+),A", 1) { load(storeInMemory(registers.hl), registers.a) { registers.hl++ } }
         operations[0x3e] = Operation("LD A,n8", 2) { load(storeInRegisterA(), readFromArgument()) }
         operations[0xfa] = Operation("LD A,(n16)", 3) { load(storeInRegisterA(), readFromMemory(readWordArgument().invoke())) }
-        operations[0xf0] = Operation("LDH A,(n8)", 2) { load(storeInHighMemory(readFromArgument().invoke()), readFromArgument()) }
+        operations[0xf0] = Operation("LDH A,(n8)", 2) { load(storeInRegisterA(), readFromHighMemory(readFromArgument().invoke())) }
         operations[0x0a] = Operation("LD A,(BC)", 1) { load(storeInRegisterA(), readFromMemory(registers.bc)) }
-        operations[0xf2] = Operation("LDH A,(C)", 1) { load(storeInRegisterA(), readFromHighMemory(registers.c)) }
+        operations[0xf2] = Operation("LD A,(C)", 1) { load(storeInRegisterA(), readFromHighMemory(registers.c)) }
         operations[0x1a] = Operation("LD A,(DE)", 1) { load(storeInRegisterA(), readFromMemory(registers.de)) }
         operations[0x7e] = Operation("LD A,(HL)", 1) { load(storeInRegisterA(), readFromMemory(registers.hl)) }
         operations[0x3a] = Operation("LD A,(HL-)", 1) { load(storeInRegisterA(), readFromMemory(registers.hl)) { registers.hl-- } }
@@ -274,7 +274,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
         operations[0x66] = Operation("LD H,(HL)", 1) { load(storeInRegisterH(), readFromMemory(registers.hl)) }
         createLDOperations("H", storeInRegisterH(), 0x67)
         operations[0x21] = Operation("LD HL,n16", 3) { load(storeInRegisterHL(), readWordArgument()) }
-        operations[0xf8] = Operation("LD HL,SP", 1) { load(storeInRegisterHL(), registers.sp) }
+        operations[0xf8] = Operation("LD HL,SP+e8", 2) { loadSigned(storeInRegisterHL(), { registers.sp.toShort() + readSignedArgument() }) }
         operations[0x2e] = Operation("LD L,n8", 2) { load(storeInRegisterL(), readFromArgument()) }
         operations[0x6e] = Operation("LD L,(HL)", 1) { load(storeInRegisterL(), readFromMemory(registers.hl)) }
         operations[0x6f] = Operation("LD L,A", 1) { load(storeInRegisterA(), registers.a) }
@@ -397,6 +397,12 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun readWordArgument() = readWordFromMemory(registers.pc + 1u)
 
     private fun readFromArgument() = readFromMemory(registers.pc + 1u)
+
+    private fun readSignedArgument(): Byte {
+        registers.tick()
+        val address = registers.pc + 1u
+        return mmu[address].toByte()
+    }
 
     private fun xor(byte: () -> UByte) {
         xor(byte.invoke())
@@ -553,17 +559,22 @@ class Operations(val registers: Registers, val mmu: MMU) {
         registers.interruptsEnabled = true
     }
 
-    private fun ret(condition: () -> Boolean = { true }): UShort? {
-        registers.tick(2)
+    private fun ret(condition: () -> Boolean): UShort? {
+        registers.tick()
         return if (condition.invoke()) {
-            val lowerByte = readFromMemory(registers.sp).invoke()
-            val upperByte = readFromMemory(registers.sp + 1u).invoke()
-            registers.sp = (registers.sp + 2u).toUShort()
-            registers.tick()
-            createUShort(upperByte, lowerByte)
+            ret()
         } else {
+            registers.tick()
             null
         }
+    }
+
+    private fun ret(): UShort {
+        val lowerByte = readFromMemory(registers.sp).invoke()
+        val upperByte = readFromMemory(registers.sp + 1u).invoke()
+        registers.sp = (registers.sp + 2u).toUShort()
+        registers.tick(2)
+        return createUShort(upperByte, lowerByte)
     }
 
     private fun push(short: UShort) {
@@ -645,11 +656,17 @@ class Operations(val registers: Registers, val mmu: MMU) {
         }
     }
 
+    private fun jp(destination: UShort): UShort {
+        registers.tick()
+        return destination
+    }
+
     private fun jp(source: () -> UShort, condition: Boolean = true): UShort? {
+        val destination = source.invoke()
         registers.tick()
         return if (condition) {
             registers.tick()
-            source.invoke()
+            destination
         } else {
             null
         }
@@ -773,13 +790,14 @@ class Operations(val registers: Registers, val mmu: MMU) {
         }
     }
 
-    private fun call(destination: () -> UShort, conditional: Boolean = true): UShort? {
+    private fun call(address: () -> UShort, conditional: Boolean = true): UShort? {
         with(registers) {
-            tick(2)
+            tick()
+            val destination = address.invoke()
             return if (conditional) {
                 sp = (sp - 2u).toUShort()
-                tick(2)
-                destination.invoke()
+                tick(3)
+                return destination
             } else {
                 null
             }
@@ -801,6 +819,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
     }
 
     private fun bit(index: Int, source: () -> UByte) {
+        registers.tick()
         return bit(index, source.invoke())
     }
 
@@ -815,8 +834,9 @@ class Operations(val registers: Registers, val mmu: MMU) {
         return readFromMemory(address.toUShort())
     }
 
-    private fun readFromHighMemory(address: UByte): () -> UByte {
-        return readFromMemory(0xFF00u + address)
+    private fun readFromHighMemory(address: UByte): () -> UByte = {
+        registers.tick()
+        mmu[0xFF00u + address]
     }
 
     private fun readFromMemory(address: UShort): () -> UByte = {
@@ -855,7 +875,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
     }
 
     private fun storeInMemory(indirectAddress: UInt): (UByte) -> Unit {
-        assert(indirectAddress <= 0xFFFFu) { "Address ${indirectAddress.hex()} is out of range"}
+        assert(indirectAddress <= 0xFFFFu) { "Address ${indirectAddress.hex()} is out of range" }
         return storeInMemory(indirectAddress.toUShort())
     }
 
@@ -864,7 +884,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
         registers.tick()
     }
 
-    private fun storeWordInMemory(address: UShort): (UShort) -> Unit = { value ->
+    private fun storeWordInMemory(address: UShort) = { value: UShort ->
         mmu[address + 1u] = value.upperByte
         mmu[address] = value.lowerByte
         registers.tick(2)
@@ -872,7 +892,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
 
     private fun load(destination: (UShort) -> Unit, source: UShort) {
         destination.invoke(source)
-        registers.tick()
+        registers.tick(1)
     }
 
     @JvmName("load16")
@@ -880,6 +900,12 @@ class Operations(val registers: Registers, val mmu: MMU) {
         val short = load.invoke()
         save.invoke(short)
         registers.tick()
+    }
+
+    private fun loadSigned(save: (UShort) -> Unit, load: () -> Int) {
+        val short = load.invoke().toUShort()
+        save.invoke(short)
+        registers.tick(2)
     }
 
     private fun load(save: (UByte) -> Unit, load: () -> UByte, then: () -> Unit = {}) {
@@ -946,12 +972,12 @@ class Operations(val registers: Registers, val mmu: MMU) {
         }
     }
 
-    private fun addSP(byte: () -> UByte) {
+    private fun addSP(signedOffset: () -> UByte) {
         with(registers) {
-            val result = sp + byte.invoke()
-            setFlags(zero = result and 0xFFFFu == 0u, carry = result > 0xFFFFu)
+            val result = (sp.toInt() + signedOffset.invoke().toByte())
+            setFlags(zero = result and 0xFFFF == 0, carry = result > 0xFFFF)
             hl = result.toUShort()
-            tick()
+            tick(3)
         }
     }
 

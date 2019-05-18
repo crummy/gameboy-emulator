@@ -37,9 +37,11 @@ internal class TimingTest {
     @MethodSource
     fun unprefixed(op: OpCode) {
         val code = Integer.decode(op.addr)
+        if (code == 0xcb) return // 0xcb prefixed codes are tested in `CB prefixed` test
         mmu[0x0000u] = code.toUByte()
-        operations[0x00].invoke(0u)
-        assertThat(op.cycles).contains(registers.t.toInt())
+        val operation= operations[0x00]
+        operation.invoke(0u)
+        assertThat(op.cycles, "${op.addr}: ${operation.mnemonic}").contains(registers.t.toInt())
     }
 
     fun unprefixed(): Collection<OpCode> {
@@ -54,8 +56,9 @@ internal class TimingTest {
         val code = Integer.decode(op.addr)
         mmu[0x00u] = 0xcbu
         mmu[0x01u] = code.toUByte()
-        operations[0x00].invoke(0u)
-        assertThat(op.cycles).contains(registers.t.toInt())
+        val operation = operations[0x00]
+        operation.invoke(0u)
+        assertThat(op.cycles,"${op.addr}: ${operation.mnemonic}").contains(registers.t.toInt())
     }
 
     fun `CB prefixed`(): Collection<OpCode> {
