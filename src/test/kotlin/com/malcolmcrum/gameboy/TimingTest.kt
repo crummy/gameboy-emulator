@@ -29,6 +29,7 @@ internal class TimingTest {
     fun `reset registers`() {
         registers.reset()
         registers.c = 0xFFu
+        registers.sp = 0x0010u
         mmu[0x0001u] = 0xFFu
     }
 

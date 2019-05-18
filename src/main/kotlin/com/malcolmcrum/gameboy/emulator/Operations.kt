@@ -232,9 +232,9 @@ class Operations(val registers: Registers, val mmu: MMU) {
         operations[0x28] = Jump("JR Z,e8", 2) { jr(readFromArgument(), registers.zero) }
         operations[0xea] = Operation("LD (n16),A", 3) { load(storeInMemory(readWordArgument().invoke()), registers.a) }
         operations[0x08] = Operation("LD (n16),SP", 3) { load(storeWordInMemory(readWordArgument().invoke()), registers.sp) }
-        operations[0xe0] = Operation("LD (n8),A", 2) { load(storeInMemory(readFromArgument().invoke()), registers.a) }
+        operations[0xe0] = Operation("LDH (n8),A", 2) { load(storeInHighMemory(readFromArgument().invoke()), registers.a) }
         operations[0x02] = Operation("LD (BC),A", 1) { load(storeInMemory(registers.bc), registers.a) }
-        operations[0xe2] = Operation("LD (C),A", 1) { load(storeInMemory(registers.c), registers.a) }
+        operations[0xe2] = Operation("LDH (C),A", 1) { load(storeInHighMemory(registers.c), registers.a) }
         operations[0x12] = Operation("LD (DE),A", 1) { load(storeInMemory(registers.de), registers.a) }
         operations[0x36] = Operation("LD (HL),n8", 2) { load(storeInMemory(registers.hl), readFromArgument()) }
         operations[0x77] = Operation("LD (HL),A", 1) { load(storeInMemory(registers.hl), registers.a) }
@@ -248,9 +248,9 @@ class Operations(val registers: Registers, val mmu: MMU) {
         operations[0x22] = Operation("LD (HL+),A", 1) { load(storeInMemory(registers.hl), registers.a) { registers.hl++ } }
         operations[0x3e] = Operation("LD A,n8", 2) { load(storeInRegisterA(), readFromArgument()) }
         operations[0xfa] = Operation("LD A,(n16)", 3) { load(storeInRegisterA(), readFromMemory(readWordArgument().invoke())) }
-        operations[0xf0] = Operation("LD A,(n8)", 2) { load(storeInMemory(readFromArgument().invoke()), readFromArgument()) }
+        operations[0xf0] = Operation("LDH A,(n8)", 2) { load(storeInHighMemory(readFromArgument().invoke()), readFromArgument()) }
         operations[0x0a] = Operation("LD A,(BC)", 1) { load(storeInRegisterA(), readFromMemory(registers.bc)) }
-        operations[0xf2] = Operation("LD A,(C)", 1) { load(storeInRegisterA(), readFromMemory(registers.c)) }
+        operations[0xf2] = Operation("LDH A,(C)", 1) { load(storeInRegisterA(), readFromHighMemory(registers.c)) }
         operations[0x1a] = Operation("LD A,(DE)", 1) { load(storeInRegisterA(), readFromMemory(registers.de)) }
         operations[0x7e] = Operation("LD A,(HL)", 1) { load(storeInRegisterA(), readFromMemory(registers.hl)) }
         operations[0x3a] = Operation("LD A,(HL-)", 1) { load(storeInRegisterA(), readFromMemory(registers.hl)) { registers.hl-- } }
@@ -425,10 +425,12 @@ class Operations(val registers: Registers, val mmu: MMU) {
 
     private fun stop() {
         registers.stopped = true
+        registers.tick()
     }
 
     private fun scf() {
         registers.carry = true
+        registers.tick()
     }
 
     private fun sbca(byte: () -> UByte) {
@@ -449,6 +451,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
             storeInMemory(sp - 1u).invoke(registers.pc.upperByte)
             storeInMemory(sp - 2u).invoke(registers.pc.lowerByte)
             sp = (sp - 2u).toUShort()
+            tick(2)
             return createUShort(0u, destination)
         }
     }
@@ -551,12 +554,12 @@ class Operations(val registers: Registers, val mmu: MMU) {
     }
 
     private fun ret(condition: () -> Boolean = { true }): UShort? {
-        registers.tick()
+        registers.tick(2)
         return if (condition.invoke()) {
             val lowerByte = readFromMemory(registers.sp).invoke()
             val upperByte = readFromMemory(registers.sp + 1u).invoke()
             registers.sp = (registers.sp + 2u).toUShort()
-            registers.tick(2)
+            registers.tick()
             createUShort(upperByte, lowerByte)
         } else {
             null
@@ -566,7 +569,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun push(short: UShort) {
         registers.sp = (registers.sp - 2u).toUShort()
         storeWordInMemory(registers.sp).invoke(short)
-        registers.tick()
+        registers.tick(2)
     }
 
     private fun pop(destination: (UShort) -> Unit) {
@@ -629,13 +632,14 @@ class Operations(val registers: Registers, val mmu: MMU) {
     }
 
     private fun jr(offset: () -> UByte, condition: Boolean = true): UShort? {
+        // Two things:
+        // JR uses a *signed* jump, to allow for backwards jumps. So we have to convert to bytes first.
+        // Add two for the instruction bytes - not 100% sure why only here and not jp() though.
+        val address = (registers.pc.toShort() + offset.invoke().toByte() + 2).toUShort()
         registers.tick()
         return if (condition) {
             registers.tick()
-            // Two things:
-            // JR uses a *signed* jump, to allow for backwards jumps. So we have to convert to bytes first.
-            // Add two for the instruction bytes - not 100% sure why only here and not jp() though.
-            (registers.pc.toShort() + offset.invoke().toByte() + 2).toUShort()
+            return address
         } else {
             null
         }
@@ -677,6 +681,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
 
     private fun halt() {
         registers.halted = true
+        registers.tick()
     }
 
     private fun di() {
@@ -810,7 +815,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
         return readFromMemory(address.toUShort())
     }
 
-    private fun readFromMemory(address: UByte): () -> UByte {
+    private fun readFromHighMemory(address: UByte): () -> UByte {
         return readFromMemory(0xFF00u + address)
     }
 
@@ -850,11 +855,11 @@ class Operations(val registers: Registers, val mmu: MMU) {
     }
 
     private fun storeInMemory(indirectAddress: UInt): (UByte) -> Unit {
-        assert(indirectAddress <= 0xFFFFu)
+        assert(indirectAddress <= 0xFFFFu) { "Address ${indirectAddress.hex()} is out of range"}
         return storeInMemory(indirectAddress.toUShort())
     }
 
-    private fun storeInMemory(offset: UByte) = { value: UByte ->
+    private fun storeInHighMemory(offset: UByte) = { value: UByte ->
         mmu[0xFF00u + offset] = value
         registers.tick()
     }
@@ -867,13 +872,14 @@ class Operations(val registers: Registers, val mmu: MMU) {
 
     private fun load(destination: (UShort) -> Unit, source: UShort) {
         destination.invoke(source)
-        registers.tick(2)
+        registers.tick()
     }
 
     @JvmName("load16")
     private fun load(save: (UShort) -> Unit, load: () -> UShort) {
         val short = load.invoke()
         save.invoke(short)
+        registers.tick()
     }
 
     private fun load(save: (UByte) -> Unit, load: () -> UByte, then: () -> Unit = {}) {
