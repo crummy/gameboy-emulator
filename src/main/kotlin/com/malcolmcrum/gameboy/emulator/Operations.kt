@@ -1,9 +1,6 @@
 package com.malcolmcrum.gameboy.emulator
 
-import com.malcolmcrum.gameboy.util.createUShort
-import com.malcolmcrum.gameboy.util.getBit
-import com.malcolmcrum.gameboy.util.lowerByte
-import com.malcolmcrum.gameboy.util.upperByte
+import com.malcolmcrum.gameboy.util.*
 
 @ExperimentalUnsignedTypes
 abstract class Z80Operation(val mnemonic: String, val instructionBytes: Int) {
@@ -138,6 +135,14 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         cbOperations[0x3b] = CBOperation("SRL E") { srl(storeInRegisterE(), { registers.e }) }
         cbOperations[0x3c] = CBOperation("SRL H") { srl(storeInRegisterH(), { registers.h }) }
         cbOperations[0x3d] = CBOperation("SRL L") { srl(storeInRegisterL(), { registers.l }) }
+        cbOperations[0x36] = CBOperation("SWAP (HL)") { swap(storeInMemory(registers.hl), readFromMemory(registers.hl)) }
+        cbOperations[0x37] = CBOperation("SWAP A") { swap(storeInRegisterA(), { registers.a }) }
+        cbOperations[0x30] = CBOperation("SWAP B") { swap(storeInRegisterB(), { registers.b }) }
+        cbOperations[0x31] = CBOperation("SWAP C") { swap(storeInRegisterC(), { registers.c }) }
+        cbOperations[0x32] = CBOperation("SWAP D") { swap(storeInRegisterD(), { registers.d }) }
+        cbOperations[0x33] = CBOperation("SWAP E") { swap(storeInRegisterE(), { registers.e }) }
+        cbOperations[0x34] = CBOperation("SWAP H") { swap(storeInRegisterH(), { registers.h }) }
+        cbOperations[0x35] = CBOperation("SWAP L") { swap(storeInRegisterL(), { registers.l }) }
 
         operations[0xce] = Operation("ADC A,n8", 2) { adcA(readFromArgument()) }
         operations[0x8e] = Operation("ADC A,(HL)", 1) { adcA(readFromMemory(registers.hl)) }
@@ -378,6 +383,13 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
             write.invoke(result)
             tick()
         }
+    }
+
+    private fun swap(write: (UByte) -> Unit, read: () -> UByte) {
+        val value = read.invoke()
+        val result = createUByte(value.lowerNibble, value.upperNibble)
+        write.invoke(result)
+        registers.tick()
     }
 
     private fun readWordArgument() = readWordFromMemory(registers.pc + 1u)
