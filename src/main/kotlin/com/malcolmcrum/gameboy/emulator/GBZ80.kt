@@ -13,7 +13,7 @@ class GBZ80 {
     val mmu = MMU()
     val gpu = GPU(mmu.videoRam, mmu.oam)
     val interruptsEnabled = false
-    val operations = Operations(registers, mmu) { interruptsEnabled }
+    val operations = Operations(registers, mmu)
 
     fun execute() {
         val opCode = mmu[registers.pc].toInt()

@@ -23,18 +23,20 @@ import java.nio.file.Paths
 internal class TimingTest {
     val registers = Registers()
     val mmu = MMU().apply { inBios = false }
-    val operations = Operations(registers, mmu) { }
+    val operations = Operations(registers, mmu)
 
     @BeforeEach
     fun `reset registers`() {
         registers.reset()
+        registers.c = 0xFFu
+        mmu[0x0001u] = 0xFFu
     }
 
     @ParameterizedTest
     @MethodSource
     fun unprefixed(op: OpCode) {
         val code = Integer.decode(op.addr)
-        mmu[0x00u] = code.toUByte()
+        mmu[0x0000u] = code.toUByte()
         operations[0x00].invoke(0u)
         assertThat(op.cycles).contains(registers.t.toInt())
     }

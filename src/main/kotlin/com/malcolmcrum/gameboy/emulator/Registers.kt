@@ -18,7 +18,10 @@ data class Registers(
         var pc: UShort = 0u,
         var sp: UShort = 0u,
         var m: UByte = 0u,
-        var t: UByte = 0u
+        var t: UByte = 0u,
+        var stopped: Boolean = false,
+        var interruptsEnabled: Boolean = true,
+        var halted: Boolean = true
 ) {
     var f: UByte = 0u
         set(value) {

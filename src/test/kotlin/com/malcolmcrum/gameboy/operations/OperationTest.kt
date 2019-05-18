@@ -15,7 +15,7 @@ class OperationTest(var opcode: UByte, var initial: State = State(), var expecte
 
     val registers = Registers()
     val mmu = MMU().apply { inBios = false }
-    val operations = Operations(registers, mmu) { }
+    val operations = Operations(registers, mmu)
 
     fun execute() {
         log.debug { "Initial: $initial" }

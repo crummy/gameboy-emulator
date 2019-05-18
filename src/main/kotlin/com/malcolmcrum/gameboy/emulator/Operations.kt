@@ -35,7 +35,7 @@ class Jump(name: String, instructionBytes: Int, private val operation: () -> USh
 }
 
 @ExperimentalUnsignedTypes
-class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolean) -> Unit) {
+class Operations(val registers: Registers, val mmu: MMU) {
     private val operations: Array<Z80Operation> = Array(256) { x -> Operation("MISSING $x", 1) { TODO() } }
     private val cbOperations: Array<CBOperation> = Array(256) { x -> CBOperation("MISSING $x") { TODO() } }
 
@@ -56,13 +56,12 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
     init {
         createBitOperations(0x46, 0)
         createBitOperations(0x4e, 1)
-        createBitOperations(0x4e, 1)
-        createBitOperations(0x55, 2)
+        createBitOperations(0x56, 2)
         createBitOperations(0x5e, 3)
         createBitOperations(0x66, 4)
         createBitOperations(0x6e, 5)
         createBitOperations(0x76, 6)
-        createBitOperations(0x7d, 7)
+        createBitOperations(0x7e, 7)
         createResOperations(0x86, 0)
         createResOperations(0x8e, 1)
         createResOperations(0x96, 2)
@@ -182,7 +181,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0xc4] = Jump("CALL NZ,n16", 3) { call(readWordArgument(), !registers.zero) }
         operations[0xcc] = Jump("CALL Z,n16", 3) { call(readWordArgument(), registers.zero) }
         operations[0x3f] = Operation("CCF", 1) { ccf() }
-        operations[0xfe] = Operation("CP n8", 2) { cp(readFromMemory(registers.sp + 1u)) }
+        operations[0xfe] = Operation("CP n8", 2) { cp(readFromArgument()) }
         operations[0xbe] = Operation("CP (HL)", 1) { cp(readFromMemory(registers.hl)) }
         operations[0xbf] = Operation("CP A", 1) { cp(registers.a) }
         operations[0xb8] = Operation("CP B", 1) { cp(registers.b) }
@@ -249,12 +248,13 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0x22] = Operation("LD (HL+),A", 1) { load(storeInMemory(registers.hl), registers.a) { registers.hl++ } }
         operations[0x3e] = Operation("LD A,n8", 2) { load(storeInRegisterA(), readFromArgument()) }
         operations[0xfa] = Operation("LD A,(n16)", 3) { load(storeInRegisterA(), readFromMemory(readWordArgument().invoke())) }
-        operations[0xf0] = Operation("LD A,(BC)", 1) { load(storeInRegisterA(), readFromMemory(registers.bc)) }
-        operations[0xf0] = Operation("LD A,(C)", 1) { load(storeInRegisterA(), readFromMemory(registers.c)) }
-        operations[0xf0] = Operation("LD A,(DE)", 1) { load(storeInRegisterA(), readFromMemory(registers.de)) }
-        operations[0xf0] = Operation("LD A,(HL)", 1) { load(storeInRegisterA(), readFromMemory(registers.hl)) }
-        operations[0xf0] = Operation("LD A,(HL-)", 1) { load(storeInRegisterA(), readFromMemory(registers.hl)) { registers.hl-- } }
-        operations[0xf0] = Operation("LD A,(HL+)", 1) { load(storeInRegisterA(), readFromMemory(registers.hl)) { registers.hl++ } }
+        operations[0xf0] = Operation("LD A,(n8)", 2) { load(storeInMemory(readFromArgument().invoke()), readFromArgument()) }
+        operations[0x0a] = Operation("LD A,(BC)", 1) { load(storeInRegisterA(), readFromMemory(registers.bc)) }
+        operations[0xf2] = Operation("LD A,(C)", 1) { load(storeInRegisterA(), readFromMemory(registers.c)) }
+        operations[0x1a] = Operation("LD A,(DE)", 1) { load(storeInRegisterA(), readFromMemory(registers.de)) }
+        operations[0x7e] = Operation("LD A,(HL)", 1) { load(storeInRegisterA(), readFromMemory(registers.hl)) }
+        operations[0x3a] = Operation("LD A,(HL-)", 1) { load(storeInRegisterA(), readFromMemory(registers.hl)) { registers.hl-- } }
+        operations[0x2a] = Operation("LD A,(HL+)", 1) { load(storeInRegisterA(), readFromMemory(registers.hl)) { registers.hl++ } }
         createLDOperations("A", storeInRegisterA(), 0x7F)
         operations[0x06] = Operation("LD B,n8", 2) { load(storeInRegisterB(), readFromArgument()) }
         operations[0x46] = Operation("LD B,(HL)", 1) { load(storeInRegisterB(), readFromMemory(registers.hl)) }
@@ -277,6 +277,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0xf8] = Operation("LD HL,SP", 1) { load(storeInRegisterHL(), registers.sp) }
         operations[0x2e] = Operation("LD L,n8", 2) { load(storeInRegisterL(), readFromArgument()) }
         operations[0x6e] = Operation("LD L,(HL)", 1) { load(storeInRegisterL(), readFromMemory(registers.hl)) }
+        operations[0x6f] = Operation("LD L,A", 1) { load(storeInRegisterA(), registers.a) }
         operations[0x68] = Operation("LD L,B", 1) { load(storeInRegisterL(), registers.b) }
         operations[0x69] = Operation("LD L,C", 1) { load(storeInRegisterL(), registers.c) }
         operations[0x6a] = Operation("LD L,D", 1) { load(storeInRegisterL(), registers.d) }
@@ -308,7 +309,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0xd0] = Jump("RET NC", 1) { ret { !registers.carry } }
         operations[0xc0] = Jump("RET NZ", 1) { ret { !registers.zero } }
         operations[0xc8] = Jump("RET Z", 1) { ret { registers.zero } }
-        operations[0xc8] = Operation("RETI", 1) { reti() }
+        operations[0xd9] = Operation("RETI", 1) { reti() }
         operations[0x17] = Operation("RLA", 1) { rla() }
         operations[0x07] = Operation("RLCA", 1) { rlca() }
         operations[0x1f] = Operation("RRA", 1) { rra() }
@@ -321,7 +322,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0xef] = Jump("RST $28", 1) { rst(0x28u) }
         operations[0xf7] = Jump("RST $30", 1) { rst(0x30u) }
         operations[0xff] = Jump("RST $38", 1) { rst(0x38u) }
-        operations[0xde] = Operation("SBC A,n8", 2) { sbca(readFromMemory(registers.sp + 1u)) }
+        operations[0xde] = Operation("SBC A,n8", 2) { sbca(readFromArgument()) }
         operations[0x9e] = Operation("SBC A,(HL)", 1) { sbca(readFromMemory(registers.hl)) }
         operations[0x9f] = Operation("SBC A,A", 1) { sbca(registers.a) }
         operations[0x98] = Operation("SBC A,B", 1) { sbca(registers.b) }
@@ -332,7 +333,8 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0x9d] = Operation("SBC A,L", 1) { sbca(registers.l) }
         operations[0x37] = Operation("SCF", 1) { scf() }
         operations[0x10] = Operation("STOP", 1) { stop() }
-        operations[0xd6] = Operation("SUB n8", 2) { sub(readFromMemory(registers.sp + 1u)) }
+        operations[0xd6] = Operation("SUB n8", 2) { sub(readFromArgument()) }
+        operations[0x96] = Operation("SUB (HL)", 2) { sub(readFromMemory(registers.hl)) }
         operations[0x97] = Operation("SUB A", 1) { sub(registers.a) }
         operations[0x90] = Operation("SUB B", 1) { sub(registers.b) }
         operations[0x91] = Operation("SUB C", 1) { sub(registers.c) }
@@ -340,7 +342,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         operations[0x93] = Operation("SUB E", 1) { sub(registers.e) }
         operations[0x94] = Operation("SUB H", 1) { sub(registers.h) }
         operations[0x95] = Operation("SUB L", 1) { sub(registers.l) }
-        operations[0xEE] = Operation("XOR n8", 1) { xor(readFromMemory(registers.sp + 1u)) }
+        operations[0xEE] = Operation("XOR n8", 1) { xor(readFromArgument()) }
         operations[0xAE] = Operation("XOR (HL)", 1) { xor(readFromMemory(registers.hl)) }
         operations[0xAF] = Operation("XOR A", 1) { xor(registers.a) }
         operations[0xA8] = Operation("XOR B", 1) { xor(registers.b) }
@@ -422,7 +424,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
     }
 
     private fun stop() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        registers.stopped = true
     }
 
     private fun scf() {
@@ -545,7 +547,7 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
 
     private fun reti() {
         ret()
-        interrupts.invoke(true)
+        registers.interruptsEnabled = true
     }
 
     private fun ret(condition: () -> Boolean = { true }): UShort? {
@@ -674,16 +676,16 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
     }
 
     private fun halt() {
-        TODO()
+        registers.halted = true
     }
 
     private fun di() {
-        interrupts.invoke(false)
+        registers.interruptsEnabled = false
         registers.tick()
     }
 
     private fun ei() {
-        interrupts.invoke(true)
+        registers.interruptsEnabled = true
         registers.tick()
     }
 
@@ -808,13 +810,13 @@ class Operations(val registers: Registers, val mmu: MMU, val interrupts: (Boolea
         return readFromMemory(address.toUShort())
     }
 
+    private fun readFromMemory(address: UByte): () -> UByte {
+        return readFromMemory(0xFF00u + address)
+    }
+
     private fun readFromMemory(address: UShort): () -> UByte = {
         registers.tick()
         mmu[address]
-    }
-
-    private fun readFromMemory(offset: UByte): () -> UByte = {
-        readFromMemory(offset).invoke()
     }
 
     private fun readWordFromMemory(absolute: UInt): () -> UShort {
