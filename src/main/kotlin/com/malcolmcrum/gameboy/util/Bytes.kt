@@ -62,5 +62,9 @@ fun UByte.getBit(position: Int): Boolean {
 
 @ExperimentalUnsignedTypes
 fun UByte.withBit(bit: Int, value: Int): UByte {
-    return this and (1u shl bit).inv().toUByte()
+    return when (value) {
+        0 -> this and (1u shl bit).inv().toUByte()
+        1 -> this or (1u shl bit).toUByte()
+        else -> throw IllegalStateException()
+    }
 }

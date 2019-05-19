@@ -86,25 +86,24 @@ internal class BytesTest {
             assertThat(ff.getBit(1), "0xff bit 1").isTrue()
             assertThat(ff.getBit(0), "0xff bit 0").isTrue()
         }
+    }
 
-        @Test
-        fun `set bits`() {
-            val one = 0u.toUByte().withBit(0, 1)
-            assertThat(one).isEqualToByte(0x01u)
+    @Test
+    fun `set bits`() {
+        val one = 0u.toUByte().withBit(0, 1)
+        assertThat(one).isEqualToByte(0x01u)
 
-            val two = 0u.toUByte().withBit(1, 1)
-            assertThat(two).isEqualToByte(0x02u)
+        val two = 0u.toUByte().withBit(1, 1)
+        assertThat(two).isEqualToByte(0x02u)
 
-            val zero = 0xff.toUByte().withBit(7, 0)
-                    .withBit(6, 0)
-                    .withBit(5, 0)
-                    .withBit(4, 0)
-                    .withBit(3, 0)
-                    .withBit(2, 0)
-                    .withBit(1, 0)
-                    .withBit(0, 0)
-            assertThat(zero).isEqualToByte(0u)
-        }
-
+        val zero = 0xff.toUByte().withBit(7, 0)
+                .withBit(6, 0)
+                .withBit(5, 0)
+                .withBit(4, 0)
+                .withBit(3, 0)
+                .withBit(2, 0)
+                .withBit(1, 0)
+                .withBit(0, 0)
+        assertThat(zero).isEqualToByte(0u)
     }
 }
