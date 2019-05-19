@@ -3,11 +3,14 @@ package com.malcolmcrum.gameboy.emulator
 import com.malcolmcrum.gameboy.parseInstruction
 import com.malcolmcrum.gameboy.util.hex
 import mu.KotlinLogging
+import kotlin.concurrent.thread
+
 
 @ExperimentalUnsignedTypes
 class GBZ80 {
     private val log = KotlinLogging.logger {}
 
+    var isPaused = true
     val clock = Clock()
     val registers = Registers()
     val joypad = Joypad()
@@ -16,7 +19,13 @@ class GBZ80 {
     val mmu = MMU(joypad, gpu, lcd)
     val operations = Operations(registers, mmu)
 
-    fun execute() {
+    fun execute() = thread(start = true) {
+        while (!isPaused) {
+            step()
+        }
+    }
+
+    fun step() {
         val opCode = mmu[registers.pc].toInt()
         val operation = operations[registers.pc]
         log.debug { "${registers.pc.hex()}: ${opCode.toUByte().hex()} ${parseInstruction(operation.mnemonic, mmu, registers.pc.toInt())}" }

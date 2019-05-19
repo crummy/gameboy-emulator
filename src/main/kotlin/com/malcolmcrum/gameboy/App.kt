@@ -8,10 +8,7 @@ import com.almasb.fxgl.dsl.getInput
 import com.almasb.fxgl.input.UserAction
 import com.malcolmcrum.gameboy.emulator.GBZ80
 import com.malcolmcrum.gameboy.emulator.Joypad
-import com.malcolmcrum.gameboy.ui.InstructionView
-import com.malcolmcrum.gameboy.ui.LCDView
-import com.malcolmcrum.gameboy.ui.RegisterView
-import com.malcolmcrum.gameboy.ui.TileView
+import com.malcolmcrum.gameboy.ui.*
 import javafx.scene.input.KeyCode
 import javafx.scene.layout.BorderPane
 import java.io.File
@@ -66,8 +63,12 @@ class App : GameApplication() {
         lcdView = LCDView(z80.gpu)
         borderPane.center = lcdView
 
+        val controlsView = ControlsView(z80)
+        borderPane.top = controlsView
+
         getGameScene().addUINodes(borderPane)
     }
+
     override fun initGameVars(vars: MutableMap<String, Any>) {
         vars[REGISTERS] = z80.registers
         vars[INSTRUCTION] = z80.registers.pc
@@ -82,7 +83,6 @@ class App : GameApplication() {
         const val REGISTERS = "REGISTERS"
         const val INSTRUCTION = "INSTRUCTION"
     }
-
 }
 
 @ExperimentalUnsignedTypes
@@ -98,8 +98,8 @@ class ButtonPress(val joypad: Joypad, val button: Joypad.Button) : UserAction("j
 
 @ExperimentalUnsignedTypes
 class NextStep(val z80: GBZ80) : UserAction("step") {
-    override fun onActionEnd() {
-        z80.execute()
+    override fun onAction() {
+        z80.step()
         getGameState().setValue(App.REGISTERS, z80.registers.copy().apply { f = z80.registers.f })
         getGameState().setValue(App.INSTRUCTION, z80.registers.pc)
     }

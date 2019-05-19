@@ -24,7 +24,7 @@ class Gameboy {
         z80.registers.pc = 0x100u
         describeGame()
         repeat(9999) {
-            z80.execute()
+            z80.step()
         }
     }
 

@@ -4,7 +4,7 @@ import com.malcolmcrum.gameboy.util.hex
 import mu.KotlinLogging
 
 @ExperimentalUnsignedTypes
-class MMU(val joypad: Joypad = Joypad(), val gpu: GPU = GPU(), val lcd: LCD = LCD()) {
+class MMU(val joypad: Joypad = Joypad(), val gpu: GPU = GPU(), val lcd: LCD = LCD(), val timer = Timer()) {
     private val log = KotlinLogging.logger {}
 
     var inBios = true // bios is unmapped soon after boot
