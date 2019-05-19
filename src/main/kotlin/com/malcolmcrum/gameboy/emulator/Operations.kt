@@ -36,8 +36,8 @@ class Jump(name: String, instructionBytes: Int, private val operation: () -> USh
 
 @ExperimentalUnsignedTypes
 class Operations(val registers: Registers, val mmu: MMU) {
-    private val operations: Array<Z80Operation> = Array(256) { x -> Operation("MISSING $x", 1) { TODO() } }
-    private val cbOperations: Array<CBOperation> = Array(256) { x -> CBOperation("MISSING $x") { TODO() } }
+    private val operations: Array<Z80Operation> = Array(256) { x -> Operation("MISSING ${x.toUByte().hex()}", 1) { TODO(x.toUByte().hex()) } }
+    private val cbOperations: Array<CBOperation> = Array(256) { x -> CBOperation("MISSING ${x.toUByte().hex()}") { TODO(x.toUByte().hex()) } }
 
     operator fun get(address: UShort): Z80Operation {
         val opcode = mmu[address]

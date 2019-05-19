@@ -10,8 +10,8 @@ class LCD {
     var SCY: UByte = 0x42u
     var SCX: UByte = 0x43u
     var LY: UByte = 0x44u
-    var LX: UByte = 0x45u
-    var LYC: UByte = 0x46u
+    var LYC: UByte = 0x45u
+    var DMA: UByte = 0x46u // TODO: on write, initiate DMA transfer
     var BGP: UByte = 0x47u
     var OBP0: UByte = 0x48u
     var OBP1: UByte = 0x49u
@@ -57,8 +57,8 @@ class LCD {
             0x42u -> SCY
             0x43u -> SCX
             0x44u -> LY
-            0x45u -> LX
-            0x46u -> LYC
+            0x45u -> LYC
+            0x46u -> DMA
             0x47u -> BGP
             0x48u -> OBP0
             0x49u -> OBP1
@@ -74,9 +74,9 @@ class LCD {
             0x41u -> STAT = value
             0x42u -> SCY = value
             0x43u -> SCX = value
-            0x44u -> LY = value
-            0x45u -> LX = value
-            0x46u -> LYC = value
+            0x44u -> throw IllegalAccessException("LY is not writeable")
+            0x45u -> LYC = value
+            0x46u -> DMA = value
             0x47u -> BGP = value
             0x48u -> OBP0 = value
             0x49u -> OBP1 = value

@@ -74,6 +74,11 @@ class App : GameApplication() {
         vars[INSTRUCTION] = z80.registers.pc
     }
 
+    override fun onUpdate(tpf: Double) {
+        getGameState().setValue(REGISTERS, z80.registers.copy().apply { f = z80.registers.f })
+        getGameState().setValue(INSTRUCTION, z80.registers.pc)
+    }
+
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {

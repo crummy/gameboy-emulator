@@ -4,7 +4,7 @@ import com.malcolmcrum.gameboy.util.hex
 import mu.KotlinLogging
 
 @ExperimentalUnsignedTypes
-class MMU(val joypad: Joypad = Joypad(), val gpu: GPU = GPU(), val lcd: LCD = LCD(), val timer = Timer()) {
+class MMU(val joypad: Joypad = Joypad(), val gpu: GPU = GPU(), val lcd: LCD = LCD(), val timer: Timer = Timer()) {
     private val log = KotlinLogging.logger {}
 
     var inBios = true // bios is unmapped soon after boot
@@ -41,6 +41,7 @@ class MMU(val joypad: Joypad = Joypad(), val gpu: GPU = GPU(), val lcd: LCD = LC
             in (0xFE00u until 0xFEA0u) -> oam[addr and 0xFFu]
             in (0xFEA0u until 0xFF00u) -> 0u
             0xFF00u.toUShort() -> joypad.flags
+            in (0xFF05u..0xFF07u) -> timer[addr]
             in (0xFF01u until 0xFF40u) -> TODO() // io control handling
             in (0xFF40u..0xFF4Bu) -> lcd[addr and 0xFFu]
             in (0xFF80u..0xFFFFu) -> zram[addr and 0x7Fu]
@@ -69,7 +70,8 @@ class MMU(val joypad: Joypad = Joypad(), val gpu: GPU = GPU(), val lcd: LCD = LC
             in (0xE000u until 0xFE00u) -> workingRam[address and 0x1FFFu] = value
             in (0xFE00u until 0xFEA0u) -> oam[address and 0xFFu] = value
             in (0xFEA0u until 0xFF00u) -> throw IllegalAccessException(address.hex())
-            0xFF00u.toUShort() -> joypad.flags
+            0xFF00u.toUShort() -> joypad.flags = value
+            in (0xFF05u..0xFF07u) -> timer[address] = value
             in (0xFF01u until 0xFF40u) -> throw IllegalAccessException(address.hex())
             in (0xff40u..0xff4bu) -> lcd[address and 0xffu] = value
             in (0xFF80u..0xFFFFu) -> zram[address and 0x7Fu] = value
