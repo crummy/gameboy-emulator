@@ -4,12 +4,12 @@ import com.malcolmcrum.gameboy.util.hex
 import mu.KotlinLogging
 
 @ExperimentalUnsignedTypes
-class MMU(val joypad: Joypad = Joypad(),
+class MMU(val interrupts: Interrupts = Interrupts(),
+          val joypad: Joypad = Joypad(),
           val gpu: GPU = GPU(),
           val lcd: LCD = LCD(),
-          val timer: Timer = Timer(),
-          val div: DIV = DIV(),
-          val interrupts: Interrupts = Interrupts()
+          val timer: Timer = Timer(interrupts),
+          val div: DIV = DIV()
 ) {
     private val log = KotlinLogging.logger {}
 

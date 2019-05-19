@@ -4,7 +4,7 @@ import com.malcolmcrum.gameboy.util.getBit
 import com.malcolmcrum.gameboy.util.hex
 
 @ExperimentalUnsignedTypes
-class Timer(val interrupt: () -> Unit = {}) : Ticks {
+class Timer(val interrupts: Interrupts) : Ticks {
     val timerEnabled: Boolean
         get() = TAC.getBit(2)
     val selectedClock: Int
@@ -33,7 +33,7 @@ class Timer(val interrupt: () -> Unit = {}) : Ticks {
                 val overflow = TIMA == 0u.toUByte()
                 if (overflow) {
                     TIMA = TMA
-                    interrupt.invoke()
+                    interrupts.setInterrupt(Interrupt.TIMER)
                 }
             }
         }

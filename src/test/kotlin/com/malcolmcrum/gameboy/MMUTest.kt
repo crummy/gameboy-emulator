@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 @ExperimentalUnsignedTypes
 internal class MMUTest {
-    private val mmu = MMU(Joypad())
+    private val mmu = MMU(joypad = Joypad())
 
     @Test
     fun `working RAM shadow read`() {

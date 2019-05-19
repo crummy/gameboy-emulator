@@ -12,7 +12,7 @@ class OperationTest(var opcode: UByte, var initial: State = State(), var expecte
     private val log = KotlinLogging.logger {}
 
     val registers = Registers()
-    val mmu = MMU(Joypad()).apply { inBios = false }
+    val mmu = MMU(joypad = Joypad()).apply { inBios = false }
     val operations = Operations(registers, mmu)
 
     fun execute() {

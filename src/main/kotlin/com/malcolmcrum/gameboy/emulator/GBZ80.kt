@@ -13,13 +13,13 @@ class GBZ80 {
     var isPaused = true
     val clock = Clock()
     val registers = Registers()
+    val interrupts = Interrupts()
     val joypad = Joypad()
     val gpu = GPU()
     val lcd = LCD()
-    val timer = Timer()
+    val timer = Timer(interrupts)
     val div = DIV()
-    val interrupts = Interrupts()
-    val mmu = MMU(joypad, gpu, lcd, timer, div, interrupts)
+    val mmu = MMU(interrupts, joypad, gpu, lcd, timer, div)
     val operations = Operations(registers, mmu)
 
     fun execute() = thread(start = true) {
