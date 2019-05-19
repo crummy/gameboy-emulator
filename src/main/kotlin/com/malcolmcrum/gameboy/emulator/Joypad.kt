@@ -6,14 +6,15 @@ import java.util.*
 
 @ExperimentalUnsignedTypes
 class Joypad {
+    val state: EnumMap<Button, Boolean> = EnumMap(Button::class.java)
+
     var flags: UByte = 0u
         set(value) {
+            field = 0xffu
             Button.values().forEach { button ->
-                if (value.getBit(button.selectBit) == false) field = field.withBit(button.returnBit, 0)
+                if (!value.getBit(button.selectBit)) field = field.withBit(button.returnBit, 0)
             }
         }
-
-    val state: EnumMap<Button, Boolean> = EnumMap(Button::class.java)
 
     fun pressButton(button: Button) {
         state[button] = true

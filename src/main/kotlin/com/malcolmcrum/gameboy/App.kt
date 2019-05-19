@@ -7,6 +7,7 @@ import com.almasb.fxgl.dsl.getGameState
 import com.almasb.fxgl.dsl.getInput
 import com.almasb.fxgl.input.UserAction
 import com.malcolmcrum.gameboy.emulator.GBZ80
+import com.malcolmcrum.gameboy.emulator.Joypad
 import com.malcolmcrum.gameboy.ui.InstructionView
 import com.malcolmcrum.gameboy.ui.LCDView
 import com.malcolmcrum.gameboy.ui.RegisterView
@@ -39,6 +40,7 @@ class App : GameApplication() {
         val input = getInput()
 
         input.addAction(NextStep(z80), KeyCode.SPACE)
+        input.addAction(ButtonPress(z80.joypad, Joypad.Button.UP), KeyCode.UP)
         input.addAction(object: UserAction("tile") {
             override fun onActionEnd() {
                 tileView.render()
@@ -84,8 +86,19 @@ class App : GameApplication() {
 }
 
 @ExperimentalUnsignedTypes
+class ButtonPress(val joypad: Joypad, val button: Joypad.Button) : UserAction("joypad") {
+    override fun onActionBegin() {
+        joypad.pressButton(button)
+    }
+
+    override fun onActionEnd() {
+        joypad.releaseButton(button)
+    }
+}
+
+@ExperimentalUnsignedTypes
 class NextStep(val z80: GBZ80) : UserAction("step") {
-    override fun onAction() {
+    override fun onActionEnd() {
         z80.execute()
         getGameState().setValue(App.REGISTERS, z80.registers.copy().apply { f = z80.registers.f })
         getGameState().setValue(App.INSTRUCTION, z80.registers.pc)
