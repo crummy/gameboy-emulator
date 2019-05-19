@@ -4,7 +4,7 @@ import com.malcolmcrum.gameboy.util.hex
 import mu.KotlinLogging
 
 @ExperimentalUnsignedTypes
-class MMU(val joypad: Joypad) {
+class MMU(val joypad: Joypad = Joypad(), val gpu: GPU = GPU(), val lcd: LCD = LCD()) {
     private val log = KotlinLogging.logger {}
 
     var inBios = true // bios is unmapped soon after boot
@@ -14,7 +14,6 @@ class MMU(val joypad: Joypad) {
     val workingRam = UByteArray(0x4000) // working ram
     val externalRam = UByteArray(0x2000) // external ram
     val zram = UByteArray(0x80) // high speed ram?
-    val videoRam = UByteArray(0xA000-0x8000) // video ram (belongs in GPU?)
     val oam = UByteArray(0xA0) // object attribute memory
 
     fun load(vararg game: UByte) {
@@ -35,14 +34,15 @@ class MMU(val joypad: Joypad) {
                 if (inBios) bios[addr] else rom[addr]
             }
             in (0x1000u until 0x8000u) -> rom[addr]
-            in (0x8000u until 0xA000u) -> videoRam[addr and 0x1FFFu]
+            in (0x8000u until 0xA000u) -> gpu[addr and 0x1FFFu]
             in (0xA000u until 0xC000u) -> externalRam[addr and 0x1FFFu]
             in (0xC000u until 0xE000u) -> workingRam[addr and 0x1FFFu]
             in (0xE000u until 0xFE00u) -> workingRam[addr and 0x1FFFu] // working ram shadow
             in (0xFE00u until 0xFEA0u) -> oam[addr and 0xFFu]
             in (0xFEA0u until 0xFF00u) -> 0u
             0xFF00u.toUShort() -> joypad.flags
-            in (0xFF01u until 0xFF80u) -> TODO() // io control handling
+            in (0xFF01u until 0xFF40u) -> TODO() // io control handling
+            in (0xFF40u..0xFF4Bu) -> lcd[addr and 0xFFu]
             in (0xFF80u..0xFFFFu) -> zram[addr and 0x7Fu]
             else -> throw ArrayIndexOutOfBoundsException(addr.toString())
         }
@@ -63,15 +63,17 @@ class MMU(val joypad: Joypad) {
                 else rom[address] = value
             }
             in (0x1000u until 0x8000u) -> rom[address] = value
-            in (0x8000u until 0xA000u) -> videoRam[address and 0x1FFFu] = value
+            in (0x8000u until 0xA000u) -> gpu[address and 0x1FFFu] = value
             in (0xA000u until 0xC000u) -> externalRam[address and 0x1FFFu] = value
             in (0xC000u until 0xE000u) -> workingRam[address and 0x1FFFu] = value
             in (0xE000u until 0xFE00u) -> workingRam[address and 0x1FFFu] = value
             in (0xFE00u until 0xFEA0u) -> oam[address and 0xFFu] = value
-            in (0xFEA0u until 0xFF00u) -> throw IllegalAccessException()
-            in (0xFF00u until 0xFF80u) -> throw IllegalAccessException()
+            in (0xFEA0u until 0xFF00u) -> throw IllegalAccessException(address.hex())
+            0xFF00u.toUShort() -> joypad.flags
+            in (0xFF01u until 0xFF40u) -> throw IllegalAccessException(address.hex())
+            in (0xff40u..0xff4bu) -> lcd[address and 0xffu] = value
             in (0xFF80u..0xFFFFu) -> zram[address and 0x7Fu] = value
-            else -> throw ArrayIndexOutOfBoundsException(address.toString())
+            else -> throw ArrayIndexOutOfBoundsException(address.hex())
         }
     }
 }

@@ -1,5 +1,6 @@
-package com.malcolmcrum.gameboy.emulator
+package com.malcolmcrum.gameboy
 
+import com.malcolmcrum.gameboy.emulator.GBZ80
 import mu.KotlinLogging
 import java.io.File
 
@@ -12,7 +13,7 @@ class Gameboy {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            Gameboy().boot(File("src/main/resources/tetris.gb"))
+            Gameboy().boot(File("src/main/resources/opus5.gb"))
 
         }
     }
@@ -22,7 +23,7 @@ class Gameboy {
         z80.mmu.load(*gameData)
         z80.registers.pc = 0x100u
         describeGame()
-        repeat(99) {
+        repeat(9999) {
             z80.execute()
         }
     }

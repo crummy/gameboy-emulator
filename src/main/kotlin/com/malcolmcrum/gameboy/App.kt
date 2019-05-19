@@ -60,7 +60,7 @@ class App : GameApplication() {
         val instructionView = InstructionView(parseInstructions(z80.mmu, z80.operations))
         borderPane.left = instructionView
 
-        tileView = TileView(z80.gpu)
+        tileView = TileView(z80.lcd, z80.gpu)
         borderPane.right = tileView
 
         lcdView = LCDView(z80.gpu)

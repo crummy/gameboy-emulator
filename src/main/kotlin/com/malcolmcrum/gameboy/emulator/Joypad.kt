@@ -13,7 +13,8 @@ class Joypad {
             field = 0xffu
             Button.values().forEach { button ->
                 val bit = if (state[button]!!) 0 else 1
-                if (!value.getBit(button.selectBit)) field = field.withBit(button.returnBit, bit)
+                val buttonRequested = !value.getBit(button.selectBit)
+                if (buttonRequested) field = field.withBit(button.returnBit, bit)
             }
         }
 
