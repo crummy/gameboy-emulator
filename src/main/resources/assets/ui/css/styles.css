@@ -19,3 +19,7 @@
     -fx-border-style: solid;
     -fx-border-width: 5;
 }
+
+.register {
+    -fx-padding: 10;
+}

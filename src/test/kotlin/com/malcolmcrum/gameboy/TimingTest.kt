@@ -2,6 +2,7 @@ package com.malcolmcrum.gameboy
 
 import assertk.assertThat
 import assertk.assertions.contains
+import com.malcolmcrum.gameboy.emulator.Joypad
 import com.malcolmcrum.gameboy.emulator.MMU
 import com.malcolmcrum.gameboy.emulator.Operations
 import com.malcolmcrum.gameboy.emulator.Registers
@@ -22,7 +23,7 @@ import java.nio.file.Paths
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class TimingTest {
     val registers = Registers()
-    val mmu = MMU().apply { inBios = false }
+    val mmu = MMU(Joypad()).apply { inBios = false }
     val operations = Operations(registers, mmu)
 
     @BeforeEach

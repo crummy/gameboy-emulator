@@ -11,20 +11,21 @@ import javafx.scene.text.Text
 @ExperimentalUnsignedTypes
 class RegisterView : HBox(), PropertyChangeListener<Registers> {
 
-    val a = Text()
-    val b = Text()
-    val c = Text()
-    val d = Text()
-    val e = Text()
-    val h = Text()
-    val l = Text()
-    val f = Text()
-    val pc = Text()
-    val sp = Text()
-    val flags = Text()
+    val a = Text().apply { styleClass.add("register") }
+    val b = Text().apply { styleClass.add("register") }
+    val c = Text().apply { styleClass.add("register") }
+    val d = Text().apply { styleClass.add("register") }
+    val e = Text().apply { styleClass.add("register") }
+    val h = Text().apply { styleClass.add("register") }
+    val l = Text().apply { styleClass.add("register") }
+    val f = Text().apply { styleClass.add("register") }
+    val pc = Text().apply { styleClass.add("register") }
+    val sp = Text().apply { styleClass.add("register") }
+    val flags = Text().apply { styleClass.add("register") }
 
     init {
         styleClass.add("monospaced")
+        styleClass.add("red")
         children.addAll(a, b, c, d, e, h, l, f, pc, sp, flags)
         getGameState().addListener(App.REGISTERS, this)
     }

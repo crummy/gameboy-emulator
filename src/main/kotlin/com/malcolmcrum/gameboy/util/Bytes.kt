@@ -59,3 +59,8 @@ fun UByte.getBit(position: Int): Boolean {
     assert(position <= 7)
     return (this.toUInt() shr position) and 0x01u == 1u
 }
+
+@ExperimentalUnsignedTypes
+fun UByte.withBit(bit: Int, value: Int): UByte {
+    return this and (1u shl bit).inv().toUByte()
+}

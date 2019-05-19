@@ -31,6 +31,21 @@ internal class IntegrationTests {
         z80.execute()
 
         assertThat(z80.registers).isEqualTo(State(sp = 0x4442u, bc = 0x1234u))
+    }
 
+    @Test
+    fun `DEC until zero`() {
+        z80.mmu.load(0x32u, 0x05u, 0x20u, 0xfcu) // LD (HL-),A, DEC B, JR NZ -4
+        z80.registers.b = 2u
+
+        z80.execute()
+        z80.execute()
+        z80.execute()
+        z80.execute()
+        z80.execute()
+        z80.execute()
+        z80.execute() // should not have jumped
+
+        assertThat(z80.registers).isEqualTo(State(b = 0u, pc = 0x0005u))
     }
 }

@@ -1,13 +1,14 @@
 package com.malcolmcrum.gameboy
 
 import assertk.assertThat
+import com.malcolmcrum.gameboy.emulator.Joypad
 import com.malcolmcrum.gameboy.emulator.MMU
 import com.malcolmcrum.gameboy.utils.isEqualToByte
 import org.junit.jupiter.api.Test
 
 @ExperimentalUnsignedTypes
 internal class MMUTest {
-    private val mmu = MMU()
+    private val mmu = MMU(Joypad())
 
     @Test
     fun `working RAM shadow read`() {

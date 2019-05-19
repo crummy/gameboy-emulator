@@ -10,9 +10,9 @@ class GBZ80 {
 
     val clock = Clock()
     val registers = Registers()
-    val mmu = MMU()
+    val joypad = Joypad()
+    val mmu = MMU(joypad)
     val gpu = GPU(mmu.videoRam, mmu.oam)
-    val interruptsEnabled = false
     val operations = Operations(registers, mmu)
 
     fun execute() {

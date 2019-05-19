@@ -1,10 +1,7 @@
 package com.malcolmcrum.gameboy.operations
 
 import assertk.assertThat
-import com.malcolmcrum.gameboy.emulator.MMU
-import com.malcolmcrum.gameboy.emulator.Operations
-import com.malcolmcrum.gameboy.emulator.Registers
-import com.malcolmcrum.gameboy.emulator.Z80Operation
+import com.malcolmcrum.gameboy.emulator.*
 import com.malcolmcrum.gameboy.util.hex
 import com.malcolmcrum.gameboy.utils.State
 import com.malcolmcrum.gameboy.utils.isEqualTo
@@ -15,7 +12,7 @@ class OperationTest(var opcode: UByte, var initial: State = State(), var expecte
     private val log = KotlinLogging.logger {}
 
     val registers = Registers()
-    val mmu = MMU().apply { inBios = false }
+    val mmu = MMU(Joypad()).apply { inBios = false }
     val operations = Operations(registers, mmu)
 
     fun execute() {

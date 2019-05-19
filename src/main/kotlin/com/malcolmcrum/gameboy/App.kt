@@ -8,6 +8,7 @@ import com.almasb.fxgl.dsl.getInput
 import com.almasb.fxgl.input.UserAction
 import com.malcolmcrum.gameboy.emulator.GBZ80
 import com.malcolmcrum.gameboy.ui.InstructionView
+import com.malcolmcrum.gameboy.ui.LCDView
 import com.malcolmcrum.gameboy.ui.RegisterView
 import com.malcolmcrum.gameboy.ui.TileView
 import javafx.scene.input.KeyCode
@@ -16,11 +17,12 @@ import java.io.File
 
 @ExperimentalUnsignedTypes
 class App : GameApplication() {
+    private lateinit var lcdView: LCDView
     private lateinit var tileView: TileView
     var z80 = GBZ80()
 
     init {
-        val rom = File("src/main/resources/tetris.gb")
+        val rom = File("src/main/resources/opus5.gb")
         val gameData = rom.readBytes().asUByteArray()
         z80.mmu.load(*gameData)
         z80.registers.pc = 0x100u
@@ -51,14 +53,16 @@ class App : GameApplication() {
         borderPane.prefWidth = 1024.0
 
         val registerView = RegisterView()
-        registerView.translateX = 600.0
         borderPane.bottom = registerView
 
         val instructionView = InstructionView(parseInstructions(z80.mmu, z80.operations))
         borderPane.left = instructionView
 
         tileView = TileView(z80.gpu)
-        borderPane.center = tileView
+        borderPane.right = tileView
+
+        lcdView = LCDView(z80.gpu)
+        borderPane.center = lcdView
 
         getGameScene().addUINodes(borderPane)
     }
@@ -81,10 +85,8 @@ class App : GameApplication() {
 
 @ExperimentalUnsignedTypes
 class NextStep(val z80: GBZ80) : UserAction("step") {
-    override fun onActionEnd() {
-        repeat(99) {
-            z80.execute()
-        }
+    override fun onAction() {
+        z80.execute()
         getGameState().setValue(App.REGISTERS, z80.registers.copy().apply { f = z80.registers.f })
         getGameState().setValue(App.INSTRUCTION, z80.registers.pc)
     }

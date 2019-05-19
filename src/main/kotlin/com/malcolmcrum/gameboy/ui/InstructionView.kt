@@ -25,7 +25,7 @@ class InstructionView(instructions: Map<UShort, Instruction>) : ScrollPane(), Pr
 
     private fun toText(address: UShort, i: Instruction): Text {
         val text = Text()
-        text.text = "${address.hex()}: ${i.expandedName}"
+        text.text = "${address.hex()}: ${i.opCode.hex()} ${i.expandedName}"
         return text
     }
 

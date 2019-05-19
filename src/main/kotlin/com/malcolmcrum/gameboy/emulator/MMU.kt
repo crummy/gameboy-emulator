@@ -4,7 +4,7 @@ import com.malcolmcrum.gameboy.util.hex
 import mu.KotlinLogging
 
 @ExperimentalUnsignedTypes
-class MMU {
+class MMU(val joypad: Joypad) {
     private val log = KotlinLogging.logger {}
 
     var inBios = true // bios is unmapped soon after boot
@@ -41,7 +41,8 @@ class MMU {
             in (0xE000u until 0xFE00u) -> workingRam[addr and 0x1FFFu] // working ram shadow
             in (0xFE00u until 0xFEA0u) -> oam[addr and 0xFFu]
             in (0xFEA0u until 0xFF00u) -> 0u
-            in (0xFF00u until 0xFF80u) -> TODO() // io control handling
+            0xFF00u.toUShort() -> joypad.flags
+            in (0xFF01u until 0xFF80u) -> TODO() // io control handling
             in (0xFF80u..0xFFFFu) -> zram[addr and 0x7Fu]
             else -> throw ArrayIndexOutOfBoundsException(addr.toString())
         }
