@@ -8,7 +8,8 @@ class MMU(val joypad: Joypad = Joypad(),
           val gpu: GPU = GPU(),
           val lcd: LCD = LCD(),
           val timer: Timer = Timer(),
-          val div: DIV = DIV()
+          val div: DIV = DIV(),
+          val interrupts: Interrupts = Interrupts()
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -48,9 +49,11 @@ class MMU(val joypad: Joypad = Joypad(),
             0xFF00u.toUShort() -> joypad.flags
             0xFF04u.toUShort() -> div.value
             in (0xFF05u..0xFF07u) -> timer[addr]
+            0xFF0Fu.toUShort() -> interrupts[addr]
             in (0xFF01u until 0xFF40u) -> TODO() // io control handling
             in (0xFF40u..0xFF4Bu) -> lcd[addr and 0xFFu]
-            in (0xFF80u..0xFFFFu) -> zram[addr and 0x7Fu]
+            in (0xFF80u until 0xFFFFu) -> zram[addr and 0x7Fu]
+            0xFFFFu.toUShort() -> interrupts[addr]
             else -> throw ArrayIndexOutOfBoundsException(addr.toString())
         }
         log.trace { "mmu[${addr.hex()}] contains ${value.hex()}"}
@@ -79,9 +82,11 @@ class MMU(val joypad: Joypad = Joypad(),
             0xFF00u.toUShort() -> joypad.flags = value
             0xFF04u.toUShort() -> div.value = value
             in (0xFF05u..0xFF07u) -> timer[address] = value
+            0xFF0Fu.toUShort() -> interrupts[address] = value
             in (0xFF01u until 0xFF40u) -> throw IllegalAccessException(address.hex())
             in (0xff40u..0xff4bu) -> lcd[address and 0xffu] = value
-            in (0xFF80u..0xFFFFu) -> zram[address and 0x7Fu] = value
+            in (0xFF80u until 0xFFFFu) -> zram[address and 0x7Fu] = value
+            0xFFFFu.toUShort() -> interrupts[address] = value
             else -> throw ArrayIndexOutOfBoundsException(address.hex())
         }
     }

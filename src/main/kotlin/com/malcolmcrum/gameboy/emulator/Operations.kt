@@ -552,7 +552,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
 
     private fun reti() {
         ret()
-        registers.interruptsEnabled = true
+        mmu.interrupts.interruptsEnabled = true
     }
 
     private fun ret(condition: () -> Boolean): UShort? {
@@ -693,12 +693,12 @@ class Operations(val registers: Registers, val mmu: MMU) {
     }
 
     private fun di() {
-        registers.interruptsEnabled = false
+        mmu.interrupts.interruptsEnabled = false
         registers.tick()
     }
 
     private fun ei() {
-        registers.interruptsEnabled = true
+        mmu.interrupts.interruptsEnabled = true
         registers.tick()
     }
 

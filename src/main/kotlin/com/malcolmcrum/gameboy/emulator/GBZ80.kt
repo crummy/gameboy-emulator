@@ -16,7 +16,10 @@ class GBZ80 {
     val joypad = Joypad()
     val gpu = GPU()
     val lcd = LCD()
-    val mmu = MMU(joypad, gpu, lcd)
+    val timer = Timer()
+    val div = DIV()
+    val interrupts = Interrupts()
+    val mmu = MMU(joypad, gpu, lcd, timer, div, interrupts)
     val operations = Operations(registers, mmu)
 
     fun execute() = thread(start = true) {
@@ -32,6 +35,13 @@ class GBZ80 {
         registers.pc = operation.invoke(registers.pc)
 
         clock.add(registers.m, registers.t)
+        timer.tick()
+        div.tick()
+
+        val interruptAddress = interrupts.getInterruptAddress()
+        if (interruptAddress != null) {
+            registers.pc = interruptAddress
+        }
     }
 
 }
