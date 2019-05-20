@@ -6,7 +6,7 @@ import com.malcolmcrum.gameboy.util.getBit
 
 // TODO: Does some of this belong outside the emulator package?
 @ExperimentalUnsignedTypes
-class GPU {
+class GPU : Ticks {
     val ram = UByteArray(0x2000)
 
     fun getTile(set: Int, tile: Int): Tile {
@@ -48,6 +48,10 @@ class GPU {
 
     operator fun set(address: UShort, value: UByte) {
         ram[address.toInt()] = value
+    }
+
+    override fun tick() {
+        // TODO
     }
 
 }

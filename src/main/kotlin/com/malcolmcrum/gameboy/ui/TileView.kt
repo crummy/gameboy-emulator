@@ -20,8 +20,8 @@ class TileView(val lcd: LCD, val gpu: GPU) : Region() {
 
     fun render() {
         val pixels = canvas.graphicsContext2D.pixelWriter
-        for (i in (-128..127)) {
-            val tile = gpu.getTile(0, i)
+        for (index in lcd.tileRange) {
+            val tile = gpu.getTile(0, index)
             tile.getPixels().forEach {
                 val (x, y) = it.key
                 val colour = lookupColour(it.value)

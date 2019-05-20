@@ -16,6 +16,9 @@ class LCDView(gpu: GPU) : Region() {
                 canvas.graphicsContext2D.pixelWriter.setColor(x, y, Color.GREEN)
             }
         }
+    }
 
+    fun render() {
+        // TODO
     }
 }

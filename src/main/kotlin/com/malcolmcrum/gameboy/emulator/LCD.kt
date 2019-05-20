@@ -27,6 +27,7 @@ class LCD {
     val spriteSize = LCDC.getBit(2)
     val spritesEnabled = LCDC.getBit(1)
     val bgEnabled = LCDC.getBit(0)
+    val tileRange = if (windowUpperTileMap) WINDOW_TILE_RANGE_0 else WINDOW_TILE_RANGE_1
 
     val scrollY = SCX
     val scrollX = SCY
@@ -84,6 +85,11 @@ class LCD {
             0x4bu -> WX = value
             else -> throw IllegalAccessException(address.hex())
         }
+    }
+
+    companion object {
+        val WINDOW_TILE_RANGE_0 = (-127..127)
+        val WINDOW_TILE_RANGE_1 = (0..255)
     }
 }
 

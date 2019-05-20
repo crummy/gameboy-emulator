@@ -20,7 +20,7 @@ class App : GameApplication() {
     var z80 = GBZ80()
 
     init {
-        val rom = File("src/main/resources/opus5.gb")
+        val rom = File("src/main/resources/tetris.gb")
         val gameData = rom.readBytes().asUByteArray()
         z80.mmu.load(*gameData)
         z80.registers.pc = 0x100u
@@ -77,6 +77,8 @@ class App : GameApplication() {
     override fun onUpdate(tpf: Double) {
         getGameState().setValue(REGISTERS, z80.registers.copy().apply { f = z80.registers.f })
         getGameState().setValue(INSTRUCTION, z80.registers.pc)
+        tileView.render()
+        lcdView.render()
     }
 
     companion object {

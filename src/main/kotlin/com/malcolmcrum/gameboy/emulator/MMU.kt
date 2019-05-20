@@ -9,7 +9,8 @@ class MMU(val interrupts: Interrupts = Interrupts(),
           val gpu: GPU = GPU(),
           val lcd: LCD = LCD(),
           val timer: Timer = Timer(interrupts),
-          val div: DIV = DIV()
+          val div: DIV = DIV(),
+          val serial: Serial = Serial()
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -33,30 +34,31 @@ class MMU(val interrupts: Interrupts = Interrupts(),
         return get(addr.toUShort())
     }
 
-    operator fun get(addr: UShort): UByte {
-        val value = when(addr) {
+    operator fun get(address: UShort): UByte {
+        val value = when(address) {
             in (0x0000u..0x1000u) -> {
-                if (addr == 0x0100u.toUShort()) inBios = false
-                if (inBios) bios[addr] else rom[addr]
+                if (address == 0x0100u.toUShort()) inBios = false
+                if (inBios) bios[address] else rom[address]
             }
-            in (0x1000u until 0x8000u) -> rom[addr]
-            in (0x8000u until 0xA000u) -> gpu[addr and 0x1FFFu]
-            in (0xA000u until 0xC000u) -> externalRam[addr and 0x1FFFu]
-            in (0xC000u until 0xE000u) -> workingRam[addr and 0x1FFFu]
-            in (0xE000u until 0xFE00u) -> workingRam[addr and 0x1FFFu] // working ram shadow
-            in (0xFE00u until 0xFEA0u) -> oam[addr and 0xFFu]
+            in (0x1000u until 0x8000u) -> rom[address]
+            in (0x8000u until 0xA000u) -> gpu[address and 0x1FFFu]
+            in (0xA000u until 0xC000u) -> externalRam[address and 0x1FFFu]
+            in (0xC000u until 0xE000u) -> workingRam[address and 0x1FFFu]
+            in (0xE000u until 0xFE00u) -> workingRam[address and 0x1FFFu] // working ram shadow
+            in (0xFE00u until 0xFEA0u) -> oam[address and 0xFFu]
             in (0xFEA0u until 0xFF00u) -> 0u
             0xFF00u.toUShort() -> joypad.flags
+            in (0xFF01u..0xFF02u) -> serial[address]
             0xFF04u.toUShort() -> div.value
-            in (0xFF05u..0xFF07u) -> timer[addr]
-            0xFF0Fu.toUShort() -> interrupts[addr]
+            in (0xFF05u..0xFF07u) -> timer[address]
+            0xFF0Fu.toUShort() -> interrupts[address]
             in (0xFF01u until 0xFF40u) -> TODO() // io control handling
-            in (0xFF40u..0xFF4Bu) -> lcd[addr and 0xFFu]
-            in (0xFF80u until 0xFFFFu) -> zram[addr and 0x7Fu]
-            0xFFFFu.toUShort() -> interrupts[addr]
-            else -> throw ArrayIndexOutOfBoundsException(addr.toString())
+            in (0xFF40u..0xFF4Bu) -> lcd[address and 0xFFu]
+            in (0xFF80u until 0xFFFFu) -> zram[address and 0x7Fu]
+            0xFFFFu.toUShort() -> interrupts[address]
+            else -> throw ArrayIndexOutOfBoundsException(address.toString())
         }
-        log.trace { "mmu[${addr.hex()}] contains ${value.hex()}"}
+        log.trace { "mmu[${address.hex()}] contains ${value.hex()}"}
         return value
     }
 
@@ -80,10 +82,11 @@ class MMU(val interrupts: Interrupts = Interrupts(),
             in (0xFE00u until 0xFEA0u) -> oam[address and 0xFFu] = value
             in (0xFEA0u until 0xFF00u) -> throw IllegalAccessException(address.hex())
             0xFF00u.toUShort() -> joypad.flags = value
+            in (0xFF01u..0xFF02u) -> serial[address] = value
             0xFF04u.toUShort() -> div.value = value
             in (0xFF05u..0xFF07u) -> timer[address] = value
             0xFF0Fu.toUShort() -> interrupts[address] = value
-            in (0xFF01u until 0xFF40u) -> throw IllegalAccessException(address.hex())
+            in (0xFF03u until 0xFF40u) -> throw IllegalAccessException(address.hex())
             in (0xff40u..0xff4bu) -> lcd[address and 0xffu] = value
             in (0xFF80u until 0xFFFFu) -> zram[address and 0x7Fu] = value
             0xFFFFu.toUShort() -> interrupts[address] = value
