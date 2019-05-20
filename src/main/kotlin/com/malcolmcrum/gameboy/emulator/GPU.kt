@@ -43,7 +43,7 @@ class GPU : Ticks {
     }
 
     operator fun get(address: UShort): UByte {
-        return ram[address.toInt()]
+        return ram[address.toInt() and 0x1FFF]
     }
 
     operator fun set(address: UShort, value: UByte) {

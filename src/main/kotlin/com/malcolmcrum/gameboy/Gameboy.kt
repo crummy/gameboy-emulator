@@ -21,7 +21,7 @@ class Gameboy {
     private fun boot(rom: File) {
         val gameData = rom.readBytes().asUByteArray()
         z80.mmu.load(*gameData)
-        z80.registers.pc = 0x100u
+        //z80.registers.pc = 0x100u
         describeGame()
         repeat(9999) {
             z80.step()

@@ -3,9 +3,12 @@ package com.malcolmcrum.gameboy.emulator
 import com.malcolmcrum.gameboy.util.getBit
 import com.malcolmcrum.gameboy.util.hex
 import com.malcolmcrum.gameboy.util.withBit
+import mu.KotlinLogging
 
 @ExperimentalUnsignedTypes
 class Interrupts {
+    private val log = KotlinLogging.logger {}
+
     var interruptsEnabled: Boolean = false
     var IE: UByte = 0u
     var IF: UByte = 0u
@@ -33,6 +36,7 @@ class Interrupts {
     }
 
     fun setInterrupt(interrupt: Interrupt) {
+        log.info { "Interrupt $interrupt set" }
         IE = IE.withBit(interrupt.bit, 1)
     }
 

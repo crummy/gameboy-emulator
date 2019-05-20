@@ -8,6 +8,10 @@ import java.util.*
 class Joypad {
     val state: EnumMap<Button, Boolean> = EnumMap(Button::class.java)
 
+    init {
+        Button.values().forEach { state[it] = false }
+    }
+
     var flags: UByte = 0u
         set(value) {
             field = 0xffu

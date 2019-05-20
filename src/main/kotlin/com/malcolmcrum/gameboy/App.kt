@@ -23,7 +23,6 @@ class App : GameApplication() {
         val rom = File("src/main/resources/tetris.gb")
         val gameData = rom.readBytes().asUByteArray()
         z80.mmu.load(*gameData)
-        z80.registers.pc = 0x100u
     }
 
     override fun initSettings(settings: GameSettings) {
