@@ -58,6 +58,12 @@ internal class BytesTest {
     }
 
     @Test
+    fun `create UShort, take two`()  {
+        val short = createUShort(0xFFu, 0xFEu)
+        assertThat(short).isEqualTo(0xFFFEu.toUShort())
+    }
+
+    @Test
     fun `select bits`() {
         assertAll {
             assertThat(0xF0u.toUByte().getBit(7)).isTrue()
