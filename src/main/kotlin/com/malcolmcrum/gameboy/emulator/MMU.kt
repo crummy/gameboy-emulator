@@ -14,7 +14,7 @@ class MMU(val interrupts: Interrupts = Interrupts(),
 ) {
     private val log = KotlinLogging.logger {}
 
-    var inBios = true // bios is unmapped soon after boot
+    private var inBios = true // bios is unmapped soon after boot
 
     val rom = UByteArray(0x8000)
     val workingRam = UByteArray(0x4000) // working ram

@@ -23,12 +23,13 @@ import java.nio.file.Paths
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class TimingTest {
     val registers = Registers()
-    val mmu = MMU(joypad = Joypad()).apply { inBios = false }
+    val mmu = MMU(joypad = Joypad())
     val operations = Operations(registers, mmu)
 
     @BeforeEach
     fun `reset registers`() {
         registers.reset()
+        mmu[0x100u] // exit bios mode
         registers.c = 0xFFu
         registers.sp = 0x0010u
         mmu[0x0001u] = 0xFFu

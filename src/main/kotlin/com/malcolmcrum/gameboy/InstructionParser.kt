@@ -8,10 +8,9 @@ import com.malcolmcrum.gameboy.util.hex
 @ExperimentalUnsignedTypes
 fun parseInstructions(mmu: MMU, operations: Operations): Map<UShort, Instruction> {
     val instructions: MutableMap<Int, Instruction> = HashMap()
-    val rom = mmu.rom
     var address = 0
-    while (address < rom.size - 2) {
-        val opcode = rom[address]
+    while (address < mmu.rom.size - 2) {
+        val opcode = mmu[address.toUInt()]
         val operation = operations[address.toUShort()]
         val name = parseInstruction(operation.mnemonic, mmu, address)
         instructions[address] = Instruction(opcode, operation.mnemonic, name)

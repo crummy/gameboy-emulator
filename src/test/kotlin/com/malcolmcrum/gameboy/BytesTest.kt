@@ -106,4 +106,11 @@ internal class BytesTest {
                 .withBit(0, 0)
         assertThat(zero).isEqualToByte(0u)
     }
+
+    @Test
+    fun `hex printing`() {
+        assertThat(0xFFu.hex()).isEqualTo("0x00ff")
+        assertThat(0x1234u.hex()).isEqualTo("0x1234")
+        assertThat(0xc3u.toUByte().hex()).isEqualTo("0xc3")
+    }
 }
