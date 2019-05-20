@@ -1,6 +1,7 @@
 package com.malcolmcrum.gameboy.emulator
 
 import com.malcolmcrum.gameboy.util.*
+import kotlin.experimental.and
 
 @ExperimentalUnsignedTypes
 abstract class Z80Operation(val mnemonic: String, val instructionBytes: Int) {
@@ -442,7 +443,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun sbca(byte: UByte) {
         with(registers) {
             val result = (a - byte - if (carry) 1u else 0u).toInt()
-            setFlags(subtract = true, zero = result and 0xFF == 0, carry = result < 0)
+            setFlags(subtract = true, zero = result and 0xFF == 0, carry = result < 0, halfCarry = calcHalfCarrySub(a, byte))
             a = result.toUByte()
             tick()
         }
@@ -667,24 +668,31 @@ class Operations(val registers: Registers, val mmu: MMU) {
         }
     }
 
-    // TODO: half-carry
     private fun inc(save: (UByte) -> Unit, source: () -> UByte) {
         with(registers) {
-            val result = source.invoke() + 1u
-            setFlags(zero = result and 0xFFu == 0u)
+            val value = source.invoke()
+            val result = value + 1u
+            setFlags(zero = result and 0xFFu == 0u, halfCarry = calcHalfCarry(value, 1u))
             save.invoke(result.toUByte())
             tick()
         }
     }
 
-    // TODO: half-carry
+    private fun calcHalfCarry(a: UByte, b: UByte) = (a and 0xfu) + (b and 0xfu) > 0xfu
+
+    private fun calcHalfCarry(a: UShort, b: UShort) = (a and 0xfffu) + (b and 0xfffu) > 0xfffu
+
+    private fun calcHalfCarrySub(a: UByte, b: UByte) = (a and 0xfu).toByte() - (b and 0xfu).toByte() < 0
+
+    private fun calcHalfCarrySub(a: UShort, b: UShort) = (a and 0xfffu).toShort() - (b and 0xfffu).toShort() < 0
+
+
     @JvmName("incWord")
     private fun inc(save: (UShort) -> Unit, source: () -> UShort) {
-        with(registers) {
-            val result = source.invoke() + 1u
-            setFlags(zero = result and 0xFFFFu == 0u)
-            save.invoke(result.toUShort())
-        }
+        val short = source.invoke()
+        val result = short + 1u
+        registers.setFlags(zero = result and 0xFFFFu == 0u, halfCarry = calcHalfCarry(short, 1u))
+        save.invoke(result.toUShort())
     }
 
     private fun halt() {
@@ -704,19 +712,20 @@ class Operations(val registers: Registers, val mmu: MMU) {
 
     private fun dec(save: (UByte) -> Unit, source: () -> UByte) {
         with(registers) {
-            val result = source.invoke() - 1u
-            setFlags(zero = result and 0xFFu == 0u, subtract = true)
+            val short = source.invoke()
+            val result = short - 1u
+            setFlags(zero = result and 0xFFu == 0u, subtract = true, halfCarry = calcHalfCarrySub(short, 1u))
             save.invoke(result.toUByte())
             tick()
         }
     }
 
-    // TODO - set half carry flag
     @JvmName("decWord")
     private fun dec(save: (UShort) -> Unit, source: () -> UShort) {
         with(registers) {
-            val result = source.invoke() - 1u
-            setFlags(zero = result and 0xFFu == 0u, subtract = true)
+            val short = source.invoke()
+            val result = short - 1u
+            setFlags(zero = result and 0xFFu == 0u, subtract = true, halfCarry = calcHalfCarrySub(short, 1u))
             save.invoke(result.toUShort())
         }
     }
@@ -762,7 +771,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun cp(byte: UByte) {
         with(registers) {
             val result = a - byte
-            setFlags(zero = result and 0xFFu == 0u, subtract = true, carry = byte > a)
+            setFlags(zero = result and 0xFFu == 0u, subtract = true, carry = byte > a, halfCarry = calcHalfCarrySub(a, byte))
             tick()
         }
     }
@@ -918,7 +927,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun adcA(byte: UByte) {
         with(registers) {
             val result = a + byte + if (registers.carry) 1u else 0u
-            setFlags(zero = result and 0xFFu == 0u, carry = result > 0xFFu)
+            setFlags(zero = result and 0xFFu == 0u, carry = result > 0xFFu, halfCarry = calcHalfCarry(a, (byte + 1u).toUByte()))
             a = result.toUByte()
             tick()
         }
@@ -935,7 +944,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun addA(byte: UByte) {
         with(registers) {
             val result = a + byte
-            setFlags(zero = result and 0xFFu == 0u, carry = result > 0xFFu)
+            setFlags(zero = result and 0xFFu == 0u, carry = result > 0xFFu, halfCarry = calcHalfCarry(a, byte))
             a = result.toUByte()
             tick()
         }
@@ -944,7 +953,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun addHL(short: UShort) {
         with(registers) {
             val result = hl + short
-            setFlags(zero = result and 0xFFFFu == 0u, carry = result > 0xFFFFu)
+            setFlags(zero = result and 0xFFFFu == 0u, carry = result > 0xFFFFu, halfCarry = calcHalfCarry(hl, short))
             hl = result.toUShort()
             tick(2)
         }
@@ -964,8 +973,9 @@ class Operations(val registers: Registers, val mmu: MMU) {
 
     private fun addSP(signedOffset: () -> UByte) {
         with(registers) {
-            val result = (sp.toInt() + signedOffset.invoke().toByte())
-            setFlags(zero = result and 0xFFFF == 0, carry = result > 0xFFFF)
+            val offset = signedOffset.invoke().toByte()
+            val result = (sp.toInt() + offset)
+            setFlags(zero = result and 0xFFFF == 0, carry = result > 0xFFFF, halfCarry = (sp.toInt() and 0xf) + (offset and 0xf) > 0xf)
             hl = result.toUShort()
             tick(3)
         }

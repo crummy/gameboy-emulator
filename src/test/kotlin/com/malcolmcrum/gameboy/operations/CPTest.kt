@@ -1,6 +1,7 @@
 package com.malcolmcrum.gameboy.operations
 
 import com.malcolmcrum.gameboy.emulator.Registers.Companion.CARRY_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.HALF_CARRY_FLAG
 import com.malcolmcrum.gameboy.emulator.Registers.Companion.SUBTRACT_FLAG
 import com.malcolmcrum.gameboy.emulator.Registers.Companion.ZERO_FLAG
 import com.malcolmcrum.gameboy.utils.State
@@ -27,7 +28,7 @@ internal class CPTest {
         fun `1-0xFF=0`() {
             test(opcode) {
                 initial = State(a = 1u, args = listOf(0xFFu))
-                expected = State(a = 1u, f = SUBTRACT_FLAG or CARRY_FLAG)
+                expected = State(a = 1u, f = SUBTRACT_FLAG or CARRY_FLAG or HALF_CARRY_FLAG)
             }
         }
     }
@@ -49,7 +50,7 @@ internal class CPTest {
         fun `1-0xFF=0`() {
             test(opcode) {
                 initial = State(a = 1u, hl = 0x4432u, ram = mapOf(0x4432u to 0xFFu))
-                expected = State(a = 1u, f = SUBTRACT_FLAG or CARRY_FLAG)
+                expected = State(a = 1u, f = SUBTRACT_FLAG or CARRY_FLAG or HALF_CARRY_FLAG)
             }
         }
     }
@@ -71,7 +72,7 @@ internal class CPTest {
         fun `1-0xFF=0`() {
             test(opcode) {
                 initial = State(a = 1u, l = 0xFFu)
-                expected = State(a = 1u, f = SUBTRACT_FLAG or CARRY_FLAG)
+                expected = State(a = 1u, f = SUBTRACT_FLAG or CARRY_FLAG or HALF_CARRY_FLAG)
             }
         }
     }

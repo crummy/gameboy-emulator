@@ -1,5 +1,6 @@
 package com.malcolmcrum.gameboy.operations
 
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.HALF_CARRY_FLAG
 import com.malcolmcrum.gameboy.emulator.Registers.Companion.ZERO_FLAG
 import com.malcolmcrum.gameboy.utils.State
 import org.junit.jupiter.api.DisplayName
@@ -34,7 +35,7 @@ internal class INCTest {
         fun overflow() {
             test(opcode) {
                 initial = State(hl = 0x4433u, ram = mapOf(0x4433u to 0xFFu))
-                expected = State(ram = mapOf(0x4433u to 0x00u), f = ZERO_FLAG)
+                expected = State(ram = mapOf(0x4433u to 0x00u), f = ZERO_FLAG or HALF_CARRY_FLAG)
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.malcolmcrum.gameboy.operations
 
 import com.malcolmcrum.gameboy.emulator.Registers.Companion.CARRY_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.HALF_CARRY_FLAG
 import com.malcolmcrum.gameboy.emulator.Registers.Companion.SUBTRACT_FLAG
 import com.malcolmcrum.gameboy.emulator.Registers.Companion.ZERO_FLAG
 import com.malcolmcrum.gameboy.utils.State
@@ -43,7 +44,7 @@ internal class SBCTest {
         fun underflow() {
             test(opcode) {
                 initial = State(a = 0x00u, f = 0u, args = listOf(0x01u))
-                expected = State(a = 0xffu, f = SUBTRACT_FLAG or CARRY_FLAG)
+                expected = State(a = 0xffu, f = SUBTRACT_FLAG or CARRY_FLAG or HALF_CARRY_FLAG)
             }
         }
     }

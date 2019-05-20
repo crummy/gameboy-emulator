@@ -1,6 +1,7 @@
 package com.malcolmcrum.gameboy.operations
 
 import com.malcolmcrum.gameboy.emulator.Registers.Companion.CARRY_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.HALF_CARRY_FLAG
 import com.malcolmcrum.gameboy.emulator.Registers.Companion.ZERO_FLAG
 import com.malcolmcrum.gameboy.utils.State
 import org.junit.jupiter.api.DisplayName
@@ -111,7 +112,7 @@ class ADCTest {
         fun overflow() {
             test(opcode) {
                 initial = State(a = 0xFFu, b = 1u, f = CARRY_FLAG)
-                expected = State(a = 0x1u, b = 1u, f = CARRY_FLAG)
+                expected = State(a = 0x1u, b = 1u, f = CARRY_FLAG or HALF_CARRY_FLAG)
             }
         }
     }
