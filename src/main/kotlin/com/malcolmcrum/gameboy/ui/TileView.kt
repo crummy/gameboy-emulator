@@ -3,6 +3,7 @@ package com.malcolmcrum.gameboy.ui
 import com.malcolmcrum.gameboy.emulator.Colour.*
 import com.malcolmcrum.gameboy.emulator.GPU
 import com.malcolmcrum.gameboy.emulator.LCD
+import com.malcolmcrum.gameboy.emulator.Tile
 import com.malcolmcrum.gameboy.util.hex
 import javafx.scene.canvas.Canvas
 import javafx.scene.layout.Region
@@ -11,6 +12,7 @@ import javafx.scene.paint.Color
 @ExperimentalUnsignedTypes
 class TileView(val lcd: LCD, val gpu: GPU) : Region() {
     val canvas = Canvas(160.0, 144.0)
+    val tilesWide = canvas.width.toInt() / Tile.WIDTH
 
     init {
         children.add(canvas)
@@ -22,10 +24,11 @@ class TileView(val lcd: LCD, val gpu: GPU) : Region() {
         val pixels = canvas.graphicsContext2D.pixelWriter
         for (index in lcd.tileRange) {
             val tile = gpu.getTile(0, index)
+            val (offsetX, offsetY) = Tile.WIDTH * (index % tilesWide) to Tile.WIDTH * (index / tilesWide % tilesWide)
             tile.getPixels().forEach {
                 val (x, y) = it.key
                 val colour = lookupColour(it.value)
-                pixels.setColor(x, y, colour)
+                pixels.setColor(offsetX + x, offsetY + y, colour)
             }
         }
     }
