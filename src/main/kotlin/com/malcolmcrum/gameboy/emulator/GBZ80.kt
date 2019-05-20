@@ -15,11 +15,11 @@ class GBZ80 {
     val registers = Registers()
     val interrupts = Interrupts()
     val joypad = Joypad()
-    val gpu = GPU()
     val lcd = LCD()
+    val gpu = GPU()
     val timer = Timer(interrupts)
     val div = DIV()
-    val mmu = MMU(interrupts, joypad, gpu, lcd, timer, div)
+    val mmu = MMU(interrupts, joypad, lcd, gpu, timer, div)
     val operations = Operations(registers, mmu)
 
     fun execute() = thread(start = true) {

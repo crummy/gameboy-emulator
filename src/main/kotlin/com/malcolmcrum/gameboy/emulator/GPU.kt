@@ -51,9 +51,15 @@ class GPU : Ticks {
     }
 
     override fun tick() {
-        // TODO
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
+}
 
+enum class Mode(val mode: Byte, val cycles: Int) {
+    HBLANK(0, 204),
+    VBLANK(1, 456),
+    OAM_SEARCH(2, 80),
+    LCD_TRANSFER(3, 172);
 }
 
 @ExperimentalUnsignedTypes

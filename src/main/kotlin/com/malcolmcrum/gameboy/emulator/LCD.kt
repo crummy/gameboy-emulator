@@ -4,19 +4,29 @@ import com.malcolmcrum.gameboy.util.getBit
 import com.malcolmcrum.gameboy.util.hex
 
 @ExperimentalUnsignedTypes
-class LCD {
-    var LCDC: UByte = 0x40u
-    var STAT: UByte = 0x41u
-    var SCY: UByte = 0x42u
-    var SCX: UByte = 0x43u
-    var LY: UByte = 0x44u
-    var LYC: UByte = 0x45u
-    var DMA: UByte = 0x46u // TODO: on write, initiate DMA transfer
-    var BGP: UByte = 0x47u
-    var OBP0: UByte = 0x48u
-    var OBP1: UByte = 0x49u
-    var WY: UByte = 0x4au
-    var WX: UByte = 0x4bu
+class LCD : Ticks {
+    var ticks = 0
+
+    var LCDC: UByte = 0x91u
+    var STAT: UByte = 0x0u
+    var SCY: UByte = 0u
+    var SCX: UByte = 0u
+    var LY: UByte = 0u
+        set(value) {
+            field = value
+            checkLYCoincidence()
+        }
+    var LYC: UByte = 0u
+        set(value) {
+            field = value
+            checkLYCoincidence()
+        }
+    var DMA: UByte = 0u // TODO: on write, initiate DMA transfer
+    var BGP: UByte = 0xfcu
+    var OBP0: UByte = 0xffu
+    var OBP1: UByte = 0xffu
+    var WY: UByte = 0x0u
+    var WX: UByte = 0x0u
 
     // TODO better names
     val lcdEnabled = LCDC.getBit(7)
@@ -51,6 +61,10 @@ class LCD {
             0 to Colour.fromBytes(OBP1.getBit(1), OBP1.getBit(0))
     )
 
+    private fun checkLYCoincidence() {
+        // if LY == LYC, trigger bit in STAT register
+    }
+
     operator fun get(address: UShort): UByte {
         return when (address.toUInt()) {
             0x40u -> LCDC
@@ -75,7 +89,7 @@ class LCD {
             0x41u -> STAT = value
             0x42u -> SCY = value
             0x43u -> SCX = value
-            0x44u -> throw IllegalAccessException("LY is not writeable")
+            0x44u -> LY = 0u
             0x45u -> LYC = value
             0x46u -> DMA = value
             0x47u -> BGP = value
@@ -87,7 +101,15 @@ class LCD {
         }
     }
 
+    override fun tick() {
+        if (!lcdEnabled) {
+            ticks = TICKS_PER_SCANLINE
+            LY = 0u
+        }
+    }
+
     companion object {
+        const val TICKS_PER_SCANLINE = 456
         val WINDOW_TILE_RANGE_0 = (-127..127)
         val WINDOW_TILE_RANGE_1 = (0..255)
     }

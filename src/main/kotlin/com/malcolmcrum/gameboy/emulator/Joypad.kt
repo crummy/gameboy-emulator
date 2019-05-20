@@ -12,7 +12,7 @@ class Joypad {
         Button.values().forEach { state[it] = false }
     }
 
-    var flags: UByte = 0u
+    var flags: UByte = 0xffu
         set(value) {
             field = 0xffu
             Button.values().forEach { button ->
