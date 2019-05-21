@@ -14,6 +14,7 @@ internal class IntegrationTests {
     fun `LD B,A then LD C,B`() {
         z80.mmu.load(0x47u, 0x48u)
         z80.registers.a = 0x45u
+        z80.mmu[0x100u, false]
 
         z80.step()
         z80.step()
@@ -26,6 +27,7 @@ internal class IntegrationTests {
         z80.mmu.load(0xe5u, 0xc1u)
         z80.registers.hl = 0x1234u
         z80.registers.sp = 0x4442u
+        z80.mmu[0x100u, false]
 
         z80.step()
         z80.step()
@@ -37,6 +39,7 @@ internal class IntegrationTests {
     fun `DEC until zero`() {
         z80.mmu.load(0x32u, 0x05u, 0x20u, 0xfcu) // LD (HL-),A, DEC B, JR NZ -4
         z80.registers.b = 2u
+        z80.mmu[0x100u, false]
 
         z80.step()
         z80.step()
@@ -47,5 +50,15 @@ internal class IntegrationTests {
         z80.step() // should not have jumped
 
         assertThat(z80.registers).isEqualTo(State(b = 0u, pc = 0x0005u))
+    }
+
+    @Test
+    fun `test BIOS`() {
+        repeat(99999999) {
+            if (z80.registers.hl == 0x7fffu.toUShort()) {
+                println()
+            }
+            z80.step()
+        }
     }
 }

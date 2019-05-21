@@ -30,7 +30,7 @@ class GBZ80 {
 
     fun step() {
         val (opCode, operation) = operations[registers.pc, false]
-        log.debug { "${registers.pc.hex()}: ${opCode.hex()} ${parseInstruction(operation.mnemonic, mmu, registers.pc)}" }
+        log.debug { "${registers.pc.hex()}: ${opCode.hex()} ${parseInstruction(operation.mnemonic, mmu, registers.pc)} - $registers" }
         registers.pc = operation.invoke(registers.pc)
 
         clock.add(registers.m, registers.t)
