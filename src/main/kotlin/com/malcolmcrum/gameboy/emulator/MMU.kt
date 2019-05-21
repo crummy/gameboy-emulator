@@ -10,7 +10,8 @@ class MMU(val interrupts: Interrupts = Interrupts(),
           val gpu: GPU = GPU(),
           val timer: Timer = Timer(interrupts),
           val div: DIV = DIV(),
-          val serial: Serial = Serial()
+          val serial: Serial = Serial(),
+          val sound: Sound = Sound()
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -49,11 +50,11 @@ class MMU(val interrupts: Interrupts = Interrupts(),
             0xFF04u.toUShort() -> div.value
             in (0xFF05u..0xFF07u) -> timer[address]
             0xFF0Fu.toUShort() -> interrupts[address]
-            in (0xFF01u until 0xFF40u) -> TODO() // io control handling
+            in (0xFF10u..0xFF26u) -> sound[address]
             in (0xFF40u..0xFF4Bu) -> lcd[address and 0xFFu]
             in (0xFF80u until 0xFFFFu) -> zram[address and 0x7Fu]
             0xFFFFu.toUShort() -> interrupts[address]
-            else -> throw ArrayIndexOutOfBoundsException(address.toString())
+            else -> throw IllegalAccessException(address.toString())
         }
         log.trace { "mmu[${address.hex()}] contains ${value.hex()}"}
         return value
@@ -83,7 +84,7 @@ class MMU(val interrupts: Interrupts = Interrupts(),
             0xFF04u.toUShort() -> div.value = value
             in (0xFF05u..0xFF07u) -> timer[address] = value
             0xFF0Fu.toUShort() -> interrupts[address] = value
-            in (0xFF03u until 0xFF40u) -> throw IllegalAccessException(address.hex())
+            in (0xFF10u..0xFF26u) -> sound[address] = value
             in (0xff40u..0xff4bu) -> lcd[address and 0xffu] = value
             in (0xFF80u until 0xFFFFu) -> zram[address and 0x7Fu] = value
             0xFFFFu.toUShort() -> interrupts[address] = value

@@ -821,7 +821,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
 
     private fun bit(index: Int, source: UByte) {
         val bit = source and (1 shl index).toUByte()
-        registers.zero = bit == 0u.toUByte()
+        registers.setFlags(zero = bit == 0u.toUByte(), halfCarry = true)
         registers.tick()
     }
 
