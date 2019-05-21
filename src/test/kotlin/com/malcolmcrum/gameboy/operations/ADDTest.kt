@@ -85,7 +85,7 @@ internal class ADDTest {
         fun `0+0=0`() {
             test(opcode) {
                 initial = State(hl = 0u, bc = 0u)
-                expected = State(hl = 0u, f = ZERO_FLAG)
+                expected = State(hl = 0u)
             }
         }
 
@@ -101,7 +101,7 @@ internal class ADDTest {
         fun overflow() {
             test(opcode) {
                 initial = State(hl = 0xFFFFu, bc = 0x0001u)
-                expected = State(hl = 0u, f = ZERO_FLAG or CARRY_FLAG or HALF_CARRY_FLAG)
+                expected = State(hl = 0u, f = CARRY_FLAG or HALF_CARRY_FLAG)
             }
         }
     }
