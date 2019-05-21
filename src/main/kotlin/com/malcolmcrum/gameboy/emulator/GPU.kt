@@ -3,8 +3,6 @@ package com.malcolmcrum.gameboy.emulator
 import com.malcolmcrum.gameboy.emulator.Tile.Companion.BYTES_PER_PIXEL
 import com.malcolmcrum.gameboy.emulator.Tile.Companion.TILE_BYTES
 import com.malcolmcrum.gameboy.util.getBit
-import com.malcolmcrum.gameboy.util.hex
-import mu.KotlinLogging
 
 // TODO: Does some of this belong outside the emulator package?
 @ExperimentalUnsignedTypes
@@ -49,16 +47,11 @@ class GPU : Ticks {
     }
 
     operator fun set(address: UShort, value: UByte) {
-        log.debug { "store ${value.hex()} in ${address.hex()}" }
         ram[address.toInt() and 0x1FFF] = value
     }
 
     override fun tick() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    companion object {
-        val log = KotlinLogging.logger {  }
     }
 }
 

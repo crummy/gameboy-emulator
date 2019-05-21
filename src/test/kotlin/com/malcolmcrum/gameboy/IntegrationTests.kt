@@ -4,11 +4,18 @@ import assertk.assertThat
 import com.malcolmcrum.gameboy.emulator.GBZ80
 import com.malcolmcrum.gameboy.utils.State
 import com.malcolmcrum.gameboy.utils.isEqualTo
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.io.File
 
 @ExperimentalUnsignedTypes
 internal class IntegrationTests {
     val z80 = GBZ80()
+
+    @BeforeEach
+    fun reset() {
+        z80.registers.reset()
+    }
 
     @Test
     fun `LD B,A then LD C,B`() {
@@ -54,8 +61,10 @@ internal class IntegrationTests {
 
     @Test
     fun `test BIOS`() {
-        repeat(99999999) {
-            if (z80.registers.hl == 0x7fffu.toUShort()) {
+        val rom = File("src/main/resources/opus5.gb")
+        z80.mmu.load(*rom.readBytes().asUByteArray())
+        repeat(0x6100) {
+            if (z80.registers.pc == 0x0027.toUShort()) {
                 println()
             }
             z80.step()

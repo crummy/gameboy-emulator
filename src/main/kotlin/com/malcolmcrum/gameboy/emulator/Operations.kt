@@ -507,9 +507,9 @@ class Operations(val registers: Registers, val mmu: MMU) {
 
     private fun rla() {
         with(registers) {
-            val newLowBit = if (carry) 1 else 0
+            val newLowBit = if (carry) 1u else 0u
             setFlags(carry = a.getBit(7))
-            a = ((a.toInt() shl 1) + newLowBit).toUByte()
+            a = ((a.toUInt() shl 1 and 0xFFu) + newLowBit).toUByte()
             tick()
         }
     }
@@ -530,8 +530,8 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private inline fun rl(store: (UByte) -> Unit, value: UByte) {
         with(registers) {
             val newLowBit = if (carry) 1 else 0
-            setFlags(carry = value.getBit(0))
             val result = ((value.toInt() shl 1) + newLowBit).toUByte()
+            setFlags(carry = value.getBit(7), zero = value == 0u.toUByte())
             store.invoke(result)
             tick()
         }
@@ -543,9 +543,9 @@ class Operations(val registers: Registers, val mmu: MMU) {
 
     private inline fun rlc(store: (UByte) -> Unit, value: UByte) {
         with(registers) {
-            setFlags(carry = value.getBit(7))
             val newLowBit = if (carry) 1 else 0
             val result = ((value.toInt() shl 1) + newLowBit).toUByte()
+            setFlags(carry = value.getBit(7), zero = value == 0u.toUByte())
             store.invoke(result)
             tick()
         }
@@ -567,11 +567,10 @@ class Operations(val registers: Registers, val mmu: MMU) {
     }
 
     private fun ret(): UShort {
-        val lowerByte = readFromMemory(registers.sp).invoke()
-        val upperByte = readFromMemory(registers.sp + 1u).invoke()
+        val address = readWordFromMemory(registers.sp).invoke()
         registers.sp = (registers.sp + 2u).toUShort()
         registers.tick(2)
-        return createUShort(upperByte, lowerByte)
+        return address
     }
 
     private fun push(short: UShort) {

@@ -44,6 +44,15 @@ internal class RLTest {
                 expected = State(0b00000000u, f = CARRY_FLAG)
             }
         }
+
+        @Test
+
+        fun `from boot rom`() {
+            test(opcode) {
+                initial = State(0xceu, f = CARRY_FLAG)
+                expected = State(0x9du, f = CARRY_FLAG)
+            }
+        }
     }
 
     @Nested
