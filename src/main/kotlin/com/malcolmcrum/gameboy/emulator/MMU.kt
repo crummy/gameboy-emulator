@@ -73,7 +73,7 @@ class MMU(val interrupts: Interrupts = Interrupts(),
                 else rom[address] = value
             }
             in (0x1000u until 0x8000u) -> rom[address] = value
-            in (0x8000u until 0xA000u) -> gpu[address and 0x1FFFu] = value
+            in (0x8000u until 0xA000u) -> gpu[address] = value
             in (0xA000u until 0xC000u) -> externalRam[address and 0x1FFFu] = value
             in (0xC000u until 0xE000u) -> workingRam[address and 0x1FFFu] = value
             in (0xE000u until 0xFE00u) -> workingRam[address and 0x1FFFu] = value
