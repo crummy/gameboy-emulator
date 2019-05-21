@@ -29,9 +29,8 @@ class GBZ80 {
     }
 
     fun step() {
-        val opCode = mmu[registers.pc].toInt()
-        val operation = operations[registers.pc]
-        log.debug { "${registers.pc.hex()}: ${opCode.toUByte().hex()} ${parseInstruction(operation.mnemonic, mmu, registers.pc)}" }
+        val (opCode, operation) = operations[registers.pc, false]
+        log.debug { "${registers.pc.hex()}: ${opCode.hex()} ${parseInstruction(operation.mnemonic, mmu, registers.pc)}" }
         registers.pc = operation.invoke(registers.pc)
 
         clock.add(registers.m, registers.t)

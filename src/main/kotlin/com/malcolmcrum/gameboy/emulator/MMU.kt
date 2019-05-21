@@ -32,12 +32,11 @@ class MMU(val interrupts: Interrupts = Interrupts(),
         return get(addr.toUShort())
     }
 
-    operator fun get(address: UShort): UByte {
+    operator fun get(address: UShort, readOnly: Boolean = true): UByte {
+        if (address == 0x0100u.toUShort() && !readOnly) inBios = false
         val value = when(address) {
-            in (0x0000u..0x1000u) -> {
-                if (address == 0x0100u.toUShort()) inBios = false
-                if (inBios) BIOS[address] else rom[address]
-            }
+            in (0x0000u until 0x0100u) -> if (inBios) BIOS[address] else rom[address]
+            in (0x0000u until 0x1000u) -> rom[address]
             in (0x1000u until 0x8000u) -> rom[address]
             in (0x8000u until 0xA000u) -> gpu[address]
             in (0xA000u until 0xC000u) -> externalRam[address and 0x1FFFu]

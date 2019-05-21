@@ -40,13 +40,13 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private val operations: Array<Z80Operation> = Array(256) { x -> Operation("MISSING ${x.toUByte().hex()}", 1) { TODO(x.toUByte().hex()) } }
     private val cbOperations: Array<CBOperation> = Array(256) { x -> CBOperation("MISSING ${x.toUByte().hex()}") { TODO(x.toUByte().hex()) } }
 
-    operator fun get(address: UShort): Z80Operation {
-        val opcode = mmu[address]
+    operator fun get(address: UShort, forDebugPurposes: Boolean = true): Pair<UByte, Z80Operation> {
+        val opcode = mmu[address, forDebugPurposes]
         return if (opcode != CB_OPCODE) {
-            operations[opcode.toInt()]
+            Pair(opcode, operations[opcode.toInt()])
         } else {
             val cbOpcode = readFromMemory(address + 1u).invoke()
-            cbOperations[cbOpcode.toInt()]
+            Pair(cbOpcode, cbOperations[cbOpcode.toInt()])
         }
     }
 

@@ -28,7 +28,7 @@ class OperationTest(var opcode: UByte, var initial: State = State(), var expecte
     }
 
     private fun executeInstruction(): Z80Operation {
-        val operation = operations[registers.pc]
+        val (_, operation) = operations[registers.pc]
         registers.pc = operation.invoke(registers.pc)
         return operation
     }

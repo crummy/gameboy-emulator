@@ -41,7 +41,7 @@ internal class TimingTest {
         val code = Integer.decode(op.addr)
         if (code == 0xcb) return // 0xcb prefixed codes are tested in `CB prefixed` test
         mmu[0x0000u] = code.toUByte()
-        val operation= operations[0x00u]
+        val (_, operation) = operations[0x00u]
         operation.invoke(0u)
         assertThat(op.cycles, "${op.addr}: ${operation.mnemonic}").contains(registers.t.toInt())
     }
@@ -58,7 +58,7 @@ internal class TimingTest {
         val code = Integer.decode(op.addr)
         mmu[0x00u] = 0xcbu
         mmu[0x01u] = code.toUByte()
-        val operation = operations[0x00u]
+        val (_, operation) = operations[0x00u]
         operation.invoke(0u)
         assertThat(op.cycles,"${op.addr}: ${operation.mnemonic}").contains(registers.t.toInt())
     }
