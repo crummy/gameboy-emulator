@@ -52,14 +52,6 @@ data class Registers(
             l = value.lowerByte
         }
 
-    fun setFlags(carry: Boolean = false, zero: Boolean = false, halfCarry: Boolean = false, subtract: Boolean = false) {
-        f = 0u
-        this.carry = carry
-        this.zero = zero
-        this.halfCarry = halfCarry
-        this.subtract = subtract
-    }
-
     var carry: Boolean
         get() = f and CARRY_FLAG != 0u.toUByte()
         set(new) {

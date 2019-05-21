@@ -355,7 +355,8 @@ class Operations(val registers: Registers, val mmu: MMU) {
             val value = read.invoke()
             val newCarry = value.getBit(7)
             val result = (value.toUInt() shl 1).toUByte()
-            setFlags(zero = result == 0u.toUByte(), carry = newCarry)
+            zero = result == 0u.toUByte()
+            carry = newCarry
             write.invoke(result)
             tick()
         }
@@ -367,7 +368,8 @@ class Operations(val registers: Registers, val mmu: MMU) {
             val newCarry = value.getBit(0)
             val newLeftBit = if (value.getBit(7)) 1u else 0u
             val result = (value.toUInt() shr 1 or (newLeftBit shl 7)).toUByte()
-            setFlags(zero = result == 0u.toUByte(), carry = newCarry)
+            zero = result == 0u.toUByte()
+            carry = newCarry
             write.invoke(result)
             tick()
         }
@@ -378,7 +380,8 @@ class Operations(val registers: Registers, val mmu: MMU) {
             val value = read.invoke()
             val newCarry = value.getBit(0)
             val result = (value.toUInt() shr 1).toUByte()
-            setFlags(zero = result == 0u.toUByte(), carry = newCarry)
+            zero = result == 0u.toUByte()
+            carry = newCarry
             write.invoke(result)
             tick()
         }
@@ -408,7 +411,10 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun xor(byte: UByte) {
         with(registers) {
             a = a xor byte
-            setFlags(zero = a.toUInt() == 0u)
+            zero = a.toUInt() == 0u
+            subtract = false
+            halfCarry = false
+            carry = false
             tick()
         }
     }
@@ -420,7 +426,9 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun sub(byte: UByte) {
         with(registers) {
             val result = a - byte
-            setFlags(zero = result and 0xFFu == 0u, carry = byte > a, subtract = true)
+            zero = result and 0xFFu == 0u
+            carry = byte > a
+            subtract = true
             a = result.toUByte()
             tick()
         }
@@ -432,8 +440,13 @@ class Operations(val registers: Registers, val mmu: MMU) {
     }
 
     private fun scf() {
-        registers.carry = true
-        registers.tick()
+        with(registers) {
+            carry = true
+            subtract = false
+            halfCarry = false
+            carry = true
+            tick()
+        }
     }
 
     private inline fun sbca(byte: () -> UByte) {
@@ -443,7 +456,10 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun sbca(byte: UByte) {
         with(registers) {
             val result = (a - byte - if (carry) 1u else 0u).toInt()
-            setFlags(subtract = true, zero = result and 0xFF == 0, carry = result < 0, halfCarry = halfCarrySub(a, byte))
+            subtract = true
+            zero = result and 0xFF == 0
+            carry = result < 0
+            halfCarry = halfCarrySub(a, byte)
             a = result.toUByte()
             tick()
         }
@@ -462,9 +478,12 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun rra() {
         with(registers) {
             val newHighBit = if (carry) 1 else 0
-            setFlags(carry = a.getBit(0))
+            carry = a.getBit(0)
             a = ((a.toInt() ushr 1) + (newHighBit shr 7)).toUByte()
             tick()
+            subtract = false
+            zero = false
+            halfCarry = false
         }
     }
 
@@ -475,7 +494,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private inline fun rr(store: (UByte) -> Unit, value: UByte) {
         with(registers) {
             val newHighBit = if (carry) 1 else 0
-            setFlags(carry = a.getBit(0))
+            carry = a.getBit(0)
             val result = ((value.toInt() ushr 1) + (newHighBit shr 7)).toUByte()
             store.invoke(result)
             tick()
@@ -485,9 +504,12 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun rrca() {
         with(registers) {
             val newHighBit = if (carry) 1 else 0
-            setFlags(carry = a.getBit(0))
+            carry = a.getBit(0)
             a = ((a.toInt() ushr 1) + (newHighBit shr 7)).toUByte()
             tick()
+            subtract = false
+            zero = false
+            halfCarry = false
         }
     }
 
@@ -498,7 +520,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private inline fun rrc(store: (UByte) -> Unit, value: UByte) {
         with(registers) {
             val newHighBit = if (carry) 1 else 0
-            setFlags(carry = value.getBit(0))
+            carry = value.getBit(0)
             val result = ((value.toInt() ushr 1) + (newHighBit shr 7)).toUByte()
             store.invoke(result)
             tick()
@@ -508,18 +530,24 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun rla() {
         with(registers) {
             val newLowBit = if (carry) 1u else 0u
-            setFlags(carry = a.getBit(7))
+            carry = a.getBit(7)
             a = ((a.toUInt() shl 1 and 0xFFu) + newLowBit).toUByte()
             tick()
+            subtract = false
+            halfCarry = false
+            zero = false
         }
     }
 
     private fun rlca() {
         with(registers) {
-            setFlags(carry = a.getBit(7))
+            carry = a.getBit(7)
             val newLowBit = if (carry) 1 else 0
             a = ((a.toInt() shl 1) + newLowBit).toUByte()
             tick()
+            halfCarry = false
+            subtract = false
+            zero = false
         }
     }
 
@@ -531,7 +559,8 @@ class Operations(val registers: Registers, val mmu: MMU) {
         with(registers) {
             val newLowBit = if (carry) 1 else 0
             val result = ((value.toInt() shl 1) + newLowBit).toUByte()
-            setFlags(carry = value.getBit(7), zero = value == 0u.toUByte())
+            carry = value.getBit(7)
+            zero = value == 0u.toUByte()
             store.invoke(result)
             tick()
         }
@@ -545,7 +574,8 @@ class Operations(val registers: Registers, val mmu: MMU) {
         with(registers) {
             val newLowBit = if (carry) 1 else 0
             val result = ((value.toInt() shl 1) + newLowBit).toUByte()
-            setFlags(carry = value.getBit(7), zero = value == 0u.toUByte())
+            carry = value.getBit(7)
+            zero = value == 0u.toUByte()
             store.invoke(result)
             tick()
         }
@@ -590,8 +620,14 @@ class Operations(val registers: Registers, val mmu: MMU) {
     }
 
     private fun or(source: UByte) {
-        registers.a = registers.a or source
-        registers.tick()
+        with(registers) {
+            a = a or source
+            zero = a == 0u.toUByte()
+            subtract = false
+            halfCarry = false
+            carry = false
+            tick()
+        }
     }
 
     private fun createLDOperations(reg: String, save: (UByte) -> Unit, startIndex: Int) {
@@ -671,7 +707,9 @@ class Operations(val registers: Registers, val mmu: MMU) {
         with(registers) {
             val value = source.invoke()
             val result = value + 1u
-            setFlags(zero = result and 0xFFu == 0u, halfCarry = halfCarry(value, 1u))
+            zero = result and 0xFFu == 0u
+            halfCarry = halfCarry(value, 1u)
+            subtract = false
             save.invoke(result.toUByte())
             tick()
         }
@@ -690,7 +728,6 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private inline fun inc(save: (UShort) -> Unit, source: () -> UShort) {
         val short = source.invoke()
         val result = short + 1u
-        registers.setFlags(zero = result and 0xFFFFu == 0u, halfCarry = halfCarry(short, 1u))
         save.invoke(result.toUShort())
     }
 
@@ -713,7 +750,9 @@ class Operations(val registers: Registers, val mmu: MMU) {
         with(registers) {
             val short = source.invoke()
             val result = short - 1u
-            setFlags(zero = result and 0xFFu == 0u, subtract = true, halfCarry = halfCarrySub(short, 1u))
+            zero = result and 0xFFu == 0u
+            subtract = true
+            halfCarry = halfCarrySub(short, 1u)
             save.invoke(result.toUByte())
             tick()
         }
@@ -724,7 +763,6 @@ class Operations(val registers: Registers, val mmu: MMU) {
         with(registers) {
             val short = source.invoke()
             val result = short - 1u
-            setFlags(zero = result and 0xFFu == 0u, subtract = true, halfCarry = halfCarrySub(short, 1u))
             save.invoke(result.toUShort())
         }
     }
@@ -758,8 +796,12 @@ class Operations(val registers: Registers, val mmu: MMU) {
 
     // Flip carry flag
     private fun ccf() {
-        registers.carry = !registers.carry
-        registers.tick()
+        with(registers) {
+            carry = !carry
+            subtract = false
+            halfCarry = false
+            tick()
+        }
     }
 
     private inline fun cp(byte: () -> UByte) {
@@ -770,7 +812,10 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun cp(byte: UByte) {
         with(registers) {
             val result = a - byte
-            setFlags(zero = result and 0xFFu == 0u, subtract = true, carry = byte > a, halfCarry = halfCarrySub(a, byte))
+            zero = result and 0xFFu == 0u
+            subtract = true
+            carry = byte > a
+            halfCarry = halfCarrySub(a, byte)
             tick()
         }
     }
@@ -779,9 +824,10 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun cpl() {
         with(registers) {
             a = a xor 0xffu
-            f = 0u
             if (a == 0u.toUByte()) zero = true
             tick()
+            subtract = true
+            halfCarry = true
         }
     }
 
@@ -820,7 +866,8 @@ class Operations(val registers: Registers, val mmu: MMU) {
 
     private fun bit(index: Int, source: UByte) {
         val bit = source and (1 shl index).toUByte()
-        registers.setFlags(zero = bit == 0u.toUByte(), halfCarry = true)
+        registers.zero = bit == 0u.toUByte()
+        registers.halfCarry = true
         registers.tick()
     }
 
@@ -904,6 +951,8 @@ class Operations(val registers: Registers, val mmu: MMU) {
         val short = load.invoke().toUShort()
         save.invoke(short)
         registers.tick()
+        registers.zero = false
+        registers.subtract = false
     }
 
     private inline fun load(save: (UByte) -> Unit, load: () -> UByte, then: () -> Unit = {}) {
@@ -926,7 +975,10 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun adcA(byte: UByte) {
         with(registers) {
             val result = a + byte + if (registers.carry) 1u else 0u
-            setFlags(zero = result and 0xFFu == 0u, carry = result > 0xFFu, halfCarry = halfCarry(a, (byte + 1u).toUByte()))
+            zero = result and 0xFFu == 0u
+            carry = result > 0xFFu
+            halfCarry = halfCarry(a, (byte + 1u).toUByte())
+            subtract = false
             a = result.toUByte()
             tick()
         }
@@ -943,7 +995,10 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun addA(byte: UByte) {
         with(registers) {
             val result = a + byte
-            setFlags(zero = result and 0xFFu == 0u, carry = result > 0xFFu, halfCarry = halfCarry(a, byte))
+            zero = result and 0xFFu == 0u
+            carry = result > 0xFFu
+            halfCarry = halfCarry(a, byte)
+            subtract = false
             a = result.toUByte()
             tick()
         }
@@ -952,7 +1007,9 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private fun addHL(short: UShort) {
         with(registers) {
             val result = hl + short
-            setFlags(zero = result and 0xFFFFu == 0u, carry = result > 0xFFFFu, halfCarry = halfCarry(hl, short))
+            carry = result > 0xFFFFu
+            halfCarry = halfCarry(hl, short)
+            subtract = false
             hl = result.toUShort()
             tick(2)
         }
@@ -966,6 +1023,9 @@ class Operations(val registers: Registers, val mmu: MMU) {
         with(registers) {
             a = a and byte
             if (a == 0u.toUByte()) zero = true
+            subtract = false
+            halfCarry = true
+            carry = false
             tick()
         }
     }
@@ -974,7 +1034,10 @@ class Operations(val registers: Registers, val mmu: MMU) {
         with(registers) {
             val offset = signedOffset.invoke().toByte()
             val result = (sp.toInt() + offset)
-            setFlags(zero = result and 0xFFFF == 0, carry = result > 0xFFFF, halfCarry = (sp.toInt() and 0xf) + (offset and 0xf) > 0xf)
+            zero = false
+            subtract = false
+            halfCarry = (sp.toInt() and 0xf) + (offset and 0xf) > 0xf
+            carry = result > 0xFFFF
             hl = result.toUShort()
             tick(3)
         }
