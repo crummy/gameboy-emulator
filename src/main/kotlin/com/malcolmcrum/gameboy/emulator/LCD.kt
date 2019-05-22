@@ -2,6 +2,7 @@ package com.malcolmcrum.gameboy.emulator
 
 import com.malcolmcrum.gameboy.util.getBit
 import com.malcolmcrum.gameboy.util.hex
+import mu.KotlinLogging
 
 @ExperimentalUnsignedTypes
 class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
@@ -10,14 +11,19 @@ class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
     var ticks = 0
     var line = 0
     var mode = Mode.OAM_READ
+        set(value) {
+            log.debug { "LCD mode change: $field to $value" }
+            field = value
+        }
 
     var LCDC: UByte = 0x91u
     var STAT: UByte = 0x0u
     var SCY: UByte = 0u
     var SCX: UByte = 0u
-    var LY: UByte = 0u
-        set(value) {
-            field = value
+    var LY: UByte
+        get() = line.toUByte()
+        set(_) {
+            line = 0
             checkLYCoincidence()
         }
     var LYC: UByte = 0u
@@ -121,9 +127,7 @@ class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
                     line++
                     mode = if (line == 143) {
                         interrupts.setInterrupt(Interrupt.VBLANK)
-                        LY = line.toUByte()
                         Mode.VBLANK
-                        // TODO: canvas.putImageData
                     } else {
                         Mode.OAM_READ
                     }
@@ -134,7 +138,6 @@ class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
                         mode = Mode.OAM_READ
                         line = 0
                     }
-                    LY = line.toUByte()
                 }
                 Mode.OAM_READ -> mode = Mode.VRAM_READ
                 Mode.VRAM_READ -> {
@@ -169,6 +172,8 @@ class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
         const val TICKS_PER_SCANLINE = 456
         val WINDOW_TILE_RANGE_0 = (-127..127)
         val WINDOW_TILE_RANGE_1 = (0..255)
+
+        val log = KotlinLogging.logger {  }
     }
 }
 
