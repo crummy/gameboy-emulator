@@ -59,7 +59,7 @@ class App : GameApplication() {
         tileView = TileView(z80.lcd, z80.gpu)
         borderPane.right = tileView
 
-        lcdView = LCDView(z80.gpu)
+        lcdView = LCDView(z80.lcd)
         borderPane.center = lcdView
 
         val controlsView = ControlsView(z80)
