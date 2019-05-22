@@ -97,10 +97,10 @@ data class Registers(
     }
 
     override fun toString(): String {
-        var flags = if (zero) "Z" else ""
-        flags += if (subtract) "N" else ""
-        flags += if (halfCarry) "H" else ""
-        flags += if (carry) "C" else ""
+        var flags = if (zero) "Z" else "-"
+        flags += if (subtract) "N" else "-"
+        flags += if (halfCarry) "H" else "-"
+        flags += if (carry) "C" else "-"
         return "Registers(a=${a.hex()}, b=${b.hex()}, c=${c.hex()}, d=${d.hex()}, e=${e.hex()}, h=${h.hex()}, l=${l.hex()}, sp=${sp.hex()}, pc=${pc.hex()}, $flags)"
     }
 

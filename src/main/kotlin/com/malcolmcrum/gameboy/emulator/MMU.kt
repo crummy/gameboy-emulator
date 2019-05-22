@@ -20,12 +20,11 @@ class MMU(val interrupts: Interrupts = Interrupts(),
     val rom = UByteArray(0x8000)
     val workingRam = UByteArray(0x4000) // working ram
     val externalRam = UByteArray(0x2000) // external ram
-    val zram = UByteArray(0x80) // high speed ram?
+    val zram = UByteArray(0x80) // zero page ram - high speed
     val oam = UByteArray(0xA0) // object attribute memory
 
     fun load(vararg game: UByte) {
         game.copyInto(rom)
-        println()
     }
 
     operator fun get(addr: UInt): UByte {
