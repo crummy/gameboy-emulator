@@ -7,7 +7,7 @@ import mu.KotlinLogging
 class MMU(val interrupts: Interrupts = Interrupts(),
           val joypad: Joypad = Joypad(),
           val gpu: GPU = GPU(),
-          val lcd: LCD = LCD(gpu),
+          val lcd: LCD = LCD(gpu, interrupts),
           val timer: Timer = Timer(interrupts),
           val div: DIV = DIV(),
           val serial: Serial = Serial(),

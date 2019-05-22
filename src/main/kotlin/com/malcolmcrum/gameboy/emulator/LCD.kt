@@ -4,7 +4,7 @@ import com.malcolmcrum.gameboy.util.getBit
 import com.malcolmcrum.gameboy.util.hex
 
 @ExperimentalUnsignedTypes
-class LCD(val gpu: GPU) : Ticks {
+class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
     val pixels = Array(WIDTH * HEIGHT) { Colour.LIGHT_GRAY }
 
     var ticks = 0
@@ -120,6 +120,8 @@ class LCD(val gpu: GPU) : Ticks {
                 Mode.HBLANK -> {
                     line++
                     mode = if (line == 143) {
+                        interrupts.setInterrupt(Interrupt.VBLANK)
+                        LY = line.toUByte()
                         Mode.VBLANK
                         // TODO: canvas.putImageData
                     } else {
@@ -132,6 +134,7 @@ class LCD(val gpu: GPU) : Ticks {
                         mode = Mode.OAM_READ
                         line = 0
                     }
+                    LY = line.toUByte()
                 }
                 Mode.OAM_READ -> mode = Mode.VRAM_READ
                 Mode.VRAM_READ -> {

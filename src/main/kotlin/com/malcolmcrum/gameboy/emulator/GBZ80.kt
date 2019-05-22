@@ -16,7 +16,7 @@ class GBZ80 {
     val interrupts = Interrupts()
     val joypad = Joypad()
     val gpu = GPU()
-    val lcd = LCD(gpu)
+    val lcd = LCD(gpu, interrupts)
     val timer = Timer(interrupts)
     val div = DIV()
     val mmu = MMU(interrupts, joypad, gpu, lcd, timer, div)
@@ -34,6 +34,7 @@ class GBZ80 {
         registers.pc = operation.invoke(registers.pc)
 
         clock.add(registers.m, registers.t)
+        lcd.tick()
         timer.tick()
         div.tick()
 
