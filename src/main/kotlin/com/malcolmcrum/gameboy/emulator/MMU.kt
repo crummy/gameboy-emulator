@@ -6,8 +6,8 @@ import mu.KotlinLogging
 @ExperimentalUnsignedTypes
 class MMU(val interrupts: Interrupts = Interrupts(),
           val joypad: Joypad = Joypad(),
-          val lcd: LCD = LCD(),
           val gpu: GPU = GPU(),
+          val lcd: LCD = LCD(gpu),
           val timer: Timer = Timer(interrupts),
           val div: DIV = DIV(),
           val serial: Serial = Serial(),

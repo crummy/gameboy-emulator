@@ -4,8 +4,12 @@ import com.malcolmcrum.gameboy.util.getBit
 import com.malcolmcrum.gameboy.util.hex
 
 @ExperimentalUnsignedTypes
-class LCD : Ticks {
+class LCD(val gpu: GPU) : Ticks {
+    val pixels = Array(WIDTH * HEIGHT) { Colour.LIGHT_GRAY }
+
     var ticks = 0
+    var line = 0
+    var mode = Mode.OAM_READ
 
     var LCDC: UByte = 0x91u
     var STAT: UByte = 0x0u
@@ -105,10 +109,60 @@ class LCD : Ticks {
         if (!lcdEnabled) {
             ticks = TICKS_PER_SCANLINE
             LY = 0u
+            return
+        }
+
+        ticks++
+
+        if (ticks == mode.cycles) {
+            ticks = 0
+            when (mode) {
+                Mode.HBLANK -> {
+                    line++
+                    mode = if (line == 143) {
+                        Mode.VBLANK
+                        // TODO: canvas.putImageData
+                    } else {
+                        Mode.OAM_READ
+                    }
+                }
+                Mode.VBLANK -> {
+                    line++
+                    if (line == 153) {
+                        mode = Mode.OAM_READ
+                        line = 0
+                    }
+                }
+                Mode.OAM_READ -> mode = Mode.VRAM_READ
+                Mode.VRAM_READ -> {
+                    renderLine()
+                    mode = Mode.HBLANK
+                }
+            }
+        }
+    }
+
+    private fun renderLine() {
+        val mapOffset = if(bgAndWindowTileDataSelect) 0x1c00u else 0x1800u + (line + SCY.toInt()).toUByte() shr 3
+        val lineOffset = (SCX.toUInt() shr 3).toUByte()
+        val y = (line.toUByte() + SCY) and 0x7u
+        val x = SCX and 0x7u
+        val canvasOffset = line * WIDTH * 4
+//        var tile = gpu[(mapOffset + lineOffset).toUShort()]
+//        if (bgUpperTileMap && tile < 128u) {
+//            //tile = tile + 256u
+//        }
+        for (i in (0..WIDTH)) {
+            val drawnTile = gpu.getTile(1, i / Tile.WIDTH)
+            val colourIndex = drawnTile[i / Tile.WIDTH, y.toInt()]
+            val colour = bgPalette[colourIndex.toInt()]!!
+            pixels[line * WIDTH + i] = colour
         }
     }
 
     companion object {
+        const val WIDTH = 160
+        const val HEIGHT = 144
         const val TICKS_PER_SCANLINE = 456
         val WINDOW_TILE_RANGE_0 = (-127..127)
         val WINDOW_TILE_RANGE_1 = (0..255)
@@ -129,4 +183,11 @@ enum class Colour(val value: Int) {
             return values().find { it.value == value }!!
         }
     }
+}
+
+enum class Mode(val mode: Byte, val cycles: Int) {
+    HBLANK(0, 204),
+    VBLANK(1, 456),
+    OAM_READ(2, 80),
+    VRAM_READ(3, 172);
 }
