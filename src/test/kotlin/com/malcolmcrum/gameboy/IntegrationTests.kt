@@ -63,10 +63,7 @@ internal class IntegrationTests {
     fun `test BIOS`() {
         val rom = File("src/main/resources/opus5.gb")
         z80.mmu.load(*rom.readBytes().asUByteArray())
-        repeat(0x6100) {
-            if (z80.registers.pc == 0x0027.toUShort()) {
-                println()
-            }
+        while (z80.registers.pc != 0x100u.toUShort()) {
             z80.step()
         }
     }

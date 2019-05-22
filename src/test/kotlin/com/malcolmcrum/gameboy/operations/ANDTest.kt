@@ -26,7 +26,7 @@ internal class ANDTest {
         fun `0xFF and 0 is 0`() {
             test(opcode) {
                 initial = State(a = 0xFFu, args = listOf(0x00u))
-                expected = State(a = 0u, f = ZERO_FLAG)
+                expected = State(a = 0u, f = ZERO_FLAG or HALF_CARRY_FLAG)
             }
         }
 
@@ -34,7 +34,7 @@ internal class ANDTest {
         fun `0xF0 and 0x1F is 0x10`() {
             test(opcode) {
                 initial = State(a = 0xF0u, args = listOf(0x1Fu))
-                expected = State(a = 0x10u, f = 0u)
+                expected = State(a = 0x10u, f = HALF_CARRY_FLAG)
             }
         }
     }

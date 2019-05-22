@@ -56,7 +56,7 @@ class MMU(val interrupts: Interrupts = Interrupts(),
             0xFFFFu.toUShort() -> interrupts[address]
             else -> throw IllegalAccessException(address.toString())
         }
-        log.trace { "mmu[${address.hex()}] contains ${value.hex()}"}
+        log.trace { "mmu[${address.hex()}] == ${value.hex()}"}
         return value
     }
 
@@ -66,7 +66,7 @@ class MMU(val interrupts: Interrupts = Interrupts(),
     }
 
     operator fun set(address: UShort, value: UByte) {
-        log.debug { "mmu[${address.hex()}] <= ${value.hex()}"}
+        log.trace { " ${value.hex()} -> mmu[${address.hex()}]"}
         when(address) {
             in (0x0000u..0x1000u) -> {
                 if (inBios) throw IllegalAccessException("Cannot write to BIOS")

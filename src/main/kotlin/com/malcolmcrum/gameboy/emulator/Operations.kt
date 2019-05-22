@@ -837,6 +837,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
             val destination = address.invoke()
             return if (conditional) {
                 sp = (sp - 2u).toUShort()
+                storeWordInMemory(sp).invoke(pc)
                 tick(3)
                 return destination
             } else {

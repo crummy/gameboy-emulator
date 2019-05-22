@@ -27,6 +27,7 @@ import java.nio.file.Paths
 @ExperimentalUnsignedTypes
 @ImplicitReflectionSerializer
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+// TODO separate into FlagTest and TimingTest
 internal class TimingTest {
     val registers = Registers()
     val mmu = MMU(joypad = Joypad()).apply { inBios = false }
