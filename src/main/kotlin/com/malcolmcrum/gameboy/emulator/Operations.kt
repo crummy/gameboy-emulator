@@ -41,7 +41,7 @@ class Operations(val registers: Registers, val mmu: MMU) {
     private val cbOperations: Array<CBOperation> = Array(256) { x -> CBOperation("MISSING ${x.toUByte().hex()}") { TODO(x.toUByte().hex()) } }
 
     operator fun get(address: UShort, forDebugPurposes: Boolean = true): Pair<UByte, Z80Operation> {
-        val opcode = mmu[address, forDebugPurposes]
+        val opcode = mmu[address]
         return if (opcode != CB_OPCODE) {
             Pair(opcode, operations[opcode.toInt()])
         } else {

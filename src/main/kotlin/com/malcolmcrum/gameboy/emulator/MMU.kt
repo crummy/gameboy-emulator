@@ -32,8 +32,7 @@ class MMU(val interrupts: Interrupts = Interrupts(),
         return get(addr.toUShort())
     }
 
-    operator fun get(address: UShort, readOnly: Boolean = true): UByte {
-        if (address == 0x0100u.toUShort() && !readOnly) inBios = false
+    operator fun get(address: UShort): UByte {
         val value = when(address) {
             in (0x0000u until 0x0100u) -> if (inBios) BIOS[address] else rom[address]
             in (0x0000u until 0x1000u) -> rom[address]
@@ -85,6 +84,7 @@ class MMU(val interrupts: Interrupts = Interrupts(),
             0xFF0Fu.toUShort() -> interrupts[address] = value
             in (0xFF10u..0xFF26u) -> sound[address] = value
             in (0xff40u..0xff4bu) -> lcd[address and 0xffu] = value
+            0xFF50u.toUShort() -> inBios = false
             in (0xFF80u until 0xFFFFu) -> zram[address and 0x7Fu] = value
             0xFFFFu.toUShort() -> interrupts[address] = value
             else -> throw ArrayIndexOutOfBoundsException(address.hex())
