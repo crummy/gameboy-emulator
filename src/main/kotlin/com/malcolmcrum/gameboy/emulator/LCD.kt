@@ -22,10 +22,16 @@ class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
 
     var LCDC: UByte = 0x91u
     var STAT: UByte = 0x2u
+        get() {
+            return if (lcdEnabled) field else field or 0b11111000u // bits 0,1,2 always 0 when LCD is off
+        }
+        set(value) {
+            field = value or 0b10000000u // bit 7 is always 1
+        }
     var SCY: UByte = 0u
     var SCX: UByte = 0u
     var LY: UByte
-        get() = line.toUByte()
+        get() = if (lcdEnabled) line.toUByte() else 0u
         set(_) {
             line = 0
             checkLYCoincidence()
@@ -161,20 +167,30 @@ class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
     }
 
     private fun renderLine() {
-        val mapOffset = if(bgAndWindowTileDataSelect) 0x1c00u else 0x1800u + (line + SCY.toInt()).toUByte() shr 3
-        val lineOffset = (SCX.toUInt() shr 3).toUByte()
-        val y = (line.toUByte() + SCY) and 0x7u
-        val x = SCX and 0x7u
-        val canvasOffset = line * WIDTH * 4
-//        var tile = gpu[(mapOffset + lineOffset).toUShort()]
-//        if (bgUpperTileMap && tile < 128u) {
-//            //tile = tile + 256u
-//        }
-        for (i in (0..WIDTH)) {
-            val drawnTile = gpu.getTile(1, i / Tile.WIDTH)
-            val colourIndex = drawnTile[i / Tile.WIDTH, y.toInt()]
+        if (bgEnabled) {
+            renderBackground()
+        }
+    }
+
+    private fun renderBackground() {
+        val mapOffset = if (bgUpperTileMap) 0x1c00u else 0x1800u + (((LY + SCY) and 0xFFu) shr 3) shl 5
+        var lineOffset = SCX.toUInt() shr 3
+        val y = LY and 7u
+        var x = SCX and 7u
+        var tileIndex = gpu[(mapOffset + lineOffset).toUShort()]
+        //if (bgUpperTileMap && (tile < 128u)) tile = tile + 256u // TODO?
+        for (i in (0 until WIDTH)) {
+            val tile = gpu.tiles[tileIndex.toInt()]
+            val colourIndex = tile[i / Tile.WIDTH, y.toInt()]
             val colour = bgPalette[colourIndex.toInt()]!!
             pixels[line * WIDTH + i] = colour
+
+            x++
+            if (x == 8u.toUByte()) {
+                x = 0u
+                lineOffset = (lineOffset + 1u) and 31u
+                tileIndex = gpu[(mapOffset + lineOffset).toUShort()]
+            }
         }
     }
 

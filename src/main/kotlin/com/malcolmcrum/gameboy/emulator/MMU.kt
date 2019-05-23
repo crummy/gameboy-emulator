@@ -42,7 +42,7 @@ class MMU(val interrupts: Interrupts = Interrupts(),
             in (0xC000u until 0xE000u) -> workingRam[address and 0x1FFFu]
             in (0xE000u until 0xFE00u) -> workingRam[address and 0x1FFFu] // working ram shadow
             in (0xFE00u until 0xFEA0u) -> oam[address and 0xFFu]
-            in (0xFEA0u until 0xFF00u) -> 0u
+            in (0xFEA0u until 0xFF00u) -> 0u // unmapped
             0xFF00u.toUShort() -> joypad.flags
             in (0xFF01u..0xFF02u) -> serial[address]
             0xFF04u.toUShort() -> div.value
@@ -84,7 +84,10 @@ class MMU(val interrupts: Interrupts = Interrupts(),
             0xFF0Fu.toUShort() -> interrupts[address] = value
             in (0xFF10u..0xFF26u) -> sound[address] = value
             in (0xff40u..0xff4bu) -> lcd[address and 0xffu] = value
-            0xFF50u.toUShort() -> inBios = false
+            0xFF50u.toUShort() -> {
+                log.info { "Left BIOS." }
+                inBios = false
+            }
             in (0xFF80u until 0xFFFFu) -> zram[address and 0x7Fu] = value
             0xFFFFu.toUShort() -> interrupts[address] = value
             else -> throw ArrayIndexOutOfBoundsException(address.hex())

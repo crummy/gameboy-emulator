@@ -24,7 +24,13 @@ class GBZ80 {
 
     fun execute() = thread(start = true) {
         while (!isPaused) {
-            step()
+            try {
+                step()
+            } catch (e: Exception) {
+                val (opCode, operation) = operations[registers.pc, false]
+                log.error { "Exception encountered: ${e.message}\n$registers - ${opCode.hex()} ${parseInstruction(operation.mnemonic, mmu, registers.pc)}" }
+                throw e
+            }
         }
     }
 

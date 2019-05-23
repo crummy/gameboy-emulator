@@ -22,8 +22,7 @@ class TileView(val lcd: LCD, val gpu: GPU) : Region() {
 
     fun render() {
         val pixels = canvas.graphicsContext2D.pixelWriter
-        for (index in lcd.tileRange) {
-            val tile = gpu.getTile(1, index)
+        gpu.tiles.forEachIndexed { index, tile ->
             val (offsetX, offsetY) = Tile.WIDTH * (index % tilesWide) to Tile.WIDTH * (index / tilesWide % tilesWide)
             tile.getPixels().forEach {
                 val (x, y) = it.key

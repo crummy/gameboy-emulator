@@ -2,8 +2,8 @@ package com.malcolmcrum.gameboy.emulator
 
 import com.malcolmcrum.gameboy.emulator.Tile.Companion.BYTES_PER_PIXEL
 import com.malcolmcrum.gameboy.emulator.Tile.Companion.TILE_BYTES
+import com.malcolmcrum.gameboy.util.get
 import com.malcolmcrum.gameboy.util.getBit
-import com.malcolmcrum.gameboy.util.shr
 
 // TODO: Does some of this belong outside the emulator package?
 @ExperimentalUnsignedTypes
@@ -48,12 +48,25 @@ class GPU : Ticks {
         return ram[address.toInt() and 0x1FFF]
     }
 
-    operator fun set(address: UShort, value: UByte) {
-        val baseAddress = address and 0x1FFFu
-        val tile = address shr 4u and 0x1FFu
-        val y = address shr 1u and 0x7u
+    operator fun set(absoluteAddress: UShort, value: UByte) {
+        val address = absoluteAddress and 0x1FFFu
+        ram[address.toInt()] = value
+        if (address >= 0x1800u) return
+        val normalizedAddress = address and 0x1FFEu
+        val byte1 = ram[normalizedAddress]
+        val byte2 = ram[normalizedAddress + 1u]
 
-        //tiles[tile.toInt()].pixels[]
+        val tileIndex = address / 16u
+        val rowIndex = (address % 16u) / 2u
+
+        for (pixelIndex in (0..7)) {
+            val lsb = if (byte1.getBit(pixelIndex)) 1u else 0u
+            val msb = if (byte2.getBit(pixelIndex)) 1u else 0u
+            val colour = ((msb shl 1) + lsb).toUByte()
+            tiles[tileIndex.toInt()].pixels[rowIndex.toInt() * Tile.WIDTH + pixelIndex] = colour
+        }
+
+        tiles[tileIndex.toInt()]
     }
 
     override fun tick() {
@@ -73,7 +86,7 @@ class Tile(val pixels: UByteArray) {
     }
 
     operator fun get(x: Int, y: Int): UByte {
-        return pixels[y * HEIGHT + x]
+        return pixels[y * WIDTH + x]
     }
 
     companion object {

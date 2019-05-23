@@ -80,3 +80,13 @@ fun UByte.withBit(bit: Int, value: Boolean): UByte {
     }
 }
 
+@ExperimentalUnsignedTypes
+operator fun UByteArray.get(address: UShort): UByte {
+    return this[address.toInt()]
+}
+
+@ExperimentalUnsignedTypes
+operator fun UByteArray.get(address: UInt): UByte {
+    return this[address.toInt()]
+}
+
