@@ -57,7 +57,7 @@ class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
     val spriteSize = LCDC.getBit(2)
     val spritesEnabled = LCDC.getBit(1)
     val bgEnabled = LCDC.getBit(0)
-    val tileRange = if (windowUpperTileMap) WINDOW_TILE_RANGE_0 else WINDOW_TILE_RANGE_1
+    val tileRange = if (bgUpperTileMap) BG_UPPER_TILE_RANGE else BG_LOWER_TILE_RANGE
 
     val scrollY = SCX
     val scrollX = SCY
@@ -180,7 +180,7 @@ class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
         var tileIndex = gpu[(mapOffset + lineOffset).toUShort()]
         //if (bgUpperTileMap && (tile < 128u)) tile = tile + 256u // TODO?
         for (i in (0 until WIDTH)) {
-            val tile = gpu.tiles[tileIndex.toInt()]
+            val tile = gpu.getTile(bgUpperTileMap, tileIndex.toInt())
             val colourIndex = tile[i / Tile.WIDTH, y.toInt()]
             val colour = bgPalette[colourIndex.toInt()]!!
             pixels[line * WIDTH + i] = colour
@@ -198,8 +198,8 @@ class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
         const val WIDTH = 160
         const val HEIGHT = 144
         const val TICKS_PER_SCANLINE = 456
-        val WINDOW_TILE_RANGE_0 = (-127..127)
-        val WINDOW_TILE_RANGE_1 = (0..255)
+        val BG_UPPER_TILE_RANGE = (-127 until 128)
+        val BG_LOWER_TILE_RANGE = (0 until 256)
 
         val log = KotlinLogging.logger {  }
     }

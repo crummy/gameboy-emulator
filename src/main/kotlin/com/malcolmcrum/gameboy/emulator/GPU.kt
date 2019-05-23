@@ -1,48 +1,23 @@
 package com.malcolmcrum.gameboy.emulator
 
-import com.malcolmcrum.gameboy.emulator.Tile.Companion.BYTES_PER_PIXEL
 import com.malcolmcrum.gameboy.emulator.Tile.Companion.TILE_BYTES
 import com.malcolmcrum.gameboy.util.get
 import com.malcolmcrum.gameboy.util.getBit
 
 // TODO: Does some of this belong outside the emulator package?
 @ExperimentalUnsignedTypes
-class GPU : Ticks {
+class GPU {
     val ram = UByteArray(0x2000)
     val tiles = Array(MAX_TILES) { Tile(UByteArray(TILE_BYTES)) }
 
-    fun getTile(set: Int, tile: Int): Tile {
-        // We're in GPU ram, so offsets already start at 0x8000
-        return when (set) {
-            1 -> when (tile) {
-                in (0..127) -> getTile(0x0000 + tile)
-                in (128..255) -> getTile(0x0800 + tile)
-                else -> throw IndexOutOfBoundsException(tile)
-            }
-            0 -> when (tile) {
-                in (-128..-1) -> getTile(0x0800 + tile)
-                in (0..127) -> getTile(0x1000 + tile)
-                else -> throw IndexOutOfBoundsException(tile)
-            }
-            else -> throw IndexOutOfBoundsException(set)
+    fun getTile(upperTileMap: Boolean, tile: Int): Tile {
+        // TODO: fix offsets
+        return when (upperTileMap) {
+            false -> tiles[tile]
+            true -> tiles[256 + tile]
         }
     }
 
-    private fun getTile(tileAddress: Int): Tile {
-        val pixels = UByteArray(TILE_BYTES)
-        for ((index, address) in ((tileAddress until tileAddress + TILE_BYTES) step BYTES_PER_PIXEL).withIndex()) {
-            val byte1 = ram[address]
-            val byte2 = ram[address + 1]
-
-            for (bit in (0..7)) {
-                val lsb = if (byte1.getBit(bit)) 1 else 0
-                val msb = if (byte2.getBit(bit)) 1 else 0
-                val colour = (msb shl 1) + lsb
-                pixels[index] = colour.toUByte()
-            }
-        }
-        return Tile(pixels)
-    }
 
     operator fun get(address: UShort): UByte {
         return ram[address.toInt() and 0x1FFF]
@@ -65,12 +40,6 @@ class GPU : Ticks {
             val colour = ((msb shl 1) + lsb).toUByte()
             tiles[tileIndex.toInt()].pixels[rowIndex.toInt() * Tile.WIDTH + pixelIndex] = colour
         }
-
-        tiles[tileIndex.toInt()]
-    }
-
-    override fun tick() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     companion object {
