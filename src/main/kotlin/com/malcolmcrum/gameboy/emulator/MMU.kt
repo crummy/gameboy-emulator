@@ -42,7 +42,7 @@ class MMU(val interrupts: Interrupts = Interrupts(),
             in (0xC000u until 0xE000u) -> workingRam[address and 0x1FFFu]
             in (0xE000u until 0xFE00u) -> workingRam[address and 0x1FFFu] // working ram shadow
             in (0xFE00u until 0xFEA0u) -> oam[address and 0xFFu]
-            in (0xFEA0u until 0xFF00u) -> 0u // unmapped
+            in (0xFEA0u until 0xFF00u) -> 0xFFu // inaccessible
             0xFF00u.toUShort() -> joypad.flags
             in (0xFF01u..0xFF02u) -> serial[address]
             0xFF04u.toUShort() -> div.value
@@ -50,6 +50,7 @@ class MMU(val interrupts: Interrupts = Interrupts(),
             0xFF0Fu.toUShort() -> interrupts[address]
             in (0xFF10u..0xFF26u) -> sound[address]
             in (0xFF40u..0xFF4Bu) -> lcd[address and 0xFFu]
+            0xFF7fu.toUShort() -> 0xFFu // inaccessible
             in (0xFF80u until 0xFFFFu) -> zram[address and 0x7Fu]
             0xFFFFu.toUShort() -> interrupts[address]
             else -> throw IllegalAccessException(address.toString())
@@ -76,7 +77,7 @@ class MMU(val interrupts: Interrupts = Interrupts(),
             in (0xC000u until 0xE000u) -> workingRam[address and 0x1FFFu] = value
             in (0xE000u until 0xFE00u) -> workingRam[address and 0x1FFFu] = value
             in (0xFE00u until 0xFEA0u) -> oam[address and 0xFFu] = value
-            in (0xFEA0u until 0xFF00u) -> throw IllegalAccessException(address.hex())
+            in (0xFEA0u until 0xFF00u) -> null // no action for inaccessible space
             0xFF00u.toUShort() -> joypad.flags = value
             in (0xFF01u..0xFF02u) -> serial[address] = value
             0xFF04u.toUShort() -> div.value = value
@@ -88,6 +89,7 @@ class MMU(val interrupts: Interrupts = Interrupts(),
                 log.info { "Left BIOS." }
                 inBios = false
             }
+            0xFF7Fu.toUShort() -> null
             in (0xFF80u until 0xFFFFu) -> zram[address and 0x7Fu] = value
             0xFFFFu.toUShort() -> interrupts[address] = value
             else -> throw ArrayIndexOutOfBoundsException(address.hex())
