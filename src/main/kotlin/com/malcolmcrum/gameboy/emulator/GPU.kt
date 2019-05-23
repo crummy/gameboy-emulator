@@ -2,7 +2,6 @@ package com.malcolmcrum.gameboy.emulator
 
 import com.malcolmcrum.gameboy.emulator.Tile.Companion.TILE_BYTES
 import com.malcolmcrum.gameboy.util.get
-import com.malcolmcrum.gameboy.util.getBit
 import com.malcolmcrum.gameboy.util.hex
 
 // TODO: Does some of this belong outside the emulator package?
@@ -35,20 +34,18 @@ class GPU {
         if (tileMapData) {
             mapRam[address.toInt() - 0x1800] = value
         } else {
+            // from https://github.com/stan-roelofs/Kotlin-Gameboy-Emulator/blame/master/src/main/kotlin/memory/IO/Lcd.kt#L238
             tileRam[address.toInt()] = value
 
-            val normalizedAddress = address and 0x1FFEu
-            val byte1 = tileRam[normalizedAddress]
-            val byte2 = tileRam[normalizedAddress + 1u]
+            val normalizedAddress = (address and 0x1FFEu).toInt()
 
-            val tileIndex = address / 16u
-            val rowIndex = (address % 16u) / 2u
+            val tileIndex = normalizedAddress shr 4 and 511
+            val rowIndex = normalizedAddress shr 1 and 7
 
             for (pixelIndex in (0..7)) {
-                val lsb = if (byte1.getBit(pixelIndex)) 1u else 0u
-                val msb = if (byte2.getBit(pixelIndex)) 1u else 0u
-                val colour = ((msb shl 1) or lsb).toUByte()
-                tiles[tileIndex.toInt()].pixels[rowIndex.toInt() * Tile.WIDTH + pixelIndex] = colour
+                val sx = (1 shl 7 - pixelIndex).toUByte()
+                val colour = (if (tileRam[normalizedAddress] and sx != 0u.toUByte()) 1 else 0) or if (tileRam[normalizedAddress + 1] and sx != 0u.toUByte()) 2 else 0
+                tiles[tileIndex].pixels[rowIndex * Tile.WIDTH + pixelIndex] = colour.toUByte()
             }
         }
     }

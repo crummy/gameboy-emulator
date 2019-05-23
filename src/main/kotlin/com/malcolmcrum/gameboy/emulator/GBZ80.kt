@@ -40,14 +40,22 @@ class GBZ80 {
         registers.pc = operation.invoke(registers.pc)
 
         clock.add(registers.m, registers.t)
-        lcd.tick()
-        timer.tick()
-        div.tick()
+        repeat(registers.m.toInt()) {
+            lcd.tick()
+            timer.tick()
+            div.tick()
+        }
 
         val interruptAddress = interrupts.getInterruptAddress()
         if (interruptAddress != null) {
             registers.pc = interruptAddress
         }
+    }
+
+    companion object {
+        const val TICKS_PER_SECOND = 4194304
+        const val FRAMES_PER_SECOND = 60
+        const val TICKS_PER_FRAME = TICKS_PER_SECOND / FRAMES_PER_SECOND
     }
 
 }
