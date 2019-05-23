@@ -3,11 +3,13 @@ package com.malcolmcrum.gameboy.emulator
 import com.malcolmcrum.gameboy.emulator.Tile.Companion.BYTES_PER_PIXEL
 import com.malcolmcrum.gameboy.emulator.Tile.Companion.TILE_BYTES
 import com.malcolmcrum.gameboy.util.getBit
+import com.malcolmcrum.gameboy.util.shr
 
 // TODO: Does some of this belong outside the emulator package?
 @ExperimentalUnsignedTypes
 class GPU : Ticks {
     val ram = UByteArray(0x2000)
+    val tiles = Array(MAX_TILES) { Tile(UByteArray(TILE_BYTES)) }
 
     fun getTile(set: Int, tile: Int): Tile {
         // We're in GPU ram, so offsets already start at 0x8000
@@ -47,16 +49,24 @@ class GPU : Ticks {
     }
 
     operator fun set(address: UShort, value: UByte) {
-        ram[address.toInt() and 0x1FFF] = value
+        val baseAddress = address and 0x1FFFu
+        val tile = address shr 4u and 0x1FFu
+        val y = address shr 1u and 0x7u
+
+        //tiles[tile.toInt()].pixels[]
     }
 
     override fun tick() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
+
+    companion object {
+        const val MAX_TILES = 384
+    }
 }
 
 @ExperimentalUnsignedTypes
-class Tile(private val pixels: UByteArray) {
+class Tile(val pixels: UByteArray) {
 
     fun getPixels(): Map<Pair<Int, Int>, UByte> {
         return pixels.mapIndexed { i, byte -> Pair(i / WIDTH, i % HEIGHT) to byte }.toMap()

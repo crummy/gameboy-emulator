@@ -2,6 +2,7 @@ package com.malcolmcrum.gameboy.emulator
 
 import com.malcolmcrum.gameboy.util.getBit
 import com.malcolmcrum.gameboy.util.hex
+import com.malcolmcrum.gameboy.util.withBit
 import mu.KotlinLogging
 
 @ExperimentalUnsignedTypes
@@ -10,14 +11,17 @@ class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
 
     var ticks = 0
     var line = 0
-    var mode = Mode.OAM_READ
+    var mode: Mode
+        get() {
+            return Mode.values().find { it.mode == (STAT and 0x3u)}!!
+        }
         set(value) {
-            log.debug { "LCD mode change: $field to $value" }
-            field = value
+            STAT = STAT.withBit(0, value.mode.getBit(0))
+            STAT = STAT.withBit(1, value.mode.getBit(1))
         }
 
     var LCDC: UByte = 0x91u
-    var STAT: UByte = 0x0u
+    var STAT: UByte = 0x2u
     var SCY: UByte = 0u
     var SCX: UByte = 0u
     var LY: UByte
@@ -145,6 +149,14 @@ class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
                     mode = Mode.HBLANK
                 }
             }
+
+            STAT = STAT.withBit(2, LY == LYC)
+
+            val statInterrupt = mode.interruptTriggers.invoke(STAT) ||
+                    (STAT.getBit(6) && STAT.getBit(2))
+            if (statInterrupt) {
+                interrupts.setInterrupt(Interrupt.LCD_STAT)
+            }
         }
     }
 
@@ -193,9 +205,10 @@ enum class Colour(val value: Int) {
     }
 }
 
-enum class Mode(val mode: Byte, val cycles: Int) {
-    HBLANK(0, 204),
-    VBLANK(1, 456),
-    OAM_READ(2, 80),
-    VRAM_READ(3, 172);
+@ExperimentalUnsignedTypes
+enum class Mode(val mode: UByte, val cycles: Int, val interruptTriggers: (UByte) -> Boolean) {
+    HBLANK(0u, 204, { STAT -> STAT.getBit(3) }),
+    VBLANK(1u, 456, { STAT -> STAT.getBit(4) || STAT.getBit(5) }),
+    OAM_READ(2u, 80,  { STAT -> STAT.getBit(5) }),
+    VRAM_READ(3u, 172, { false });
 }

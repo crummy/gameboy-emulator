@@ -30,4 +30,12 @@ internal class LCDTest {
         assertThat(lcd.mode).isEqualTo(Mode.OAM_READ)
         assertThat(lcd.LY).isEqualToByte(1u)
     }
+
+    @Test
+    fun `test mode get and set`() {
+        lcd.mode = Mode.OAM_READ
+        assertThat(lcd.mode).isEqualTo(Mode.OAM_READ)
+        lcd.mode = Mode.HBLANK
+        assertThat(lcd.mode).isEqualTo(Mode.HBLANK)
+    }
 }
