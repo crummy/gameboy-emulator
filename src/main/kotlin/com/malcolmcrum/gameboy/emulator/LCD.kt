@@ -173,12 +173,38 @@ class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
     }
 
     private fun renderBackground() {
-        val y = line + SCY.toInt()
-        for (x in (0 until WIDTH)) {
-            val tile = gpu.getBackgroundTile(bgUpperTileMap, x / Tile.WIDTH, y / Tile.HEIGHT)
-            val colourIndex = tile[x % Tile.WIDTH, line % Tile.HEIGHT]
-            val colour = bgPalette[colourIndex.toInt()] ?: error("No colour found for $colourIndex")
-            pixels[line][x] = colour
+        val bgMap = LCDC.getBit(3)
+        val bgTiles = !LCDC.getBit(4)
+
+        var mapOffset = if (bgMap) 0x1C00 else 0x1800
+
+        mapOffset += (((LY + SCY).toInt() and 0xFF) shr 3) shl 5
+
+        var lineOffset = SCX.toInt() shr 3
+
+        val y = LY.toInt() and 7
+        var x = SCX.toInt() and 7
+
+        var tile = gpu[(mapOffset + lineOffset).toUShort()].toByte().toInt()
+
+        if (bgTiles && (tile < 128)) {
+            tile += 256
+        }
+
+        for (i in 0 until WIDTH) {
+            val colour = gpu.tiles[tile][x, y]
+
+            pixels[line][i] = Colour.fromByte(colour)
+
+            x++
+            if (x == 8) {
+                x = 0
+                lineOffset = (lineOffset + 1) and 31
+                tile = gpu[(mapOffset + lineOffset).toUShort()].toByte().toInt()
+                if (bgTiles && (tile < 128)) {
+                    tile += 256
+                }
+            }
         }
     }
 
@@ -199,12 +225,17 @@ enum class Colour(val value: Int) {
     DARK_GRAY(2),
     BLACK(3);
 
+    @ExperimentalUnsignedTypes
     companion object {
         fun fromBytes(upperBit: Boolean, lowerBit: Boolean): Colour {
             val lsb = if (lowerBit) 1 else 0
             val msb = if (upperBit) 1 else 0
             val value = (msb shl 1) + lsb
             return values().find { it.value == value }!!
+        }
+
+        fun fromByte(byte: UByte): Colour {
+            return values().find { it.value.toUByte() == byte }!!
         }
     }
 }
