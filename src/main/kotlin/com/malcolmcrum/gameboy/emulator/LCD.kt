@@ -7,7 +7,7 @@ import mu.KotlinLogging
 
 @ExperimentalUnsignedTypes
 class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
-    val pixels = Array(WIDTH * HEIGHT) { Colour.LIGHT_GRAY }
+    val pixels = Array(HEIGHT) { Array(WIDTH) { Colour.LIGHT_GRAY } }
 
     var ticks = 0
     var line = 0
@@ -173,24 +173,12 @@ class LCD(val gpu: GPU, val interrupts: Interrupts) : Ticks {
     }
 
     private fun renderBackground() {
-        val mapOffset = if (bgUpperTileMap) 0x1c00u else 0x1800u + (((LY + SCY) and 0xFFu) shr 3) shl 5
-        var lineOffset = SCX.toUInt() shr 3
-        val y = LY and 7u
-        var x = SCX and 7u
-        var tileIndex = gpu[(mapOffset + lineOffset).toUShort()]
-        //if (bgUpperTileMap && (tile < 128u)) tile = tile + 256u // TODO?
-        for (i in (0 until WIDTH)) {
-            val tile = gpu.getTile(bgUpperTileMap, tileIndex.toInt())
-            val colourIndex = tile[i / Tile.WIDTH, y.toInt()]
-            val colour = bgPalette[colourIndex.toInt()]!!
-            pixels[line * WIDTH + i] = colour
-
-            x++
-            if (x == 8u.toUByte()) {
-                x = 0u
-                lineOffset = (lineOffset + 1u) and 31u
-                tileIndex = gpu[(mapOffset + lineOffset).toUShort()]
-            }
+        val y = line + SCY.toInt()
+        for (x in (0 until WIDTH)) {
+            val tile = gpu.getBackgroundTile(bgUpperTileMap, x / Tile.WIDTH, y / Tile.HEIGHT)
+            val colourIndex = tile[x % Tile.WIDTH, line % Tile.HEIGHT]
+            val colour = bgPalette[colourIndex.toInt()] ?: error("No colour found for $colourIndex")
+            pixels[line][x] = colour
         }
     }
 

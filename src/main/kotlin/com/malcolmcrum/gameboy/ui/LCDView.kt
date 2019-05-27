@@ -23,7 +23,7 @@ class LCDView(val lcd: LCD) : Region() {
     fun render() {
         for (x in 0 until LCD.WIDTH) {
             for (y in 0 until LCD.HEIGHT) {
-                val colour = lcd.pixels[y * LCD.WIDTH + x]
+                val colour = lcd.pixels[y][x]
                 val color = when(colour) {
                     Colour.WHITE -> Color.WHITE
                     Colour.LIGHT_GRAY -> Color.LIGHTGRAY

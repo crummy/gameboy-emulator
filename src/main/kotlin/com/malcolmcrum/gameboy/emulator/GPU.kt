@@ -11,11 +11,25 @@ class GPU {
     private val mapRam = UByteArray(0x0800)
     val tiles = Array(MAX_TILES) { Tile(UByteArray(TILE_BYTES)) }
 
+    fun getBackgroundTile(upperTileMap: Boolean, x: Int, y: Int): Tile {
+        assert(x in 0 until BACKGROUND_TILES_WIDE) { x }
+        assert(y in 0 until BACKGROUND_TILES_HIGH) { y }
+
+        val index = if (upperTileMap) {
+            mapRam[0x400 + y * BACKGROUND_TILES_WIDE + x]
+        } else {
+            mapRam[y * BACKGROUND_TILES_WIDE + x]
+        }
+        return getTile(upperTileMap, index.toInt())
+    }
+
     fun getTile(upperTileMap: Boolean, tile: Int): Tile {
-        // TODO: fix offsets
-        return when (upperTileMap) {
-            false -> tiles[tile]
-            true -> tiles[256 + tile]
+        return if (upperTileMap) {
+            tiles[tile]
+        } else when (tile) {
+            in (-128..-1) -> tiles[tile + 256] // 8800-8FFF
+            in (0..127) -> tiles[tile + 128] // 9000-97FF
+            else -> throw IndexOutOfBoundsException(tile)
         }
     }
 
@@ -51,6 +65,8 @@ class GPU {
     }
 
     companion object {
+        const val BACKGROUND_TILES_WIDE = 32
+        const val BACKGROUND_TILES_HIGH = 32
         const val MAX_TILES = 384
     }
 }
@@ -64,6 +80,10 @@ class Tile(val pixels: UByteArray) {
 
     operator fun get(x: Int, y: Int): UByte {
         return pixels[y * WIDTH + x]
+    }
+
+    operator fun set(x: Int, y: Int, value: UByte) {
+        pixels[y * WIDTH + x] = value
     }
 
     companion object {

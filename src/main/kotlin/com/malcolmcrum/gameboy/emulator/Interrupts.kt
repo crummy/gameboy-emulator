@@ -36,7 +36,7 @@ class Interrupts {
     }
 
     fun setInterrupt(interrupt: Interrupt) {
-        log.info { "Interrupt $interrupt set" }
+        log.debug { "Interrupt $interrupt set" }
         IE = IE.withBit(interrupt.bit, 1)
     }
 
