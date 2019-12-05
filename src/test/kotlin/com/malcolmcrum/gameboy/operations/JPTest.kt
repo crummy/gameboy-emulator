@@ -1,6 +1,6 @@
 package com.malcolmcrum.gameboy.operations
 
-import com.malcolmcrum.gameboy.Registers.Companion.CARRY_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.CARRY_FLAG
 import com.malcolmcrum.gameboy.utils.State
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -18,7 +18,7 @@ internal class JPTest {
     }
 
     @Nested
-    @DisplayName("JP C,\$aabb")
+    @DisplayName("JP C,n16")
     inner class JP_C_AABB {
         @Test
         fun `carry set`() {
@@ -32,7 +32,7 @@ internal class JPTest {
         fun `carry not set`() {
             test(0xda) {
                 initial = State(pc = 0x2233u, args = listOf(0x55u, 0x33u), f = 0u)
-                expected = State(pc = 0x2233u)
+                expected = State(pc = 0x2236u)
             }
         }
     }

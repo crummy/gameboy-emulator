@@ -4,10 +4,11 @@ import assertk.assertAll
 import assertk.assertThat
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
-import com.malcolmcrum.gameboy.Registers.Companion.CARRY_FLAG
-import com.malcolmcrum.gameboy.Registers.Companion.HALF_CARRY_FLAG
-import com.malcolmcrum.gameboy.Registers.Companion.SUBTRACT_FLAG
-import com.malcolmcrum.gameboy.Registers.Companion.ZERO_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.CARRY_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.HALF_CARRY_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.SUBTRACT_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.ZERO_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers
 import com.malcolmcrum.gameboy.utils.isEqualToByte
 import com.malcolmcrum.gameboy.utils.isEqualToWord
 import org.junit.jupiter.api.BeforeEach

@@ -1,6 +1,8 @@
 package com.malcolmcrum.gameboy.operations
 
-import com.malcolmcrum.gameboy.Registers.Companion.ZERO_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.HALF_CARRY_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.SUBTRACT_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.ZERO_FLAG
 import com.malcolmcrum.gameboy.utils.State
 import org.junit.jupiter.api.Test
 
@@ -28,7 +30,7 @@ internal class CPLTest {
     fun `zero flag`() {
         test(opcode) {
             initial = State(a = 0xFFu)
-            expected = State(a = 0u, f = ZERO_FLAG)
+            expected = State(a = 0u, f = ZERO_FLAG or SUBTRACT_FLAG or HALF_CARRY_FLAG)
         }
     }
 }

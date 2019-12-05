@@ -1,7 +1,7 @@
 package com.malcolmcrum.gameboy.operations
 
-import com.malcolmcrum.gameboy.Registers.Companion.CARRY_FLAG
-import com.malcolmcrum.gameboy.Registers.Companion.HALF_CARRY_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.CARRY_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.HALF_CARRY_FLAG
 import com.malcolmcrum.gameboy.utils.State
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest

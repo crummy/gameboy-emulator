@@ -1,10 +1,8 @@
 package com.malcolmcrum.gameboy.operations
 
 import assertk.assertThat
-import com.malcolmcrum.gameboy.MMU
-import com.malcolmcrum.gameboy.OperationBuilder
-import com.malcolmcrum.gameboy.Registers
-import com.malcolmcrum.gameboy.hex
+import com.malcolmcrum.gameboy.emulator.*
+import com.malcolmcrum.gameboy.util.hex
 import com.malcolmcrum.gameboy.utils.State
 import com.malcolmcrum.gameboy.utils.isEqualTo
 import mu.KotlinLogging
@@ -14,8 +12,8 @@ class OperationTest(var opcode: UByte, var initial: State = State(), var expecte
     private val log = KotlinLogging.logger {}
 
     val registers = Registers()
-    val mmu = MMU().apply { inBios = false }
-    val operations = OperationBuilder(registers, mmu, { null }).operations
+    val mmu = MMU(joypad = Joypad()).apply { inBios = false }
+    val operations = Operations(registers, mmu)
 
     fun execute() {
         log.debug { "Initial: $initial" }
@@ -23,16 +21,16 @@ class OperationTest(var opcode: UByte, var initial: State = State(), var expecte
         givenROM(initial.pc ?: 0u, listOf(opcode).plus(initial.args))
         givenRAM(initial.ram)
 
-        executeInstruction()
+        val op = executeInstruction()
 
-        assertThat(registers, operationDescription(opcode)).isEqualTo(expected)
-        assertThat(mmu, operationDescription(opcode)).isEqualTo(expected.ram)
+        assertThat(registers, "${opcode.hex()}: ${op.mnemonic}").isEqualTo(expected)
+        assertThat(mmu, "${opcode.hex()}: ${op.mnemonic}").isEqualTo(expected.ram)
     }
 
-    private fun operationDescription(opcode: UByte) = "${opcode.hex()}: ${operations[opcode.toInt()]}"
-
-    private fun executeInstruction() {
-        operations[opcode.toInt()].operation.invoke()
+    private fun executeInstruction(): Z80Operation {
+        val (_, operation) = operations[registers.pc]
+        registers.pc = operation.invoke(registers.pc)
+        return operation
     }
 
     private fun givenROM(pc: UShort, instructions: List<UByte>) {

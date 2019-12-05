@@ -5,6 +5,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
+import com.malcolmcrum.gameboy.util.*
 import com.malcolmcrum.gameboy.utils.isEqualToByte
 import org.junit.jupiter.api.Test
 
@@ -57,6 +58,12 @@ internal class BytesTest {
     }
 
     @Test
+    fun `create UShort, take two`()  {
+        val short = createUShort(0xFFu, 0xFEu)
+        assertThat(short).isEqualTo(0xFFFEu.toUShort())
+    }
+
+    @Test
     fun `select bits`() {
         assertAll {
             assertThat(0xF0u.toUByte().getBit(7)).isTrue()
@@ -74,8 +81,42 @@ internal class BytesTest {
 
             assertThat(1u.toUByte().getBit(0)).isTrue()
             assertThat(0u.toUByte().getBit(0)).isFalse()
+
+            val ff = 0xffu.toUByte()
+            assertThat(ff.getBit(7), "0xff bit 7").isTrue()
+            assertThat(ff.getBit(6), "0xff bit 6").isTrue()
+            assertThat(ff.getBit(5), "0xff bit 5").isTrue()
+            assertThat(ff.getBit(4), "0xff bit 4").isTrue()
+            assertThat(ff.getBit(3), "0xff bit 3").isTrue()
+            assertThat(ff.getBit(2), "0xff bit 2").isTrue()
+            assertThat(ff.getBit(1), "0xff bit 1").isTrue()
+            assertThat(ff.getBit(0), "0xff bit 0").isTrue()
         }
+    }
 
+    @Test
+    fun `set bits`() {
+        val one = 0u.toUByte().withBit(0, 1)
+        assertThat(one).isEqualToByte(0x01u)
 
+        val two = 0u.toUByte().withBit(1, 1)
+        assertThat(two).isEqualToByte(0x02u)
+
+        val zero = 0xff.toUByte().withBit(7, 0)
+                .withBit(6, 0)
+                .withBit(5, 0)
+                .withBit(4, 0)
+                .withBit(3, 0)
+                .withBit(2, 0)
+                .withBit(1, 0)
+                .withBit(0, 0)
+        assertThat(zero).isEqualToByte(0u)
+    }
+
+    @Test
+    fun `hex printing`() {
+        assertThat(0xFFu.hex()).isEqualTo("0x00ff")
+        assertThat(0x1234u.hex()).isEqualTo("0x1234")
+        assertThat(0xc3u.toUByte().hex()).isEqualTo("0xc3")
     }
 }

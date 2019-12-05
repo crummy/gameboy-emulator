@@ -1,12 +1,14 @@
 package com.malcolmcrum.gameboy
 
 import assertk.assertThat
+import com.malcolmcrum.gameboy.emulator.Joypad
+import com.malcolmcrum.gameboy.emulator.MMU
 import com.malcolmcrum.gameboy.utils.isEqualToByte
 import org.junit.jupiter.api.Test
 
 @ExperimentalUnsignedTypes
 internal class MMUTest {
-    private val mmu = MMU()
+    private val mmu = MMU(joypad = Joypad())
 
     @Test
     fun `working RAM shadow read`() {
@@ -37,7 +39,7 @@ internal class MMUTest {
 
     @Test
     fun `read and write every byte`() {
-        mmu[0x100u] // first, unload bios
+        mmu.inBios = false // first, unload bios
         for (i in (0u..0xFFFFu)) {
             if (i in (0xFE00u..0xFF80u)) continue // can't write to these IO addresses
             mmu[i] = 0xAAu

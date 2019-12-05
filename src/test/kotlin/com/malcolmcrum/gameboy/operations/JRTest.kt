@@ -1,6 +1,6 @@
 package com.malcolmcrum.gameboy.operations
 
-import com.malcolmcrum.gameboy.Registers.Companion.CARRY_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.CARRY_FLAG
 import com.malcolmcrum.gameboy.utils.State
 import org.junit.jupiter.api.Test
 
@@ -10,7 +10,7 @@ internal class JRTest {
     fun `JR $xx`() {
         test(0x18) {
             initial = State(pc = 0x01u, args = listOf(0x22u))
-            expected = State(pc = 0x23u)
+            expected = State(pc = 0x25u)
         }
     }
 
@@ -18,7 +18,7 @@ internal class JRTest {
     fun `JR C,$xx, carry set`() {
         test(0x38) {
             initial = State(pc = 0x01u, args = listOf(0x22u), f = CARRY_FLAG)
-            expected = State(pc = 0x23u)
+            expected = State(pc = 0x25u)
         }
     }
 
@@ -26,7 +26,7 @@ internal class JRTest {
     fun `JR Z,$xx, carry not set`() {
         test(0x38) {
             initial = State(pc = 0x01u, args = listOf(0x22u), f = 0u)
-            expected = State(pc = 0x01u)
+            expected = State(pc = 0x03u)
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.malcolmcrum.gameboy
+package com.malcolmcrum.gameboy.util
 
 @ExperimentalUnsignedTypes
 val UShort.upperByte
@@ -55,7 +55,38 @@ fun Map<UInt, UByte>.hex(): String = this.map { "${it.key.hex()}=${it.value.hex(
 fun List<UByte>.hex(): String = this.map { "${it.hex()}}" }.toString()
 
 @ExperimentalUnsignedTypes
+fun UInt.bin(): String = Integer.toBinaryString(this.toInt())
+
+@ExperimentalUnsignedTypes
 fun UByte.getBit(position: Int): Boolean {
     assert(position <= 7)
-    return (this.toUInt() shr position) == 1u
+    return (this.toUInt() shr position) and 0x01u == 1u
 }
+
+@ExperimentalUnsignedTypes
+fun UByte.withBit(bit: Int, value: Int): UByte {
+    return when (value) {
+        0 -> this and (1u shl bit).inv().toUByte()
+        1 -> this or (1u shl bit).toUByte()
+        else -> throw IllegalStateException()
+    }
+}
+
+@ExperimentalUnsignedTypes
+fun UByte.withBit(bit: Int, value: Boolean): UByte {
+    return when (value) {
+        false -> this and (1u shl bit).inv().toUByte()
+        true -> this or (1u shl bit).toUByte()
+    }
+}
+
+@ExperimentalUnsignedTypes
+operator fun UByteArray.get(address: UShort): UByte {
+    return this[address.toInt()]
+}
+
+@ExperimentalUnsignedTypes
+operator fun UByteArray.get(address: UInt): UByte {
+    return this[address.toInt()]
+}
+

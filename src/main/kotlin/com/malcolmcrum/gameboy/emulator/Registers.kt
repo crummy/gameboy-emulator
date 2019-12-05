@@ -1,4 +1,9 @@
-package com.malcolmcrum.gameboy
+package com.malcolmcrum.gameboy.emulator
+
+import com.malcolmcrum.gameboy.util.createUShort
+import com.malcolmcrum.gameboy.util.hex
+import com.malcolmcrum.gameboy.util.lowerByte
+import com.malcolmcrum.gameboy.util.upperByte
 
 // Remember: GBZ80 is small endian
 @ExperimentalUnsignedTypes
@@ -13,18 +18,20 @@ data class Registers(
         var pc: UShort = 0u,
         var sp: UShort = 0u,
         var m: UByte = 0u,
-        var t: UByte = 0u
+        var t: UByte = 0u,
+        var stopped: Boolean = false,
+        var halted: Boolean = false
 ) {
     var f: UByte = 0u
         set(value) {
-            field = value and 0xf0u
+            field = value and 0xf0u // lower 4 bytes of f are always 0
         }
 
     var af: UShort
         get() = createUShort(a, f)
         set(value) {
             a = value.upperByte
-            f = value.lowerByte and 0xF0u  // lower 4 bytes of f are always 0
+            f = value.lowerByte
         }
     var bc: UShort
         get() = createUShort(b, c)
@@ -44,14 +51,6 @@ data class Registers(
             h = value.upperByte
             l = value.lowerByte
         }
-
-    fun setFlags(carry: Boolean = false, zero: Boolean = false, halfCarry: Boolean = false, subtract: Boolean = false) {
-        f = 0u
-        this.carry = carry
-        this.zero = zero
-        this.halfCarry = halfCarry
-        this.subtract = subtract
-    }
 
     var carry: Boolean
         get() = f and CARRY_FLAG != 0u.toUByte()
@@ -98,10 +97,10 @@ data class Registers(
     }
 
     override fun toString(): String {
-        var flags = if (zero) "Z" else ""
-        flags += if (subtract) "N" else ""
-        flags += if (halfCarry) "H" else ""
-        flags += if (carry) "C" else ""
+        var flags = if (zero) "Z" else "-"
+        flags += if (subtract) "N" else "-"
+        flags += if (halfCarry) "H" else "-"
+        flags += if (carry) "C" else "-"
         return "Registers(a=${a.hex()}, b=${b.hex()}, c=${c.hex()}, d=${d.hex()}, e=${e.hex()}, h=${h.hex()}, l=${l.hex()}, sp=${sp.hex()}, pc=${pc.hex()}, $flags)"
     }
 

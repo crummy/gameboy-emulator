@@ -1,6 +1,6 @@
 package com.malcolmcrum.gameboy.operations
 
-import com.malcolmcrum.gameboy.Registers.Companion.CARRY_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.CARRY_FLAG
 import com.malcolmcrum.gameboy.utils.State
 import org.junit.jupiter.api.Test
 
@@ -25,8 +25,8 @@ internal class CALLTest {
     @Test
     fun `CALL C,$aabb without flag`() {
         test(0xdc) {
-            initial = State(sp = 8u, f = 0u, args = listOf(0x44u, 0x33u))
-            expected = State(pc = 0u, sp = 8u)
+            initial = State(pc = 0u, sp = 8u, f = 0u, args = listOf(0x44u, 0x33u))
+            expected = State(pc = 3u, sp = 8u)
         }
     }
 

@@ -1,7 +1,8 @@
 package com.malcolmcrum.gameboy.operations
 
-import com.malcolmcrum.gameboy.Registers.Companion.SUBTRACT_FLAG
-import com.malcolmcrum.gameboy.Registers.Companion.ZERO_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.HALF_CARRY_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.SUBTRACT_FLAG
+import com.malcolmcrum.gameboy.emulator.Registers.Companion.ZERO_FLAG
 import com.malcolmcrum.gameboy.utils.State
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -35,7 +36,7 @@ internal class DECTest {
         fun underflow() {
             test(opcode) {
                 initial = State(hl = 0x4433u, ram = mapOf(0x4433u to 0x00u))
-                expected = State(ram = mapOf(0x4433u to 0xFFu), f = SUBTRACT_FLAG)
+                expected = State(ram = mapOf(0x4433u to 0xFFu), f = SUBTRACT_FLAG or HALF_CARRY_FLAG)
             }
         }
     }
